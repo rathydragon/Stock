@@ -17,6 +17,49 @@
     <?!= include('styles'); ?>
 </head>
 <body class="light-mode">
+    <!-- Login Glassmorphic Overlay -->
+    <div class="login-overlay hidden" id="loginOverlay">
+        <div class="login-card">
+            <div class="login-card-header">
+                <div class="login-brand-icon">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <h2 class="login-title">ចូលប្រព័ន្ធ ស្តុកខ្មែរ Pro</h2>
+                <p class="login-subtitle">សូមបញ្ចូល គណនី និង លេខសម្ងាត់ ដើម្បីចូលប្រើប្រាស់</p>
+            </div>
+            <div class="login-card-body">
+                <form id="loginForm">
+                    <div class="form-group mb-3">
+                        <label for="loginUsername" class="fw-semibold">ឈ្មោះគណនី (Username) <span class="text-danger">*</span></label>
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-user input-icon"></i>
+                            <input type="text" id="loginUsername" class="form-control login-input" placeholder="បញ្ចូលឈ្មោះគណនី..." required autocomplete="username">
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="loginPassword" class="fw-semibold">ពាក្យសម្ងាត់ (Password) <span class="text-danger">*</span></label>
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-lock input-icon"></i>
+                            <input type="password" id="loginPassword" class="form-control login-input login-input-pwd" placeholder="បញ្ចូលពាក្យសម្ងាត់..." required autocomplete="current-password">
+                            <button type="button" class="btn-toggle-pwd" id="btnTogglePassword" title="បង្ហាញ/លាក់ លេខសម្ងាត់">
+                                <i class="fa-solid fa-eye" id="pwdEyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="login-alert hidden" id="loginAlertBox">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i>
+                        <span id="loginAlertText"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-login-cta w-100 mt-3" id="btnLoginSubmit">
+                        <i class="fa-solid fa-right-to-bracket me-2"></i> ចូលប្រើប្រាស់ប្រព័ន្ធ (Login)
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Main App Layout -->
     <div class="app-container">
         
@@ -67,13 +110,20 @@
                     <li class="nav-item" data-page="contacts">
                         <a href="#contacts" onclick="return navigateToPage('contacts', event)">
                             <i class="fa-solid fa-users"></i>
-                            <span>អតិថិជន & អ្នកផ្គត់ផ្គង់</span>
+                            <span>អតិថិជន & ម្ចាស់ហាង</span>
                         </a>
                     </li>
                     <li class="nav-item" data-page="reports">
                         <a href="#reports" onclick="return navigateToPage('reports', event)">
                             <i class="fa-solid fa-file-invoice-dollar"></i>
                             <span>របាយការណ៍ & ប្រវត្តិ</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" data-page="bookings">
+                        <a href="#bookings" onclick="return navigateToPage('bookings', event)">
+                            <i class="fa-solid fa-bookmark"></i>
+                            <span>បញ្ជីកក់ទំនិញ</span>
+                            <span class="badge badge-count badge-warning" id="totalBookingsBadge">0</span>
                         </a>
                     </li>
                     <li class="nav-item" data-page="settings">
@@ -131,6 +181,17 @@
                     <button class="theme-toggle" id="themeToggle" title="ប្តូរ Dark/Light Mode">
                         <i class="fa-solid fa-moon"></i>
                     </button>
+
+                    <!-- User Profile & Logout Header Bar -->
+                    <div class="user-profile-bar ms-2 flex-center gap-2" id="userProfileHeaderBar">
+                        <div class="user-info-chip">
+                            <span class="badge badge-primary user-role-badge" id="headerUserRoleBadge">Admin</span>
+                            <span class="user-name-text fw-bold" id="headerUserNameText">អ្នកគ្រប់គ្រង</span>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger" id="btnLogoutBtn" title="ចាកចេញពីប្រព័ន្ធ">
+                            <i class="fa-solid fa-right-from-bracket"></i> <span>ចាកចេញ</span>
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -295,6 +356,12 @@
                                     </select>
                                 </div>
                                 <div class="select-group">
+                                    <i class="fa-solid fa-store filter-icon"></i>
+                                    <select id="productSupplierFilter" class="form-select filter-select">
+                                        <option value="">គ្រប់ម្ចាស់ហាង (Stores)</option>
+                                    </select>
+                                </div>
+                                <div class="select-group">
                                     <i class="fa-solid fa-boxes-stacked filter-icon"></i>
                                     <select id="productStatusFilter" class="form-select filter-select">
                                         <option value="">គ្រប់ស្ថានភាព</option>
@@ -319,20 +386,22 @@
                                     <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
                                         <tr>
                                             <th class="text-center" style="width: 50px;">NO</th>
-                                            <th style="width: 130px;">កូដទំនិញ/បាកូដ</th>
+                                            <th style="width: 120px;">កូដទំនិញ/បាកូដ</th>
                                             <th>ឈ្មោះទំនិញ</th>
-                                            <th style="width: 130px;">ប្រភេទទំនិញ</th>
-                                            <th class="text-center" style="width: 80px;">ឯកតា</th>
-                                            <th class="text-end" style="width: 100px;">តម្លៃដើម</th>
-                                            <th class="text-end" style="width: 100px;">តម្លៃលក់</th>
-                                            <th class="text-center" style="width: 110px;">ស្តុកអប្បបរមា</th>
-                                            <th class="text-center" style="width: 110px;">ស្ថានភាព</th>
-                                            <th class="text-center" style="width: 130px;">សកម្មភាព</th>
+                                            <th style="width: 110px;">ប្រភេទទំនិញ</th>
+                                            <th style="width: 130px;">ម្ចាស់ហាង (Store)</th>
+                                            <th class="text-center" style="width: 70px;">ឯកតា</th>
+                                            <th class="text-end" style="width: 90px;">តម្លៃដើម</th>
+                                            <th class="text-end" style="width: 90px;">តម្លៃលក់</th>
+                                            <th class="text-center" style="width: 100px;">ស្តុកអប្បបរមា</th>
+                                            <th class="text-center" style="width: 100px;">ស្ថានភាព</th>
+                                            <th class="text-center" style="width: 120px;">សកម្មភាព</th>
                                         </tr>
                                     </thead>
                                     <tbody id="productsTableBody">
                                         <!-- JS populated -->
                                     </tbody>
+                                    <tfoot id="productsTableFoot"></tfoot>
                                 </table>
                             </div>
                         </div>
@@ -384,17 +453,29 @@
                                         <input type="date" id="stockInFormDate" class="form-control" required>
                                     </div>
                                     <div class="form-group mb-2.5">
-                                        <label>អ្នកផ្គត់ផ្គង់ *</label>
+                                        <label>ម្ចាស់ហាង (Store) *</label>
                                         <select id="stockInSupplierFormSelect" class="form-select"></select>
                                     </div>
                                     <div class="form-group mb-2.5">
                                         <label>ជ្រើសរើសមុខទំនិញ</label>
                                         <select id="stockInProductFormSelect" class="form-select"></select>
                                     </div>
-                                    <div class="form-grid mb-2.5" style="grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                    <div class="form-grid mb-2.5" style="grid-template-columns: 1fr 1.15fr 1.15fr; gap: 0.5rem;">
                                         <div class="form-group mb-0">
                                             <label>ចំនួន</label>
                                             <input type="number" id="stockInFormQty" class="form-control" value="1" min="1">
+                                        </div>
+                                        <div class="form-group mb-0">
+                                            <label>ឯកតា</label>
+                                            <select id="stockInFormUnit" class="form-select">
+                                                <option value="កេស">កេស</option>
+                                                <option value="ប្រអប់">ប្រអប់</option>
+                                                <option value="កញ្ចប់" selected>កញ្ចប់</option>
+                                                <option value="ដប">ដប</option>
+                                                <option value="កំប៉ុង">កំប៉ុង</option>
+                                                <option value="គីឡូ">គីឡូ</option>
+                                                <option value="លីត្រ">លីត្រ</option>
+                                            </select>
                                         </div>
                                         <div class="form-group mb-0">
                                             <label>តម្លៃទិញ ($)</label>
@@ -418,8 +499,8 @@
                                 <h3 style="font-size: 1.05rem;" class="mb-0 fw-bold"><i class="fa-solid fa-basket-shopping text-success me-2"></i> កន្ត្រកទិញទំនិញ</h3>
                                 <span class="badge badge-success" id="stockInCartCountBadge" style="font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 8px;">0 មុខ</span>
                             </div>
-                            <div class="card-body p-0" style="min-height: 240px; display: flex; flex-direction: column; justify-content: space-between;">
-                                <div class="table-responsive">
+                            <div class="card-body p-0 pos-cart-body">
+                                <div class="table-responsive pos-cart-wrapper">
                                     <table class="table pos-cart-table table-hover align-middle mb-0">
                                         <thead>
                                             <tr>
@@ -438,14 +519,16 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <div class="p-3 border-top bg-light-subtle">
-                                    <div class="flex-between mb-3 pos-summary-box">
-                                        <span class="fw-bold text-secondary" style="font-size: 0.95rem;">សរុបការទិញចូល (Grand Total):</span>
-                                        <span class="fw-bold text-success fs-3" id="stockInCartGrandTotal">$0.00</span>
+                                <div class="pos-cart-footer">
+                                    <div class="pos-cart-footer-content">
+                                        <div class="pos-summary-box">
+                                            <span class="pos-summary-label">សរុបការទិញចូល (Grand Total):</span>
+                                            <span class="pos-summary-value text-success" id="stockInCartGrandTotal">$0.00</span>
+                                        </div>
+                                        <button class="btn btn-success btn-pos-checkout" id="btnCompleteStockInTx" disabled>
+                                            <i class="fa-solid fa-circle-check me-2"></i> កាត់ស្តុកចូល និងរក្សាទុក
+                                        </button>
                                     </div>
-                                    <button class="btn btn-success w-100" id="btnCompleteStockInTx" style="height: 46px !important; font-size: 1rem !important; border-radius: 12px !important; font-weight: 600;" disabled>
-                                        <i class="fa-solid fa-circle-check me-2"></i> កាត់ស្តុកចូល និងរក្សាទុក
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -529,13 +612,29 @@
                                         <select id="stockOutCustomerFormSelect" class="form-select"></select>
                                     </div>
                                     <div class="form-group mb-2.5">
-                                        <label>ជ្រើសរើសមុខទំនិញ</label>
+                                        <label>ម្ចាស់ហាង (Store) <span class="text-muted text-xs">(ចម្រោះមុខទំនិញ)</span></label>
+                                        <select id="stockOutSupplierFormSelect" class="form-select"></select>
+                                    </div>
+                                    <div class="form-group mb-2.5">
+                                        <label>ជ្រើសរើសមុខទំនិញ *</label>
                                         <select id="stockOutProductFormSelect" class="form-select"></select>
                                     </div>
-                                    <div class="form-grid mb-3" style="grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                    <div class="form-grid mb-3" style="grid-template-columns: 1fr 1.15fr 1.15fr; gap: 0.5rem;">
                                         <div class="form-group mb-0">
                                             <label>ចំនួន</label>
                                             <input type="number" id="stockOutFormQty" class="form-control" value="1" min="1">
+                                        </div>
+                                        <div class="form-group mb-0">
+                                            <label>ឯកតា</label>
+                                            <select id="stockOutFormUnit" class="form-select">
+                                                <option value="កេស">កេស</option>
+                                                <option value="ប្រអប់">ប្រអប់</option>
+                                                <option value="កញ្ចប់" selected>កញ្ចប់</option>
+                                                <option value="ដប">ដប</option>
+                                                <option value="កំប៉ុង">កំប៉ុង</option>
+                                                <option value="គីឡូ">គីឡូ</option>
+                                                <option value="លីត្រ">លីត្រ</option>
+                                            </select>
                                         </div>
                                         <div class="form-group mb-0">
                                             <label>តម្លៃលក់ ($)</label>
@@ -555,8 +654,8 @@
                                 <h3 style="font-size: 1.05rem;" class="mb-0 fw-bold"><i class="fa-solid fa-basket-shopping text-primary me-2"></i> កន្ត្រកលក់ទំនិញ</h3>
                                 <span class="badge badge-info" id="stockOutCartCountBadge" style="font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 8px;">0 មុខ</span>
                             </div>
-                            <div class="card-body p-0" style="min-height: 240px; display: flex; flex-direction: column; justify-content: space-between;">
-                                <div class="table-responsive">
+                            <div class="card-body p-0 pos-cart-body">
+                                <div class="table-responsive pos-cart-wrapper">
                                     <table class="table pos-cart-table table-hover align-middle mb-0">
                                         <thead>
                                             <tr>
@@ -575,14 +674,33 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <div class="p-3 border-top bg-light-subtle">
-                                    <div class="flex-between mb-3 pos-summary-box">
-                                        <span class="fw-bold text-secondary" style="font-size: 0.95rem;">សរុបការលក់ចេញ (Grand Total):</span>
-                                        <span class="fw-bold text-primary fs-3" id="stockOutCartGrandTotal">$0.00</span>
+                                 <div class="pos-cart-footer p-3 bg-light border-top">
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-md-4 col-12">
+                                            <label class="form-label text-xs fw-semibold mb-1">ថ្លៃសេវា ($)</label>
+                                            <input type="number" min="0" step="0.01" id="stockOutServiceFee" class="form-control form-control-sm" placeholder="0.00" value="0.00">
+                                        </div>
+                                        <div class="col-md-4 col-12">
+                                            <label class="form-label text-xs fw-semibold mb-1">ថ្លៃអីវ៉ាន់ COD ($)</label>
+                                            <input type="number" min="0" step="0.01" id="stockOutCodFee" class="form-control form-control-sm" placeholder="0.00" value="0.00">
+                                        </div>
+                                        <div class="col-md-4 col-12">
+                                            <label class="form-label text-xs fw-semibold mb-1">ស្ថានភាពទូទាត់</label>
+                                            <select id="stockOutPaymentStatus" class="form-select form-select-sm fw-bold text-success">
+                                                <option value="Paid" selected>🟢 បង់រួច (Paid)</option>
+                                                <option value="Unpaid">🔴 មិនទាន់បង់ (Unpaid/COD)</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <button class="btn btn-primary w-100" id="btnCompleteStockOutTx" style="height: 46px !important; font-size: 1rem !important; border-radius: 12px !important; font-weight: 600;" disabled>
-                                        <i class="fa-solid fa-circle-check me-2"></i> កាត់ស្តុក និងចេញវិក្កយបត្រ
-                                    </button>
+                                    <div class="pos-cart-footer-content">
+                                        <div class="pos-summary-box">
+                                            <span class="pos-summary-label">សរុបការលក់ចេញ (Grand Total):</span>
+                                            <span class="pos-summary-value text-primary" id="stockOutCartGrandTotal">$0.00</span>
+                                        </div>
+                                        <button class="btn btn-primary btn-pos-checkout" id="btnCompleteStockOutTx" disabled>
+                                            <i class="fa-solid fa-circle-check me-2"></i> កាត់ស្តុក និងចេញវិក្កយបត្រ
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -615,6 +733,7 @@
                                     <tbody id="stockOutTableBody">
                                         <!-- JS populated -->
                                     </tbody>
+                                    <tfoot id="stockOutTableFoot"></tfoot>
                                 </table>
                             </div>
                         </div>
@@ -627,9 +746,9 @@
                         <!-- Suppliers Card -->
                         <div class="card">
                             <div class="card-header flex-between">
-                                <h3><i class="fa-solid fa-truck"></i> អ្នកផ្គត់ផ្គង់ (Suppliers)</h3>
+                                <h3><i class="fa-solid fa-store"></i> ម្ចាស់ហាង (Store)</h3>
                                 <button class="btn btn-sm btn-outline-primary" id="btnAddSupplierBtn">
-                                    <i class="fa-solid fa-plus"></i> បន្ថែមអ្នកផ្គត់ផ្គង់
+                                    <i class="fa-solid fa-plus"></i> បន្ថែមម្ចាស់ហាង
                                 </button>
                             </div>
                             <div class="card-body p-0">
@@ -637,6 +756,7 @@
                                     <thead>
                                         <tr>
                                             <th>ឈ្មោះ</th>
+                                            <th class="text-center">ឈ្មោះគណនី (Username)</th>
                                             <th>លេខទូរស័ព្ទ</th>
                                             <th>អាសយដ្ឋាន/ក្រុមហ៊ុន</th>
                                             <th class="text-end">សកម្មភាព</th>
@@ -668,6 +788,70 @@
                                         </tr>
                                     </thead>
                                     <tbody id="customersTableBody">
+                                        <!-- JS populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PAGE: BOOKINGS LIST (ADMIN & MANAGER) -->
+                <section class="page-section" id="page-bookings">
+                    <!-- Filter & KPI Card -->
+                    <div class="card mb-4 shadow-sm" style="border-radius: 18px; border: 1px solid #e2e8f0; background: #ffffff;">
+                        <div class="card-body p-3">
+                            <div class="flex-between flex-wrap gap-3">
+                                <div class="flex-center gap-3">
+                                    <div class="booking-header-avatar">
+                                        <i class="fa-solid fa-bookmark"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="fw-bold mb-1" style="font-size: 1.22rem; color: #0f172a; font-family: var(--font-khmer);">បញ្ជីកក់ទំនិញ (Customer Bookings)</h3>
+                                        <div class="flex-center gap-2 flex-wrap text-sm text-muted">
+                                            <span>គ្រប់គ្រង និង ពិនិត្យរូបភាពបង្កាន់ដៃកក់ប្រាក់ពីអតិថិជន</span>
+                                            <span class="booking-badge-summary" id="bookingPendingCountSummary"><i class="fa-solid fa-clock text-amber me-1"></i> កំពុងកក់: 0</span>
+                                            <span class="booking-badge-summary-success" id="bookingCompletedCountSummary"><i class="fa-solid fa-circle-check text-green me-1"></i> បង្ហើយ: 0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex-center gap-2 flex-wrap">
+                                    <div class="search-input-group" style="width: 260px;">
+                                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                        <input type="text" id="bookingSearchInput" class="search-input" placeholder="ស្វែងរកតាមលេខវិក្កយបត្រ, ឈ្មោះ..." style="height: 38px !important; border-radius: 12px !important;">
+                                    </div>
+                                    <div class="select-group" style="width: 170px;">
+                                        <i class="fa-solid fa-filter filter-icon"></i>
+                                        <select id="bookingStatusFilter" class="form-select filter-select" style="height: 38px !important; border-radius: 12px !important;">
+                                            <option value="">គ្រប់ស្ថានភាព</option>
+                                            <option value="Pending">🟡 កំពុងកក់ (Pending)</option>
+                                            <option value="Completed">🟢 បង្ហើយ (Completed)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bookings Table Card -->
+                    <div class="card shadow-sm" style="border-radius: 18px; border: 1px solid #e2e8f0; background: #ffffff; overflow: hidden;">
+                        <div class="card-body p-0">
+                            <div class="table mobile-cards-table-responsive">
+                                <table class="table mobile-cards-table table-hover align-middle mb-0 booking-data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 135px;">ថ្ងៃខែម៉ោង</th>
+                                            <th style="width: 120px;">លេខវិក្កយបត្រ</th>
+                                            <th>ឈ្មោះទំនិញ / ផលិតផល</th>
+                                            <th style="width: 130px;">អតិថិជន</th>
+                                            <th class="text-end" style="width: 100px;">តម្លៃសរុប</th>
+                                            <th class="text-center" style="width: 110px;">រូបភាពបង្កាន់ដៃ</th>
+                                            <th style="width: 100px;">អ្នកទទួលកក់</th>
+                                            <th class="text-center" style="width: 105px;">ស្ថានភាព</th>
+                                            <th class="text-center" style="width: 115px;">សកម្មភាព</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bookingsTableBody">
                                         <!-- JS populated -->
                                     </tbody>
                                 </table>
@@ -737,7 +921,7 @@
                                             <th class="text-center" style="width: 90px;">ចំនួន</th>
                                             <th class="text-end" style="width: 110px;">តម្លៃឯកតា</th>
                                             <th class="text-end" style="width: 110px;">សរុប ($)</th>
-                                            <th style="width: 220px;">ដៃគូពាក់ព័ន្ធ (អតិថិជន/អ្នកផ្គត់ផ្គង់)</th>
+                                            <th style="width: 220px;">ដៃគូពាក់ព័ន្ធ (អតិថិជន/ម្ចាស់ហាង)</th>
                                         </tr>
                                     </thead>
                                     <tbody id="reportTableBody">
@@ -863,52 +1047,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Products Quick Management Card (Full Width) -->
-                                <div class="settings-card full-width">
-                                    <div class="settings-card-header">
-                                        <i class="fa-boxes-stacked fa-solid text-primary fs-2"></i>
-                                        <div>
-                                            <h4 class="mb-1 fw-bold">ឈ្មោះទំនិញ / ផលិតផល (Product Catalog)</h4>
-                                            <p class="text-muted text-sm mb-0">ពិនិត្យ និងគ្រប់គ្រងបញ្ជីទំនិញទាំងអស់យ៉ាងរហ័ស</p>
-                                        </div>
-                                    </div>
-                                    <div class="settings-card-body mt-3 p-0">
-                                        <div class="catalog-toolbar p-3 bg-main border-bottom flex-between align-center flex-wrap gap-3">
-                                            <div class="search-input-group flex-1" style="max-width: 440px;">
-                                                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                                                <input type="text" class="form-control search-input" id="settingsProductSearchInput" placeholder="ស្វែងរកទំនិញតាមឈ្មោះ ឬកូដ..." oninput="renderSettingsProductsTable()">
-                                            </div>
-                                            <div class="flex-center gap-3">
-                                                <div class="catalog-stat-badge">
-                                                    <i class="fa-solid fa-boxes-stacked text-primary me-2 fs-6"></i>
-                                                    <span id="settingsProductCountText">ទំនិញសរុប៖ 0 ប្រភេទ</span>
-                                                </div>
-                                                <button class="btn btn-primary btn-shadow flex-center gap-2" onclick="openProductModal()">
-                                                    <i class="fa-solid fa-plus-circle fs-6"></i>
-                                                    <span class="fw-bold">បន្ថែមទំនិញថ្មី</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="table-responsive max-h-320 settings-product-table-wrapper">
-                                            <table class="table table-hover settings-product-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>កូដទំនិញ</th>
-                                                        <th>ឈ្មោះទំនិញ / ផលិតផល</th>
-                                                        <th>ប្រភេទទំនិញ</th>
-                                                        <th>តម្លៃដើម</th>
-                                                        <th>តម្លៃលក់</th>
-                                                        <th>ស្តុកបច្ចុប្បន្ន</th>
-                                                        <th class="text-center">សកម្មភាព</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="settingsProductListTbody">
-                                                    <!-- Dynamic products -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
+
 
                                 <!-- Data Backup & Management -->
                                 <div class="settings-card full-width">
@@ -934,6 +1073,90 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- User Management Card (Admin Only) -->
+                                <div class="settings-card full-width mt-4" id="userManagementCard">
+                                    <div class="settings-card-header flex-between align-center flex-wrap">
+                                        <div class="flex-center gap-3">
+                                            <i class="fa-solid fa-users-gear text-primary fs-2"></i>
+                                            <div>
+                                                <h4 class="mb-1 fw-bold">គ្រប់គ្រងគណនីប្រើប្រាស់ (User Management & Roles)</h4>
+                                                <p class="text-muted text-sm mb-0">បន្ថែម កែប្រែ ឬលុប គណនីបុគ្គលិក និងកំណត់តួនាទី (Admin, ម្ចាស់ហាង (Store), Manager, Cashier)</p>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-primary" onclick="openUserModal()">
+                                            <i class="fa-solid fa-user-plus"></i> បន្ថែមគណនីថ្មី
+                                        </button>
+                                    </div>
+                                    <div class="settings-card-body mt-3 p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover align-middle mb-0">
+                                                <thead style="background: #f8fafc;">
+                                                    <tr>
+                                                        <th>ឈ្មោះគណនី (Username)</th>
+                                                        <th>ឈ្មោះពេញ</th>
+                                                        <th class="text-center">តួនាទី (Role)</th>
+                                                        <th class="text-center">សិទ្ធិចូលទំព័រ (Pages)</th>
+                                                        <th class="text-center">ស្ថានភាព</th>
+                                                        <th class="text-center">សកម្មភាព</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="usersListTbody">
+                                                    <!-- Dynamic users -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PAGE 8: BOOKINGS LIST -->
+                <section class="page-section" id="page-bookings">
+                    <div class="card shadow-sm" style="border-radius: 16px;">
+                        <div class="card-header border-bottom py-3 px-4 flex-between align-center flex-wrap gap-3">
+                            <div>
+                                <h3 style="font-size: 1.15rem;" class="mb-1 fw-bold"><i class="fa-solid fa-bookmark text-warning me-2"></i> បញ្ជីកក់ទំនិញ (Customer Pre-Order Bookings)</h3>
+                                <p class="text-muted text-sm mb-0">គ្រប់គ្រង និង ពិនិត្យបញ្ជីប្រាក់កក់ និង រូបភាពបង្កាន់ដៃកក់ទំនិញទាំងអស់ (សម្រាប់ Admin & Manager)</p>
+                            </div>
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="catalog-toolbar mb-3 p-3 bg-main border rounded-3 flex-between align-center flex-wrap gap-3">
+                                <div class="search-input-group flex-1" style="max-width: 440px;">
+                                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                    <input type="text" class="form-control search-input" id="bookingSearchInput" placeholder="ស្វែងរកតាម វិក្កយបត្រ, ឈ្មោះទំនិញ, ឬ អតិថិជន...">
+                                </div>
+                                <div class="flex-center gap-2">
+                                    <select id="bookingStatusFilter" class="form-select filter-select">
+                                        <option value="">គ្រប់ស្ថានភាពកក់</option>
+                                        <option value="Pending">កំពុងកក់ (Pending)</option>
+                                        <option value="Completed">បានបង្ហើយ (Completed)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive" id="bookingsTableContainer">
+                                <table class="table mobile-cards-table table-striped align-middle mb-0">
+                                    <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                                        <tr>
+                                            <th style="width: 145px;">ថ្ងៃខែម៉ោង</th>
+                                            <th style="width: 120px;">លេខវិក្កយបត្រ</th>
+                                            <th>ឈ្មោះទំនិញ</th>
+                                            <th>អតិថិជន</th>
+                                            <th class="text-end" style="width: 100px;">ប្រាក់កក់ ($)</th>
+                                            <th class="text-end" style="width: 100px;">តម្លៃសរុប ($)</th>
+                                            <th class="text-center" style="width: 110px;">រូបភាព</th>
+                                            <th style="width: 100px;">អ្នកទទួល</th>
+                                            <th class="text-center" style="width: 100px;">ស្ថានភាព</th>
+                                            <th class="text-center" style="width: 110px;">សកម្មភាព</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bookingsTableBody">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -966,9 +1189,15 @@
                             </div>
                         </div>
 
-                        <div class="form-group mt-3">
-                            <label for="prodName">ឈ្មោះទំនិញ / ផលិតផល <span class="text-danger">*</span></label>
-                            <input type="text" id="prodName" class="form-control" placeholder="បញ្ចូលឈ្មោះទំនិញ..." required>
+                        <div class="form-grid mt-3">
+                            <div class="form-group">
+                                <label for="prodName">ឈ្មោះទំនិញ / ផលិតផល <span class="text-danger">*</span></label>
+                                <input type="text" id="prodName" class="form-control" placeholder="បញ្ចូលឈ្មោះទំនិញ..." required>
+                            </div>
+                            <div class="form-group">
+                                <label for="prodSupplier">ម្ចាស់ហាង (Store)</label>
+                                <select id="prodSupplier" class="form-select"></select>
+                            </div>
                         </div>
 
                         <div class="form-grid mt-3">
@@ -982,13 +1211,25 @@
                             </div>
                         </div>
 
-                        <div class="form-grid mt-3">
+                        <div class="form-grid mt-3" style="grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
                             <div class="form-group">
                                 <label for="prodQuantity">ចំនួនស្តុកបច្ចុប្បន្ន <span class="text-danger">*</span></label>
                                 <input type="number" min="0" id="prodQuantity" class="form-control" placeholder="0" required>
                             </div>
                             <div class="form-group">
-                                <label for="prodMinAlert">កម្រិតព្រមានស្តុកជិតអស់ (Min Alert) <span class="text-danger">*</span></label>
+                                <label for="prodUnit">ឯកតា <span class="text-danger">*</span></label>
+                                <select id="prodUnit" class="form-select" required>
+                                    <option value="កេស">កេស</option>
+                                    <option value="ប្រអប់">ប្រអប់</option>
+                                    <option value="កញ្ចប់" selected>កញ្ចប់</option>
+                                    <option value="ដប">ដប</option>
+                                    <option value="កំប៉ុង">កំប៉ុង</option>
+                                    <option value="គីឡូ">គីឡូ</option>
+                                    <option value="លីត្រ">លីត្រ</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="prodMinAlert">កម្រិតព្រមានស្តុក <span class="text-danger">*</span></label>
                                 <input type="number" min="1" id="prodMinAlert" class="form-control" value="5" required>
                             </div>
                         </div>
@@ -1034,7 +1275,7 @@
 
                         <div class="form-grid mt-3">
                             <div class="form-group">
-                                <label for="stockInSupplierSelect">អ្នកផ្គត់ផ្គង់ (Supplier)</label>
+                                <label for="stockInSupplierSelect">ម្ចាស់ហាង (Store)</label>
                                 <select id="stockInSupplierSelect" class="form-select">
                                     <option value="">-- ពុំមាន / ទូទៅ --</option>
                                 </select>
@@ -1134,10 +1375,18 @@
                 </div>
                 <form id="contactForm">
                     <input type="hidden" id="contactType" value="supplier">
+                    <input type="hidden" id="contactEditIdx" value="-1">
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="contactName">ឈ្មោះ <span class="text-danger">*</span></label>
                             <input type="text" id="contactName" class="form-control" placeholder="ឈ្មោះបុគ្គល ឬក្រុមហ៊ុន" required>
+                        </div>
+                        <div class="form-group mt-3" id="contactUsernameGroup">
+                            <label for="contactUsernameSelect"><i class="fa-solid fa-user-lock me-1 text-primary"></i> ភ្ជាប់ជាមួយ ឈ្មោះគណនី (Username)</label>
+                            <select id="contactUsernameSelect" class="form-select">
+                                <option value="">-- គ្មាន (None / ទូទៅ) --</option>
+                            </select>
+                            <small class="text-muted d-block mt-1" style="font-size: 0.8rem;">ភ្ជាប់ម្ចាស់ហាងនេះទៅកាន់គណនី Username ក្នុងប្រព័ន្ធ</small>
                         </div>
                         <div class="form-group mt-3">
                             <label for="contactPhone">លេខទូរស័ព្ទ</label>
@@ -1227,13 +1476,21 @@
                                 <span style="color: #64748b;">តម្លៃសរុបទំនិញ (Subtotal):</span>
                                 <span id="receiptSubtotal" style="font-weight: 600;">$0.00</span>
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <span style="color: #64748b;">បញ្ចុះតម្លៃ (Discount):</span>
-                                <span>$0.00</span>
+                            <div class="d-flex justify-content-between" id="receiptServiceFeeRow">
+                                <span style="color: #64748b;">ថ្លៃសេវា (Service Fee):</span>
+                                <span id="receiptServiceFee" style="font-weight: 600; color: #0284c7;">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between" id="receiptCodFeeRow">
+                                <span style="color: #64748b;">ថ្លៃអីវ៉ាន់ COD (COD Fee):</span>
+                                <span id="receiptCodFee" style="font-weight: 600; color: #d97706;">$0.00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mt-1 pt-1" style="border-top: 2px solid #0f172a; font-size: 1.05rem; font-weight: 800; color: #0f172a;">
                                 <span>សរុបរួម (GRAND TOTAL):</span>
                                 <span id="receiptGrandTotal" style="color: #1862f6;">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <span style="color: #64748b;">ស្ថានភាពទូទាត់:</span>
+                                <span id="receiptPaymentStatusBadge" class="badge bg-success text-white" style="font-size: 0.78rem; padding: 0.25rem 0.65rem; border-radius: 6px;">🟢 បង់រួច (Paid)</span>
                             </div>
                         </div>
 
@@ -1258,8 +1515,215 @@
         </div>
     </div>
 
+    <!-- MODAL: USER ADD / EDIT -->
+    <div class="modal" id="userModal">
+        <div class="modal-dialog" style="max-width: 580px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="userModalTitle"><i class="fa-solid fa-user-gear"></i> បន្ថែមគណនីថ្មី</h3>
+                    <button class="btn-close closeModal" onclick="closeUserModal()">&times;</button>
+                </div>
+                <form id="userForm">
+                    <input type="hidden" id="userEditUsername" value="">
+                    <div class="modal-body">
+                        <div class="form-group mb-3">
+                            <label for="userFormUsername">ឈ្មោះគណនី (Username) <span class="text-danger">*</span></label>
+                            <input type="text" id="userFormUsername" class="form-control" placeholder="ឧទាហរណ៍: cashier1" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="userFormPassword">ពាក្យសម្ងាត់ (Password) <span class="text-danger">*</span></label>
+                            <input type="password" id="userFormPassword" class="form-control" placeholder="បញ្ចូលពាក្យសម្ងាត់..." required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="userFormFullName">ឈ្មោះពេញ (Full Name) <span class="text-danger">*</span></label>
+                            <input type="text" id="userFormFullName" class="form-control" placeholder="បញ្ចូលឈ្មោះពេញ..." required>
+                        </div>
+                        <div class="form-grid mt-3">
+                            <div class="form-group">
+                                <label for="userFormRole">តួនាទី (Role) <span class="text-danger">*</span></label>
+                                <select id="userFormRole" class="form-select" required onchange="onUserRoleSelectChange()">
+                                    <option value="Admin">Admin (គ្រប់គ្រងប្រព័ន្ធសរុប)</option>
+                                    <option value="Store">ម្ចាស់ហាង (Store - ផ្ទាំងគ្រប់គ្រង, ទំនិញ, ស្តុកចូល/ចេញ, របាយការណ៍)</option>
+                                    <option value="Manager">Manager (គ្រប់គ្រងស្តុក & របាយការណ៍)</option>
+                                    <option value="Cashier" selected>Cashier (បុគ្គលិករៀបចំការលក់ POS)</option>
+                                    <option value="Customer">Customer (អតិថិជន - ចូលបានតែទំព័រ POS)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="userFormStatus">ស្ថានភាព <span class="text-danger">*</span></label>
+                                <select id="userFormStatus" class="form-select" required>
+                                    <option value="Active" selected>Active (ដំណើរការ)</option>
+                                    <option value="Inactive">Inactive (ផ្អាកដំណើរការ)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Page Access Permissions Grid -->
+                        <div class="form-group mt-3">
+                            <label class="fw-bold mb-2 text-dark"><i class="fa-solid fa-lock text-primary me-1"></i> កំណត់សិទ្ធិចូលប្រើប្រាស់ទំព័រ (Page Access Permissions)</label>
+                            <div class="page-permissions-grid p-3 rounded" style="background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #cbd5e1); display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 1rem;">
+                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="dashboard"> ផ្ទាំងគ្រប់គ្រង (Dashboard)
+                                </label>
+                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="products"> ទំនិញ / ផលិតផល (Products)
+                                </label>
+                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="stock-in"> កាត់ស្តុកចូល (Stock In)
+                                </label>
+                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="stock-out" checked> កាត់ស្តុកចេញ (Stock Out)
+                                </label>
+                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="contacts"> អតិថិជន & ម្ចាស់ហាង (Contacts)
+                                </label>
+                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="bookings"> បញ្ជីកក់ទំនិញ (Bookings)
+                                </label>
+                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="reports"> របាយការណ៍ & ប្រវត្តិ (Reports)
+                                </label>
+                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="settings"> ការកំណត់ប្រព័ន្ធ (Settings)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeUserModal()">បោះបង់</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- MODAL: RECEIVE BOOKING -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-dialog" style="max-width: 520px;">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h3 class="modal-title" id="bookingModalTitle"><i class="fa-solid fa-hand-holding-dollar"></i> 📥 ទទួលការកក់ទំនិញ (Customer Booking)</h3>
+                    <button class="btn-close closeModal" onclick="closeBookingModal()">&times;</button>
+                </div>
+                <form id="bookingForm">
+                    <input type="hidden" id="bookingSalesLogId" value="">
+                    <input type="hidden" id="bookingProdCode" value="">
+                    <div class="modal-body">
+                        <!-- Auto-captured Info Box -->
+                        <div class="p-3 mb-3 border rounded-3 bg-light" style="font-size: 0.85rem; line-height: 1.6;">
+                            <div class="flex-between">
+                                <span class="text-muted">ថ្ងៃខែម៉ោងស្វ័យប្រវត្តិ:</span>
+                                <strong id="bookingAutoTimestampText" class="text-primary font-monospace">2026-07-23 12:20:46</strong>
+                            </div>
+                            <div class="flex-between">
+                                <span class="text-muted">លេខវិក្កយបត្រ:</span>
+                                <strong id="bookingInvoiceNoText" class="text-dark font-monospace">SAL-000000</strong>
+                            </div>
+                            <div class="flex-between">
+                                <span class="text-muted">ឈ្មោះទំនិញ:</span>
+                                <strong id="bookingProductNameText" class="text-dark">ទំនិញ</strong>
+                            </div>
+                            <div class="flex-between">
+                                <span class="text-muted">អតិថិជន:</span>
+                                <strong id="bookingCustomerNameText" class="text-dark">អតិថិជនទូទៅ</strong>
+                            </div>
+                            <div class="flex-between border-top pt-1 mt-1">
+                                <span class="text-muted">តម្លៃសរុប:</span>
+                                <strong id="bookingTotalAmountText" class="text-success fs-6">$0.00</strong>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="bookingNotes">កំណត់ចំណាំ / លេខទូរស័ព្ទ / ព័ត៌មានបន្ថែម</label>
+                            <input type="text" id="bookingNotes" class="form-control" placeholder="ឧទាហរណ៍: កក់ 50% តាម ABA, លេខទូរស័ព្ទ 012 345 678">
+                        </div>
+
+                        <div class="form-group mb-2">
+                            <label for="bookingImageInput">ភ្ជាប់រូបភាពបង្កាន់ដៃកក់ (Receipt / Voucher Images) <small class="text-muted">(អាចជ្រើសបានរហូតដល់ ៥ សន្លឹក / Max 5 images)</small></label>
+                            <input type="file" id="bookingImageInput" class="form-control" accept="image/*" multiple>
+                        </div>
+
+                        <!-- Multi-Image Preview Container -->
+                        <div id="bookingImagePreviewContainer" class="d-flex flex-wrap gap-2 mt-2"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeBookingModal()">បោះបង់</button>
+                        <button type="submit" class="btn btn-warning fw-bold text-dark">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> រក្សាទុកការកក់
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: IMAGE LIGHTBOX VIEWER -->
+    <div class="modal" id="imageViewerModal">
+        <div class="modal-dialog" style="max-width: 700px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="imageViewerTitle"><i class="fa-solid fa-image"></i> រូបភាពបង្កាន់ដៃកក់</h3>
+                    <button class="btn-close closeModal" onclick="closeImageViewerModal()">&times;</button>
+                </div>
+                <div class="modal-body text-center p-3">
+                    <div class="mb-3">
+                        <img id="imageViewerSrc" src="" alt="Deposit Receipt" style="max-width: 100%; max-height: 55vh; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); object-fit: contain;">
+                    </div>
+                    <div id="imageViewerThumbnails" class="d-flex justify-content-center gap-2 flex-wrap mt-2"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeImageViewerModal()">បិទ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT STOCK OUT LOG -->
+    <div class="modal" id="editStockOutModal">
+        <div class="modal-dialog" style="max-width: 480px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="editStockOutModalTitle"><i class="fa-solid fa-pen-to-square"></i> កែប្រែប្រតិបត្តិការលក់ចេញ</h3>
+                    <button class="btn-close closeModal" onclick="closeEditStockOutModal()">&times;</button>
+                </div>
+                <form id="editStockOutForm">
+                    <input type="hidden" id="editStockOutLogId" value="">
+                    <div class="modal-body">
+                        <div class="form-group mb-3">
+                            <label>លេខវិក្កយបត្រ / ឈ្មោះទំនិញ</label>
+                            <input type="text" id="editStockOutInfoDisplay" class="form-control bg-light" readonly>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="editStockOutCustomer">ឈ្មោះអតិថិជន <span class="text-danger">*</span></label>
+                            <input type="text" id="editStockOutCustomer" class="form-control" required>
+                        </div>
+                        <div class="form-grid mb-3">
+                            <div class="form-group">
+                                <label for="editStockOutQty">ចំនួនលក់ <span class="text-danger">*</span></label>
+                                <input type="number" min="1" step="1" id="editStockOutQty" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editStockOutPrice">តម្លៃលក់ ($) <span class="text-danger">*</span></label>
+                                <input type="number" min="0" step="0.01" id="editStockOutPrice" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditStockOutModal()">បោះបង់</button>
+                        <button type="submit" class="btn btn-primary fw-bold">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> រក្សាទុកការកែប្រែ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <?!= include('app'); ?>
 </body>

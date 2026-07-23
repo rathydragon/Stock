@@ -34,12 +34,38 @@ const safeStorage = {
     }
 };
 
+const safeSessionStorage = {
+    _mem: {},
+    getItem(key) {
+        try {
+            return window.sessionStorage ? window.sessionStorage.getItem(key) : (this._mem[key] || null);
+        } catch (e) {
+            return this._mem[key] || null;
+        }
+    },
+    setItem(key, val) {
+        try {
+            if (window.sessionStorage) window.sessionStorage.setItem(key, val);
+        } catch (e) {}
+        this._mem[key] = String(val);
+    },
+    removeItem(key) {
+        try {
+            if (window.sessionStorage) window.sessionStorage.removeItem(key);
+        } catch (e) {}
+        delete this._mem[key];
+    }
+};
+
 const state = {
     products: [],
     stockInLogs: [],
     stockOutLogs: [],
     suppliers: [],
     customers: [],
+    users: [],
+    bookings: [],
+    currentUser: null,
     stockInCart: [],
     stockOutCart: [],
     isGoogleAppsScript: typeof google !== 'undefined' && typeof google.script !== 'undefined',
@@ -52,12 +78,12 @@ const state = {
 // Sample Seed Data (For instant demo in local browser)
 const defaultSeedData = {
     products: [
-        { code: 'PRD-001', name: 'កាហ្វេអាល់ប៊ីកា (Arabica Coffee Beans 1kg)', category: 'ភេសជ្ជៈ', cost: 12.50, price: 18.00, qty: 25, minAlert: 10 },
-        { code: 'PRD-002', name: 'ទឹកដោះគោឆៅ (Fresh Milk 1L)', category: 'ភេសជ្ជៈ', cost: 1.80, price: 2.50, qty: 4, minAlert: 10 },
-        { code: 'PRD-003', name: 'ស្ករស (White Sugar 1kg)', category: 'គ្រឿងទេស', cost: 0.90, price: 1.30, qty: 50, minAlert: 15 },
-        { code: 'PRD-004', name: 'កែវក្រដាស 16oz (Paper Cups 50pcs)', category: 'សម្ភារៈ', cost: 2.20, price: 3.50, qty: 0, minAlert: 5 },
-        { code: 'PRD-005', name: 'តែបៃតងជប៉ុន (Matcha Green Tea 500g)', category: 'ភេសជ្ជៈ', cost: 15.00, price: 22.00, qty: 8, minAlert: 5 },
-        { code: 'PRD-006', name: 'ស៊ីរ៉ូរសជាតិវ៉ានីឡា (Vanilla Syrup 750ml)', category: 'គ្រឿងទេស', cost: 6.50, price: 9.50, qty: 3, minAlert: 5 }
+        { code: 'PRD-001', name: 'កាហ្វេអាល់ប៊ីកា (Arabica Coffee Beans 1kg)', category: 'ភេសជ្ជៈ', supplier: 'ម្ចាស់ហាង (Store Owner)', cost: 12.50, price: 18.00, qty: 25, minAlert: 10 },
+        { code: 'PRD-002', name: 'ទឹកដោះគោឆៅ (Fresh Milk 1L)', category: 'ភេសជ្ជៈ', supplier: 'ម្ចាស់ហាង (Store Owner)', cost: 1.80, price: 2.50, qty: 4, minAlert: 10 },
+        { code: 'PRD-003', name: 'ស្ករស (White Sugar 1kg)', category: 'គ្រឿងទេស', supplier: 'ក្រុមហ៊ុន ភ្នំពេញ កាហ្វេ', cost: 0.90, price: 1.30, qty: 50, minAlert: 15 },
+        { code: 'PRD-004', name: 'កែវក្រដាស 16oz (Paper Cups 50pcs)', category: 'សម្ភារៈ', supplier: 'ផ្សារអូរឫស្សី ស្តង់A12', cost: 2.20, price: 3.50, qty: 0, minAlert: 5 },
+        { code: 'PRD-005', name: 'តែបៃតងជប៉ុន (Matcha Green Tea 500g)', category: 'ភេសជ្ជៈ', supplier: 'ម្ចាស់ហាង (Store Owner)', cost: 15.00, price: 22.00, qty: 8, minAlert: 5 },
+        { code: 'PRD-006', name: 'ស៊ីរ៉ូរសជាតិវ៉ានីឡា (Vanilla Syrup 750ml)', category: 'គ្រឿងទេស', supplier: 'ក្រុមហ៊ុន ភ្នំពេញ កាហ្វេ', cost: 6.50, price: 9.50, qty: 3, minAlert: 5 }
     ],
     stockInLogs: [
         { id: 'IN-1001', date: '2026-07-15', code: 'PRD-001', name: 'កាហ្វេអាល់ប៊ីកា (Arabica Coffee Beans 1kg)', supplier: 'ក្រុមហ៊ុន ភ្នំពេញ កាហ្វេ', qty: 20, cost: 12.50, total: 250.00, notes: 'ទិញចូលស្តុកដើមខែ' },
@@ -68,12 +94,22 @@ const defaultSeedData = {
         { id: 'OUT-2002', date: '2026-07-20', code: 'PRD-005', name: 'តែបៃតងជប៉ុន (Matcha Green Tea 500g)', customer: 'អតិថិជនទូទៅ', qty: 2, price: 22.00, discount: 2.00, total: 42.00 }
     ],
     suppliers: [
-        { id: 1, name: 'ក្រុមហ៊ុន ភ្នំពេញ កាហ្វេ', phone: '012 888 999', address: 'រាជធានីភ្នំពេញ' },
-        { id: 2, name: 'ផ្សារអូរឫស្សី ស្តង់A12', phone: '097 777 666', address: 'ខណ្ឌ៧មករា ភ្នំពេញ' }
+        { id: 1, name: 'ក្រុមហ៊ុន ភ្នំពេញ កាហ្វេ', phone: '012 888 999', address: 'រាជធានីភ្នំពេញ', username: 'store' },
+        { id: 2, name: 'ផ្សារអូរឫស្សី ស្តង់A12', phone: '097 777 666', address: 'ខណ្ឌ៧មករា ភ្នំពេញ', username: '' }
     ],
     customers: [
         { id: 1, name: 'ហាងកាហ្វេ ជ័យជំនះ', phone: '010 333 444', address: 'ទួលគោក' },
         { id: 2, name: 'អតិថិជនទូទៅ', phone: 'N/A', address: 'ភ្នំពេញ' }
+    ],
+    users: [
+        { username: 'admin', password: '123456', fullName: 'អ្នកគ្រប់គ្រងប្រព័ន្ធ (Admin)', role: 'Admin', status: 'Active', allowedPages: ['dashboard', 'products', 'stock-in', 'stock-out', 'contacts', 'bookings', 'reports', 'settings'] },
+        { username: 'store', password: '123456', fullName: 'ម្ចាស់ហាង (Store Owner)', role: 'Store', status: 'Active', allowedPages: ['dashboard', 'products', 'stock-in', 'stock-out', 'reports'] },
+        { username: 'manager', password: '123456', fullName: 'អ្នកគ្រប់គ្រងស្តុក (Manager)', role: 'Manager', status: 'Active', allowedPages: ['dashboard', 'products', 'stock-in', 'stock-out', 'contacts', 'bookings', 'reports'] },
+        { username: 'cashier', password: '123456', fullName: 'បុគ្គលិករៀបចំការលក់ (Cashier)', role: 'Cashier', status: 'Active', allowedPages: ['stock-out'] },
+        { username: 'customer', password: '123456', fullName: 'អតិថិជន (Customer)', role: 'Customer', status: 'Active', allowedPages: ['stock-out'] }
+    ],
+    bookings: [
+        { id: 'BKG-1001', timestamp: '2026-07-23 11:30:15', invoiceNo: 'SAL-600995', productCode: 'PRD-001', productName: 'កាហ្វេអាល់ប៊ីកា (Arabica Coffee Beans 1kg)', customerName: 'អតិថិជនទូទៅ', depositAmount: 10.00, totalAmount: 18.00, notes: 'កក់ 50% តាម ABA', imageUrl: '', staffName: 'Admin', status: 'Pending' }
     ]
 };
 
@@ -115,6 +151,7 @@ function handleHashRoute() {
 }
 
 function initApp() {
+    checkLoginSession();
     loadData();
     updateThemeFromPreferences();
     handleHashRoute();
@@ -132,7 +169,10 @@ function loadData() {
                     state.stockOutLogs = response.data.stockOutLogs || [];
                     state.suppliers = response.data.suppliers || [];
                     state.customers = response.data.customers || [];
+                    state.users = response.data.users || defaultSeedData.users;
+                    state.bookings = response.data.bookings || defaultSeedData.bookings;
                     saveToLocalStorage();
+                    checkLoginSession();
                     refreshCurrentUI();
                     showToast('បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យជោគជ័យ!', 'success');
                 } else {
@@ -158,8 +198,25 @@ function fallbackLocalStorage() {
         state.products = JSON.parse(localProds);
         state.stockInLogs = JSON.parse(safeStorage.getItem('km_stock_in') || '[]');
         state.stockOutLogs = JSON.parse(safeStorage.getItem('km_stock_out') || '[]');
-        state.suppliers = JSON.parse(safeStorage.getItem('km_suppliers') || '[]');
-        state.customers = JSON.parse(safeStorage.getItem('km_customers') || '[]');
+        
+        const rawSup = safeStorage.getItem('km_suppliers');
+        try {
+            state.suppliers = rawSup !== null ? JSON.parse(rawSup) : [...defaultSeedData.suppliers];
+        } catch (e) {
+            state.suppliers = [...defaultSeedData.suppliers];
+        }
+        if (!Array.isArray(state.suppliers)) state.suppliers = [...defaultSeedData.suppliers];
+
+        const rawCust = safeStorage.getItem('km_customers');
+        try {
+            state.customers = rawCust !== null ? JSON.parse(rawCust) : [...defaultSeedData.customers];
+        } catch (e) {
+            state.customers = [...defaultSeedData.customers];
+        }
+        if (!Array.isArray(state.customers)) state.customers = [...defaultSeedData.customers];
+
+        state.users = JSON.parse(safeStorage.getItem('km_users') || JSON.stringify(defaultSeedData.users));
+        state.bookings = JSON.parse(safeStorage.getItem('km_bookings') || JSON.stringify(defaultSeedData.bookings));
     } else {
         // Seed default sample data
         state.products = [...defaultSeedData.products];
@@ -167,8 +224,11 @@ function fallbackLocalStorage() {
         state.stockOutLogs = [...defaultSeedData.stockOutLogs];
         state.suppliers = [...defaultSeedData.suppliers];
         state.customers = [...defaultSeedData.customers];
+        state.users = [...defaultSeedData.users];
+        state.bookings = [...defaultSeedData.bookings];
         saveToLocalStorage();
     }
+    checkLoginSession();
     refreshCurrentUI();
 }
 
@@ -362,6 +422,8 @@ function setupEventListeners() {
     if (prodSearch) prodSearch.addEventListener('input', () => { state.productsPage = 1; renderProductsTable(); });
     const prodCatFilter = document.getElementById('productCategoryFilter');
     if (prodCatFilter) prodCatFilter.addEventListener('change', () => { state.productsPage = 1; renderProductsTable(); });
+    const prodSupplierFilter = document.getElementById('productSupplierFilter');
+    if (prodSupplierFilter) prodSupplierFilter.addEventListener('change', () => { state.productsPage = 1; renderProductsTable(); });
     const prodStatusFilter = document.getElementById('productStatusFilter');
     if (prodStatusFilter) prodStatusFilter.addEventListener('change', () => { state.productsPage = 1; renderProductsTable(); });
     const btnAddProd = document.getElementById('btnOpenAddProductModal');
@@ -377,6 +439,47 @@ function setupEventListeners() {
     const btnAddCust = document.getElementById('btnAddCustomerBtn');
     if (btnAddCust) btnAddCust.addEventListener('click', (e) => { e.preventDefault(); openContactModal('customer'); });
 
+    // Login & User Auth Listeners
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) loginForm.addEventListener('submit', handleLoginSubmit);
+
+    const btnLogout = document.getElementById('btnLogoutBtn');
+    if (btnLogout) btnLogout.addEventListener('click', handleLogout);
+
+    const btnTogglePwd = document.getElementById('btnTogglePassword');
+    if (btnTogglePwd) {
+        btnTogglePwd.addEventListener('click', () => {
+            const pwdInput = document.getElementById('loginPassword');
+            const eyeIcon = document.getElementById('pwdEyeIcon');
+            if (pwdInput) {
+                if (pwdInput.type === 'password') {
+                    pwdInput.type = 'text';
+                    if (eyeIcon) eyeIcon.className = 'fa-solid fa-eye-slash';
+                } else {
+                    pwdInput.type = 'password';
+                    if (eyeIcon) eyeIcon.className = 'fa-solid fa-eye';
+                }
+            }
+        });
+    }
+
+    const userForm = document.getElementById('userForm');
+    if (userForm) userForm.addEventListener('submit', handleUserFormSubmit);
+
+    // Booking Listeners
+    const bookingForm = document.getElementById('bookingForm');
+    if (bookingForm) bookingForm.addEventListener('submit', handleBookingFormSubmit);
+    const bookingImgInput = document.getElementById('bookingImageInput');
+    if (bookingImgInput) bookingImgInput.addEventListener('change', handleBookingImageSelect);
+    const bookingSearch = document.getElementById('bookingSearchInput');
+    if (bookingSearch) bookingSearch.addEventListener('input', renderBookingsTable);
+    const bookingStatusFilt = document.getElementById('bookingStatusFilter');
+    if (bookingStatusFilt) bookingStatusFilt.addEventListener('change', renderBookingsTable);
+
+    // Edit Stock Out Listener
+    const editStockOutForm = document.getElementById('editStockOutForm');
+    if (editStockOutForm) editStockOutForm.addEventListener('submit', handleEditStockOutSubmit);
+
     // Forms Submit
     const productForm = document.getElementById('productForm');
     if (productForm) productForm.addEventListener('submit', handleProductFormSubmit);
@@ -390,11 +493,41 @@ function setupEventListeners() {
     const btnCompleteStockOut = document.getElementById('btnCompleteStockOutTx');
     if (btnCompleteStockOut) btnCompleteStockOut.addEventListener('click', completeStockOutTx);
 
+    const serviceFeeInput = document.getElementById('stockOutServiceFee');
+    if (serviceFeeInput) serviceFeeInput.addEventListener('input', renderStockOutCartTable);
+
+    const codFeeInput = document.getElementById('stockOutCodFee');
+    if (codFeeInput) codFeeInput.addEventListener('input', renderStockOutCartTable);
+
+    const paymentStatusSelect = document.getElementById('stockOutPaymentStatus');
+    if (paymentStatusSelect) {
+        paymentStatusSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'Paid') {
+                e.target.className = 'form-select form-select-sm fw-bold text-success';
+            } else {
+                e.target.className = 'form-select form-select-sm fw-bold text-danger';
+            }
+            renderStockOutCartTable();
+        });
+    }
+
+    const stockOutSupSelect = document.getElementById('stockOutSupplierFormSelect');
+    if (stockOutSupSelect) {
+        stockOutSupSelect.addEventListener('change', () => {
+            updateStockOutProductDropdown();
+        });
+    }
+
     const stockOutProdSelect = document.getElementById('stockOutProductFormSelect');
     if (stockOutProdSelect) {
         stockOutProdSelect.addEventListener('change', (e) => {
             const p = state.products.find(prod => prod.code === e.target.value);
-            if (p) document.getElementById('stockOutFormUnitPrice').value = p.price;
+            if (p) {
+                document.getElementById('stockOutFormUnitPrice').value = p.price;
+                if (p.unit && document.getElementById('stockOutFormUnit')) {
+                    document.getElementById('stockOutFormUnit').value = p.unit;
+                }
+            }
         });
     }
 
@@ -427,11 +560,23 @@ function setupEventListeners() {
     const btnCompleteStockIn = document.getElementById('btnCompleteStockInTx');
     if (btnCompleteStockIn) btnCompleteStockIn.addEventListener('click', completeStockInTx);
 
+    const stockInSupSelect = document.getElementById('stockInSupplierFormSelect');
+    if (stockInSupSelect) {
+        stockInSupSelect.addEventListener('change', () => {
+            updateStockInProductDropdown();
+        });
+    }
+
     const stockInProdSelect = document.getElementById('stockInProductFormSelect');
     if (stockInProdSelect) {
         stockInProdSelect.addEventListener('change', (e) => {
             const p = state.products.find(prod => prod.code === e.target.value);
-            if (p) document.getElementById('stockInFormUnitPrice').value = p.cost;
+            if (p) {
+                document.getElementById('stockInFormUnitPrice').value = p.cost;
+                if (p.unit && document.getElementById('stockInFormUnit')) {
+                    document.getElementById('stockInFormUnit').value = p.unit;
+                }
+            }
         });
     }
 
@@ -482,6 +627,12 @@ window.navigateToPage = function(pageId, event) {
 };
 
 function renderPage(pageId) {
+    if (state.currentUser) {
+        const allowedPages = getUserAllowedPages(state.currentUser);
+        if (!allowedPages.includes(pageId)) {
+            pageId = allowedPages[0] || 'stock-out';
+        }
+    }
     state.currentPage = pageId;
     
     // Close mobile drawer if open
@@ -509,8 +660,9 @@ function renderPage(pageId) {
         'products': 'បញ្ជីទំនិញ / ផលិតផល (Products)',
         'stock-in': 'កាត់ស្តុកចូល (Stock In)',
         'stock-out': 'កាត់ស្តុកចេញ (Stock Out)',
-        'contacts': 'អតិថិជន & អ្នកផ្គត់ផ្គង់ (Contacts)',
+        'contacts': 'អតិថិជន & ម្ចាស់ហាង (Contacts)',
         'reports': 'របាយការណ៍ & ប្រវត្តិប្រតិបត្តិការ',
+        'bookings': 'បញ្ជីកក់ទំនិញ (Customer Bookings)',
         'settings': 'ការកំណត់ប្រព័ន្ធ (System Settings)'
     };
     document.getElementById('pageTitle').textContent = titles[pageId] || 'គ្រប់គ្រងស្តុក';
@@ -545,20 +697,153 @@ function refreshCurrentUI() {
         case 'reports':
             renderReportSection();
             break;
+        case 'bookings':
+            renderBookingsTable();
+            break;
         case 'settings':
             loadSettingsUI();
             break;
     }
 }
 
+// Store & Page Data Isolation Helpers
+function getRoleDefaultPages(role) {
+    if (role === 'Admin') {
+        return ['dashboard', 'products', 'stock-in', 'stock-out', 'contacts', 'bookings', 'reports', 'settings'];
+    } else if (role === 'Store') {
+        return ['dashboard', 'products', 'stock-in', 'stock-out', 'reports'];
+    } else if (role === 'Manager') {
+        return ['dashboard', 'products', 'stock-in', 'stock-out', 'contacts', 'bookings', 'reports'];
+    } else {
+        return ['stock-out'];
+    }
+}
+
+function getUserAllowedPages(user) {
+    if (!user) return ['stock-out'];
+    if (user.allowedPages && Array.isArray(user.allowedPages) && user.allowedPages.length > 0) {
+        return user.allowedPages;
+    }
+    return getRoleDefaultPages(user.role);
+}
+
+function onUserRoleSelectChange() {
+    const roleSelect = document.getElementById('userFormRole');
+    if (!roleSelect) return;
+    const role = roleSelect.value;
+    const defaultPages = getRoleDefaultPages(role);
+    document.querySelectorAll('.user-page-checkbox').forEach(cb => {
+        cb.checked = defaultPages.includes(cb.value);
+    });
+}
+
+function getOrCreateTfoot(tbodyId, tfootId) {
+    let tfoot = document.getElementById(tfootId);
+    if (tfoot) return tfoot;
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody || !tbody.parentElement) return null;
+    tfoot = document.createElement('tfoot');
+    tfoot.id = tfootId;
+    tbody.parentElement.appendChild(tfoot);
+    return tfoot;
+}
+
+function fmtAcc(val, valClass = '') {
+    const num = Number(val) || 0;
+    const formatted = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return `<div class="accounting-cell"><span class="acc-sym">$</span><span class="acc-val ${valClass}">${formatted}</span></div>`;
+}
+
+function getUserStoreName() {
+    if (!state.currentUser) return '';
+    return (state.currentUser.fullName || state.currentUser.username || '').trim();
+}
+
+function isStoreRoleUser() {
+    return state.currentUser && (state.currentUser.role === 'Store' || state.currentUser.role === 'Seller');
+}
+
+function getStoreFilteredProducts() {
+    if (!state.products || !Array.isArray(state.products)) return [];
+    if (!state.currentUser) return state.products;
+
+    const userRole = state.currentUser.role || '';
+    const isStoreUser = (userRole === 'Store' || userRole === 'Seller');
+    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value : '';
+
+    const targetStore = isStoreUser ? getUserStoreName() : storeFilter;
+
+    if (targetStore) {
+        const targetLower = targetStore.toLowerCase().trim();
+        const currentUsername = (state.currentUser.username || '').toLowerCase().trim();
+        const linkedSuppliers = (state.suppliers || [])
+            .filter(s => s.username && s.username.toLowerCase().trim() === currentUsername)
+            .map(s => (s.name || '').toLowerCase().trim());
+
+        return state.products.filter(p => {
+            if (!p) return false;
+            const sup = (p.supplier || '').toLowerCase().trim();
+            if (!sup) return false;
+
+            // Strict match: supplier equals or contains store name, username, or linked supplier names
+            if (sup === targetLower || sup.includes(targetLower) || targetLower.includes(sup)) return true;
+            if (currentUsername && (sup === currentUsername || sup.includes(currentUsername))) return true;
+            if (linkedSuppliers.some(ls => ls && (sup === ls || sup.includes(ls) || ls.includes(sup)))) return true;
+
+            return false;
+        });
+    }
+
+    return state.products;
+}
+
+function getStoreFilteredStockInLogs() {
+    if (!state.currentUser) return state.stockInLogs || [];
+    const storeProducts = getStoreFilteredProducts();
+    const userRole = state.currentUser ? state.currentUser.role : '';
+    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value : '';
+    const targetStore = (userRole === 'Store' || userRole === 'Seller') ? getUserStoreName() : storeFilter;
+
+    if (targetStore) {
+        const storeProductCodes = new Set(storeProducts.map(p => p.code));
+        const storeNameLower = targetStore.toLowerCase().trim();
+        return (state.stockInLogs || []).filter(l => {
+            if (storeProductCodes.has(l.code)) return true;
+            const sup = (l.supplier || '').toLowerCase();
+            return sup && (sup === storeNameLower || sup.includes(storeNameLower) || storeNameLower.includes(sup));
+        });
+    }
+    return state.stockInLogs || [];
+}
+
+function getStoreFilteredStockOutLogs() {
+    if (!state.currentUser) return state.stockOutLogs || [];
+    const storeProducts = getStoreFilteredProducts();
+    const userRole = state.currentUser ? state.currentUser.role : '';
+    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value : '';
+    const targetStore = (userRole === 'Store' || userRole === 'Seller') ? getUserStoreName() : storeFilter;
+
+    if (targetStore) {
+        const storeProductCodes = new Set(storeProducts.map(p => p.code));
+        const storeNameLower = targetStore.toLowerCase().trim();
+        return (state.stockOutLogs || []).filter(l => {
+            if (storeProductCodes.has(l.code)) return true;
+            const sup = (l.supplier || l.seller || '').toLowerCase();
+            return sup && (sup === storeNameLower || sup.includes(storeNameLower) || storeNameLower.includes(sup));
+        });
+    }
+    return state.stockOutLogs || [];
+}
+
 // KPI Dashboard
 function renderDashboardKPIs() {
     try {
-        const totalItems = (state.products || []).length;
-        const categories = new Set((state.products || []).map(p => p.category)).size;
-        const totalValue = (state.products || []).reduce((sum, p) => sum + ((p.cost || 0) * (p.qty || 0)), 0);
-        const lowStockCount = (state.products || []).filter(p => (p.qty || 0) > 0 && (p.qty || 0) <= (p.minAlert || 5)).length;
-        const outOfStockCount = (state.products || []).filter(p => (p.qty || 0) === 0).length;
+        const storeProducts = getStoreFilteredProducts();
+        const totalItems = storeProducts.length;
+        const categories = new Set(storeProducts.map(p => p.category)).size;
+        const totalValue = storeProducts.reduce((sum, p) => sum + ((p.cost || 0) * (p.qty || 0)), 0);
+        const lowStockCount = storeProducts.filter(p => (p.qty || 0) > 0 && (p.qty || 0) <= (p.minAlert || 5)).length;
+        const outOfStockCount = storeProducts.filter(p => (p.qty || 0) === 0).length;
 
         const kpiItemsEl = document.getElementById('kpiTotalItems');
         if (kpiItemsEl) kpiItemsEl.textContent = totalItems.toLocaleString();
@@ -589,14 +874,17 @@ function renderDashboardCharts() {
             dates.push(d.toISOString().split('T')[0]);
         }
 
+        const filteredIn = getStoreFilteredStockInLogs();
+        const filteredOut = getStoreFilteredStockOutLogs();
+
         const stockInTotals = dates.map(date => {
-            return (state.stockInLogs || [])
+            return (filteredIn || [])
                 .filter(l => l.date === date)
                 .reduce((sum, l) => sum + Number(l.total || 0), 0);
         });
 
         const stockOutTotals = dates.map(date => {
-            return (state.stockOutLogs || [])
+            return (filteredOut || [])
                 .filter(l => l.date === date)
                 .reduce((sum, l) => sum + Number(l.total || 0), 0);
         });
@@ -651,7 +939,7 @@ function renderDashboardCharts() {
         const catCanvas = document.getElementById('categoryPieChart');
         if (catCanvas) {
             const catMap = {};
-            (state.products || []).forEach(p => {
+            getStoreFilteredProducts().forEach(p => {
                 catMap[p.category] = (catMap[p.category] || 0) + (p.qty || 0);
             });
 
@@ -681,7 +969,7 @@ function renderDashboardCharts() {
 }
 
 function renderLowStockTable() {
-    const alerts = state.products.filter(p => p.qty <= p.minAlert);
+    const alerts = getStoreFilteredProducts().filter(p => p.qty <= p.minAlert);
     const tbody = document.getElementById('lowStockTableBody');
     tbody.innerHTML = '';
 
@@ -714,8 +1002,8 @@ function renderLowStockTable() {
 
 function renderRecentActivities() {
     const logs = [];
-    state.stockInLogs.forEach(l => logs.push({ type: 'IN', date: l.date, text: `នាំចូលស្តុក: ${l.name} (+${l.qty})`, amount: `$${l.total}` }));
-    state.stockOutLogs.forEach(l => logs.push({ type: 'OUT', date: l.date, text: `លក់ចេញ: ${l.name} (-${l.qty})`, amount: `$${l.total}` }));
+    getStoreFilteredStockInLogs().forEach(l => logs.push({ type: 'IN', date: l.date, text: `នាំចូលស្តុក: ${l.name} (+${l.qty})`, amount: `$${l.total}` }));
+    getStoreFilteredStockOutLogs().forEach(l => logs.push({ type: 'OUT', date: l.date, text: `លក់ចេញ: ${l.name} (-${l.qty})`, amount: `$${l.total}` }));
 
     logs.sort((a, b) => new Date(b.date) - new Date(a.date));
     const recent = logs.slice(0, 5);
@@ -761,17 +1049,21 @@ function getCategoryIcon(cat) {
 function renderProductsTable() {
     const search = document.getElementById('productSearchInput').value.toLowerCase().trim();
     const cat = document.getElementById('productCategoryFilter').value;
+    const supplierFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value : '';
     const status = document.getElementById('productStatusFilter').value;
 
-    let filtered = state.products.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search);
+    const baseProducts = getStoreFilteredProducts();
+
+    let filtered = baseProducts.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search) || (p.supplier && p.supplier.toLowerCase().includes(search));
         const matchesCat = !cat || p.category === cat;
+        const matchesSupplier = true; // Store & Supplier filtering already processed by getStoreFilteredProducts
         let matchesStatus = true;
         if (status === 'in-stock') matchesStatus = p.qty > p.minAlert;
         else if (status === 'low-stock') matchesStatus = p.qty > 0 && p.qty <= p.minAlert;
         else if (status === 'out-of-stock') matchesStatus = p.qty === 0;
 
-        return matchesSearch && matchesCat && matchesStatus;
+        return matchesSearch && matchesCat && matchesSupplier && matchesStatus;
     });
 
     // Pagination
@@ -832,6 +1124,7 @@ function renderProductsTable() {
                             </div>
                             <div class="product-badges">
                                 <span class="badge badge-info">${p.category}</span>
+                                <span class="badge badge-outline-secondary" title="អ្នកផ្គត់ផ្គង់"><i class="fa-solid fa-truck-field me-1"></i>${p.supplier || 'ទូទៅ'}</span>
                                 ${statusBadge}
                             </div>
                         </div>
@@ -882,13 +1175,14 @@ function renderProductsTable() {
             if (tbody) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td data-label="NO" class="text-center text-muted">${idx + 1}</td>
+                    <td data-label="ល.រ" class="text-center text-muted">${idx + 1}</td>
                     <td data-label="កូដទំនិញ/បាកូដ"><code>${p.code}</code></td>
                     <td data-label="ឈ្មោះទំនិញ"><strong>${p.name}</strong></td>
                     <td data-label="ប្រភេទទំនិញ"><span class="badge badge-info">${p.category}</span></td>
+                    <td data-label="អ្នកផ្គត់ផ្គង់"><span class="badge badge-outline-secondary">${p.supplier || 'ទូទៅ'}</span></td>
                     <td data-label="ឯកតា" class="text-center">${p.unit || 'កញ្ចប់'}</td>
-                    <td data-label="តម្លៃដើម" class="text-end">$${Number(p.cost).toFixed(2)}</td>
-                    <td data-label="តម្លៃលក់" class="text-end"><strong class="text-primary">$${Number(p.price).toFixed(2)}</strong></td>
+                    <td data-label="តម្លៃដើម" class="text-end">${fmtAcc(p.cost, 'text-slate-700')}</td>
+                    <td data-label="តម្លៃលក់" class="text-end">${fmtAcc(p.price, 'text-primary fw-bold')}</td>
                     <td data-label="ស្តុកអប្បបរមា" class="text-center">${p.minAlert || 5}</td>
                     <td data-label="ស្ថានភាព" class="text-center">${statusBadge}</td>
                     <td data-label="សកម្មភាព" class="text-center">
@@ -905,6 +1199,23 @@ function renderProductsTable() {
                 tbody.appendChild(tr);
             }
         });
+    }
+
+    const totalQty = filtered.reduce((sum, p) => sum + (Number(p.qty) || 0), 0);
+    const totalCostVal = filtered.reduce((sum, p) => sum + ((Number(p.qty) || 0) * (Number(p.cost) || 0)), 0);
+    const totalRetailVal = filtered.reduce((sum, p) => sum + ((Number(p.qty) || 0) * (Number(p.price) || 0)), 0);
+    const totalProfitVal = totalRetailVal - totalCostVal;
+
+    const prodTfoot = getOrCreateTfoot('productsTableBody', 'productsTableFoot');
+    if (prodTfoot) {
+        prodTfoot.innerHTML = `
+            <tr class="table-summary-row">
+                <td colspan="5" class="text-end fw-bold text-dark">សរុបទិន្នន័យចម្រោះ (${filtered.length} ទំនិញ)៖</td>
+                <td class="text-center"><span class="badge badge-info">${totalQty.toLocaleString()} ឯកតា</span></td>
+                <td class="text-end">${fmtAcc(totalCostVal, 'text-slate-700 fw-bold')}</td>
+                <td class="text-end">${fmtAcc(totalRetailVal, 'text-primary fw-bold')}</td>
+                <td colspan="3" class="text-center"><span class="badge badge-success">ចំណេញរំពឹងទុក: +$${totalProfitVal.toFixed(2)}</span></td>
+            </tr>`;
     }
 
     const headerBadge = document.getElementById('productsTotalHeaderBadge');
@@ -942,6 +1253,49 @@ function populateCategoriesDatalist() {
         selectFilter.innerHTML = `<option value="">គ្រប់ប្រភេទទំនិញទាំងអស់</option>` + 
             cats.map(c => `<option value="${c}" ${c === curVal ? 'selected' : ''}>${c}</option>`).join('');
     }
+
+    populateSuppliersDatalist();
+}
+
+function populateSuppliersDatalist() {
+    const supplierFilter = document.getElementById('productSupplierFilter');
+    const modalSupplierSelect = document.getElementById('prodSupplier');
+
+    const supplierNames = new Set();
+    if (state.suppliers) {
+        state.suppliers.forEach(s => { if (s.name) supplierNames.add(s.name); });
+    }
+    if (state.products) {
+        state.products.forEach(p => { if (p.supplier) supplierNames.add(p.supplier); });
+    }
+    const suppliersList = Array.from(supplierNames);
+
+    if (supplierFilter) {
+        if (isStoreRoleUser()) {
+            const myStore = getUserStoreName();
+            supplierFilter.innerHTML = `<option value="${myStore}" selected>ម្ចាស់ហាង: ${myStore}</option>`;
+            supplierFilter.disabled = true;
+        } else {
+            supplierFilter.disabled = false;
+            const curVal = supplierFilter.value;
+            supplierFilter.innerHTML = `<option value="">គ្រប់ម្ចាស់ហាង (Stores)</option>` +
+                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
+        }
+    }
+
+    if (modalSupplierSelect) {
+        if (isStoreRoleUser()) {
+            const myStore = getUserStoreName();
+            modalSupplierSelect.innerHTML = `<option value="${myStore}" selected>${myStore}</option>`;
+            modalSupplierSelect.value = myStore;
+            modalSupplierSelect.disabled = true;
+        } else {
+            modalSupplierSelect.disabled = false;
+            const curVal = modalSupplierSelect.value;
+            modalSupplierSelect.innerHTML = `<option value="">-- ជ្រើសរើសអ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង --</option>` +
+                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
+        }
+    }
 }
 
 // Product Form Actions
@@ -949,6 +1303,7 @@ function openProductModal(editIndex = -1) {
     document.getElementById('prodEditIndex').value = editIndex;
     const form = document.getElementById('productForm');
     form.reset();
+    populateSuppliersDatalist();
 
     if (editIndex >= 0) {
         const p = state.products[editIndex];
@@ -961,11 +1316,29 @@ function openProductModal(editIndex = -1) {
         document.getElementById('prodPrice').value = p.price;
         document.getElementById('prodQuantity').value = p.qty;
         document.getElementById('prodMinAlert').value = p.minAlert;
+        if (document.getElementById('prodUnit')) document.getElementById('prodUnit').value = p.unit || 'កញ្ចប់';
+        if (document.getElementById('prodSupplier')) {
+            document.getElementById('prodSupplier').value = p.supplier || '';
+            if (isStoreRoleUser()) {
+                document.getElementById('prodSupplier').disabled = true;
+            }
+        }
     } else {
         document.getElementById('productModalTitle').innerHTML = `<i class="fa-solid fa-box-open"></i> បន្ថែមទំនិញថ្មី`;
         document.getElementById('prodCode').readOnly = false;
         // Auto-generate code
         document.getElementById('prodCode').value = `PRD-${String(state.products.length + 1).padStart(3, '0')}`;
+        if (document.getElementById('prodUnit')) document.getElementById('prodUnit').value = 'កញ្ចប់';
+        if (document.getElementById('prodSupplier')) {
+            if (isStoreRoleUser()) {
+                const myStore = getUserStoreName();
+                document.getElementById('prodSupplier').value = myStore;
+                document.getElementById('prodSupplier').disabled = true;
+            } else {
+                document.getElementById('prodSupplier').value = '';
+                document.getElementById('prodSupplier').disabled = false;
+            }
+        }
     }
 
     document.getElementById('productModal').classList.add('show');
@@ -981,8 +1354,13 @@ function handleProductFormSubmit(e) {
     const price = parseFloat(document.getElementById('prodPrice').value);
     const qty = parseInt(document.getElementById('prodQuantity').value);
     const minAlert = parseInt(document.getElementById('prodMinAlert').value);
+    const unit = document.getElementById('prodUnit') ? document.getElementById('prodUnit').value : 'កញ្ចប់';
+    let supplier = document.getElementById('prodSupplier') ? (document.getElementById('prodSupplier').value || 'ទូទៅ') : 'ទូទៅ';
+    if (isStoreRoleUser()) {
+        supplier = getUserStoreName();
+    }
 
-    const productObj = { code, name, category, cost, price, qty, minAlert };
+    const productObj = { code, name, category, cost, price, qty, minAlert, unit, supplier };
 
     if (editIndex >= 0) {
         state.products[editIndex] = productObj;
@@ -1031,17 +1409,54 @@ function initStockInPanel() {
 
     const supSelect = document.getElementById('stockInSupplierFormSelect');
     if (supSelect) {
-        supSelect.innerHTML = '<option value="ទូទៅ">-- ពុំមាន / ទូទៅ --</option>' +
-            state.suppliers.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        if (isStoreRoleUser()) {
+            const myStore = getUserStoreName();
+            supSelect.innerHTML = `<option value="${myStore}" selected>ម្ចាស់ហាង: ${myStore}</option>`;
+            supSelect.disabled = true;
+        } else {
+            supSelect.disabled = false;
+            const supplierNames = new Set();
+            if (state.suppliers) {
+                state.suppliers.forEach(s => { if (s.name) supplierNames.add(s.name); });
+            }
+            if (state.products) {
+                state.products.forEach(p => { if (p.supplier) supplierNames.add(p.supplier); });
+            }
+            const suppliersList = Array.from(supplierNames);
+            const curVal = supSelect.value;
+            supSelect.innerHTML = '<option value="">-- គ្រប់ម្ចាស់ហាងទាំងអស់ --</option>' +
+                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
+        }
     }
 
-    const prodSelect = document.getElementById('stockInProductFormSelect');
-    if (prodSelect) {
-        prodSelect.innerHTML = '<option value="">-- ជ្រើសរើសមុខទំនិញ --</option>' +
-            state.products.map(p => `<option value="${p.code}">[${p.code}] ${p.name} (ស្តុក: ${p.qty})</option>`).join('');
-    }
-
+    updateStockInProductDropdown();
     renderStockInCartTable();
+}
+
+function updateStockInProductDropdown() {
+    const selSup = document.getElementById('stockInSupplierFormSelect') ? document.getElementById('stockInSupplierFormSelect').value : '';
+    const prodSelect = document.getElementById('stockInProductFormSelect');
+    if (!prodSelect) return;
+
+    let prods = getStoreFilteredProducts();
+    if (selSup && !isStoreRoleUser()) {
+        prods = prods.filter(p => (p.supplier || '').toLowerCase().includes(selSup.toLowerCase()));
+    }
+
+    const curVal = prodSelect.value;
+    prodSelect.innerHTML = '<option value="">-- ជ្រើសរើសមុខទំនិញ --</option>' +
+        prods.map(p => `<option value="${p.code}" ${p.code === curVal ? 'selected' : ''}>[${p.code}] ${p.name} (ស្តុក: ${p.qty})</option>`).join('');
+
+    const currentProdCode = prodSelect.value;
+    const prodObj = prods.find(p => p.code === currentProdCode);
+    if (prodObj) {
+        document.getElementById('stockInFormUnitPrice').value = prodObj.cost;
+        if (prodObj.unit && document.getElementById('stockInFormUnit')) {
+            document.getElementById('stockInFormUnit').value = prodObj.unit;
+        }
+    } else {
+        document.getElementById('stockInFormUnitPrice').value = '';
+    }
 }
 
 function renderStockInCartTable() {
@@ -1050,7 +1465,18 @@ function renderStockInCartTable() {
     tbody.innerHTML = '';
 
     if (state.stockInCart.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted p-4">មិនទាន់មានទំនិញក្នុងកន្ត្រកទិញឡើយ</td></tr>`;
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center p-0">
+                    <div class="empty-cart-box">
+                        <div class="empty-cart-icon bg-green-light">
+                            <i class="fa-solid fa-basket-shopping text-success"></i>
+                        </div>
+                        <div class="empty-cart-title">មិនទាន់មានទំនិញក្នុងកន្ត្រកទិញឡើយ</div>
+                        <p class="empty-cart-subtitle">ជ្រើសរើសទំនិញខាងឆ្វេង ឬស្កេនបាកូដដើម្បីបន្ថែមចូលកន្ត្រក</p>
+                    </div>
+                </td>
+            </tr>`;
         document.getElementById('stockInCartCountBadge').textContent = '0 មុខ';
         document.getElementById('stockInCartGrandTotal').textContent = '$0.00';
         document.getElementById('btnCompleteStockInTx').disabled = true;
@@ -1071,7 +1497,7 @@ function renderStockInCartTable() {
                     <span class="pos-item-sku-badge">${item.code}</span>
                 </div>
             </td>
-            <td class="text-center fw-bold">${item.qty}</td>
+            <td class="text-center fw-bold">${item.qty} ${item.unit || 'កញ្ចប់'}</td>
             <td class="text-end">$${Number(item.cost).toFixed(2)}</td>
             <td class="text-end fw-bold text-success">$${itemTotal.toFixed(2)}</td>
             <td class="text-center">
@@ -1091,19 +1517,22 @@ function addToStockInCart() {
     const qty = parseInt(document.getElementById('stockInFormQty').value) || 1;
     const unitPrice = parseFloat(document.getElementById('stockInFormUnitPrice').value);
 
-    const prod = state.products.find(p => p.code === code);
+    const prods = getStoreFilteredProducts();
+    const prod = prods.find(p => p.code === code);
     if (!prod) {
         showToast('សូមជ្រើសរើសមុខទំនិញជាមុនសិន!', 'warning');
         return;
     }
 
     const cost = unitPrice > 0 ? unitPrice : prod.cost;
+    const unit = document.getElementById('stockInFormUnit') ? document.getElementById('stockInFormUnit').value : (prod.unit || 'កញ្ចប់');
     const existing = state.stockInCart.find(i => i.code === code);
     if (existing) {
         existing.qty += qty;
         existing.cost = cost;
+        existing.unit = unit;
     } else {
-        state.stockInCart.push({ code: prod.code, name: prod.name, qty, cost });
+        state.stockInCart.push({ code: prod.code, name: prod.name, qty, unit, cost });
     }
 
     renderStockInCartTable();
@@ -1120,7 +1549,7 @@ function completeStockInTx() {
 
     const invNo = document.getElementById('stockInInvoiceNo').value || `PUR-${Date.now()}`;
     const date = document.getElementById('stockInFormDate').value || new Date().toISOString().split('T')[0];
-    const supplier = document.getElementById('stockInSupplierFormSelect').value || 'ទូទៅ';
+    const supplier = isStoreRoleUser() ? getUserStoreName() : (document.getElementById('stockInSupplierFormSelect') ? document.getElementById('stockInSupplierFormSelect').value || 'ទូទៅ' : 'ទូទៅ');
     const notes = document.getElementById('stockInFormNotes').value.trim();
 
     const receiptItems = [...state.stockInCart];
@@ -1138,7 +1567,7 @@ function completeStockInTx() {
             date,
             code: item.code,
             name: item.name,
-            supplier,
+            supplier: prod ? (prod.supplier || supplier) : supplier,
             qty: item.qty,
             cost: item.cost,
             total: item.qty * item.cost,
@@ -1161,23 +1590,43 @@ function renderStockInTable() {
     const tbody = document.getElementById('stockInTableBody');
     if (!tbody) return;
     tbody.innerHTML = '';
-    state.stockInLogs.forEach(l => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td data-label="កាលបរិច្ឆេទ">${l.date}</td>
-            <td data-label="លេខវិក្កយបត្រ"><code>${l.id}</code></td>
-            <td data-label="កូដទំនិញ"><code>${l.code}</code></td>
-            <td data-label="ឈ្មោះទំនិញ"><strong>${l.name}</strong></td>
-            <td data-label="អ្នកផ្គត់ផ្គង់">${l.supplier || '-'}</td>
-            <td data-label="ចំនួនបន្ថែម" class="text-center"><span class="badge badge-success">+${l.qty}</span></td>
-            <td data-label="តម្លៃទិញចូល" class="text-end">$${Number(l.cost).toFixed(2)}</td>
-            <td data-label="សរុបទឹកប្រាក់" class="text-end"><strong class="text-success">$${Number(l.total).toFixed(2)}</strong></td>
-            <td data-label="សកម្មភាព" class="text-center">
-                <button class="btn btn-xs btn-outline-success" onclick="reprintStockInReceipt('${l.id}')" title="បោះពុម្ពវិក្កយបត្រ"><i class="fa-solid fa-print"></i></button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
+    const logs = getStoreFilteredStockInLogs();
+    const totalQtyIn = logs.reduce((sum, l) => sum + (Number(l.qty) || 0), 0);
+    const totalAmountIn = logs.reduce((sum, l) => sum + (Number(l.total) || 0), 0);
+
+    if (logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted p-4">ពុំទាន់មានប្រវត្តិទិញចូលនៅឡើយទេ</td></tr>';
+    } else {
+        logs.forEach(l => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td data-label="កាលបរិច្ឆេទ">${l.date}</td>
+                <td data-label="លេខវិក្កយបត្រ"><code>${l.id}</code></td>
+                <td data-label="កូដទំនិញ"><code>${l.code}</code></td>
+                <td data-label="ឈ្មោះទំនិញ"><strong>${l.name}</strong></td>
+                <td data-label="អ្នកផ្គត់ផ្គង់">${l.supplier || '-'}</td>
+                <td data-label="ចំនួនបន្ថែម" class="text-center"><span class="badge badge-success">+${l.qty} ${l.unit || 'កញ្ចប់'}</span></td>
+                <td data-label="តម្លៃទិញចូល" class="text-end">${fmtAcc(l.cost, 'text-slate-700')}</td>
+                <td data-label="សរុបទឹកប្រាក់" class="text-end">${fmtAcc(l.total, 'text-success fw-bold')}</td>
+                <td data-label="សកម្មភាព" class="text-center">
+                    <button class="btn btn-xs btn-outline-success" onclick="reprintStockInReceipt('${l.id}')" title="បោះពុម្ពវិក្កយបត្រ"><i class="fa-solid fa-print"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    const inTfoot = getOrCreateTfoot('stockInTableBody', 'stockInTableFoot');
+    if (inTfoot) {
+        inTfoot.innerHTML = `
+            <tr class="table-summary-row">
+                <td colspan="5" class="text-end fw-bold text-dark">សរុបប្រវត្តិទិញចូល (${logs.length} ប្រតិបត្តិការ)៖</td>
+                <td class="text-center"><span class="badge badge-success">+${totalQtyIn.toLocaleString()}</span></td>
+                <td class="text-end text-muted">-</td>
+                <td class="text-end">${fmtAcc(totalAmountIn, 'text-success fw-bold')}</td>
+                <td></td>
+            </tr>`;
+    }
 }
 
 // ==========================================================================
@@ -1200,13 +1649,56 @@ function initStockOutPanel() {
             state.customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     }
 
-    const prodSelect = document.getElementById('stockOutProductFormSelect');
-    if (prodSelect) {
-        prodSelect.innerHTML = '<option value="">-- ជ្រើសរើសមុខទំនិញ --</option>' +
-            state.products.map(p => `<option value="${p.code}">[${p.code}] ${p.name} (ស្តុក: ${p.qty})</option>`).join('');
+    const supSelect = document.getElementById('stockOutSupplierFormSelect');
+    if (supSelect) {
+        if (isStoreRoleUser()) {
+            const myStore = getUserStoreName();
+            supSelect.innerHTML = `<option value="${myStore}" selected>ម្ចាស់ហាង: ${myStore}</option>`;
+            supSelect.disabled = true;
+        } else {
+            supSelect.disabled = false;
+            const supplierNames = new Set();
+            if (state.suppliers) {
+                state.suppliers.forEach(s => { if (s.name) supplierNames.add(s.name); });
+            }
+            if (state.products) {
+                state.products.forEach(p => { if (p.supplier) supplierNames.add(p.supplier); });
+            }
+            const suppliersList = Array.from(supplierNames);
+            const curVal = supSelect.value;
+            supSelect.innerHTML = '<option value="">-- គ្រប់ម្ចាស់ហាងទាំងអស់ --</option>' +
+                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
+        }
     }
 
+    updateStockOutProductDropdown();
     renderStockOutCartTable();
+}
+
+function updateStockOutProductDropdown() {
+    const selSup = document.getElementById('stockOutSupplierFormSelect') ? document.getElementById('stockOutSupplierFormSelect').value : '';
+    const prodSelect = document.getElementById('stockOutProductFormSelect');
+    if (!prodSelect) return;
+
+    let prods = getStoreFilteredProducts();
+    if (selSup && !isStoreRoleUser()) {
+        prods = prods.filter(p => (p.supplier || '').toLowerCase().includes(selSup.toLowerCase()));
+    }
+
+    const curVal = prodSelect.value;
+    prodSelect.innerHTML = '<option value="">-- ជ្រើសរើសមុខទំនិញ --</option>' +
+        prods.map(p => `<option value="${p.code}" ${p.code === curVal ? 'selected' : ''}>[${p.code}] ${p.name} (ស្តុក: ${p.qty})</option>`).join('');
+
+    const currentProdCode = prodSelect.value;
+    const prodObj = prods.find(p => p.code === currentProdCode);
+    if (prodObj) {
+        document.getElementById('stockOutFormUnitPrice').value = prodObj.price;
+        if (prodObj.unit && document.getElementById('stockOutFormUnit')) {
+            document.getElementById('stockOutFormUnit').value = prodObj.unit;
+        }
+    } else {
+        document.getElementById('stockOutFormUnitPrice').value = '';
+    }
 }
 
 function renderStockOutCartTable() {
@@ -1215,17 +1707,28 @@ function renderStockOutCartTable() {
     tbody.innerHTML = '';
 
     if (state.stockOutCart.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted p-4">មិនទាន់មានទំនិញក្នុងកន្ត្រកលក់ឡើយ</td></tr>`;
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center p-0">
+                    <div class="empty-cart-box">
+                        <div class="empty-cart-icon bg-blue-light">
+                            <i class="fa-solid fa-basket-shopping text-primary"></i>
+                        </div>
+                        <div class="empty-cart-title">មិនទាន់មានទំនិញក្នុងកន្ត្រកលក់ឡើយ</div>
+                        <p class="empty-cart-subtitle">ជ្រើសរើសទំនិញខាងឆ្វេង ឬស្កេនបាកូដដើម្បីបន្ថែមចូលកន្ត្រក</p>
+                    </div>
+                </td>
+            </tr>`;
         document.getElementById('stockOutCartCountBadge').textContent = '0 មុខ';
         document.getElementById('stockOutCartGrandTotal').textContent = '$0.00';
         document.getElementById('btnCompleteStockOutTx').disabled = true;
         return;
     }
 
-    let grandTotal = 0;
+    let subtotal = 0;
     state.stockOutCart.forEach((item, idx) => {
         const itemTotal = item.qty * item.price;
-        grandTotal += itemTotal;
+        subtotal += itemTotal;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -1236,7 +1739,7 @@ function renderStockOutCartTable() {
                     <span class="pos-item-sku-badge">${item.code}</span>
                 </div>
             </td>
-            <td class="text-center fw-bold">${item.qty}</td>
+            <td class="text-center fw-bold">${item.qty} ${item.unit || 'កញ្ចប់'}</td>
             <td class="text-end">$${Number(item.price).toFixed(2)}</td>
             <td class="text-end fw-bold text-primary">$${itemTotal.toFixed(2)}</td>
             <td class="text-center">
@@ -1245,6 +1748,10 @@ function renderStockOutCartTable() {
         `;
         tbody.appendChild(tr);
     });
+
+    const serviceFee = parseFloat(document.getElementById('stockOutServiceFee') ? document.getElementById('stockOutServiceFee').value : 0) || 0;
+    const codFee = parseFloat(document.getElementById('stockOutCodFee') ? document.getElementById('stockOutCodFee').value : 0) || 0;
+    const grandTotal = subtotal + serviceFee + codFee;
 
     document.getElementById('stockOutCartCountBadge').textContent = `${state.stockOutCart.length} មុខ`;
     document.getElementById('stockOutCartGrandTotal').textContent = `$${grandTotal.toFixed(2)}`;
@@ -1256,7 +1763,8 @@ function addToStockOutCart() {
     const qty = parseInt(document.getElementById('stockOutFormQty').value) || 1;
     const unitPrice = parseFloat(document.getElementById('stockOutFormUnitPrice').value);
 
-    const prod = state.products.find(p => p.code === code);
+    const prods = getStoreFilteredProducts();
+    const prod = prods.find(p => p.code === code);
     if (!prod) {
         showToast('សូមជ្រើសរើសមុខទំនិញជាមុនសិន!', 'warning');
         return;
@@ -1268,6 +1776,7 @@ function addToStockOutCart() {
     }
 
     const price = unitPrice > 0 ? unitPrice : prod.price;
+    const unit = document.getElementById('stockOutFormUnit') ? document.getElementById('stockOutFormUnit').value : (prod.unit || 'កញ្ចប់');
     const existing = state.stockOutCart.find(i => i.code === code);
     if (existing) {
         if (prod.qty < existing.qty + qty) {
@@ -1276,8 +1785,9 @@ function addToStockOutCart() {
         }
         existing.qty += qty;
         existing.price = price;
+        existing.unit = unit;
     } else {
-        state.stockOutCart.push({ code: prod.code, name: prod.name, qty, price });
+        state.stockOutCart.push({ code: prod.code, name: prod.name, qty, unit, price });
     }
 
     renderStockOutCartTable();
@@ -1295,9 +1805,15 @@ function completeStockOutTx() {
     const invNo = document.getElementById('stockOutInvoiceNo').value || `SAL-${Date.now()}`;
     const date = document.getElementById('stockOutFormDate').value || new Date().toISOString().split('T')[0];
     const customer = document.getElementById('stockOutCustomerFormSelect').value || 'អតិថិជនទូទៅ';
+    const sellerName = state.currentUser ? (state.currentUser.fullName || state.currentUser.username) : '';
+
+    const serviceFee = parseFloat(document.getElementById('stockOutServiceFee') ? document.getElementById('stockOutServiceFee').value : 0) || 0;
+    const codFee = parseFloat(document.getElementById('stockOutCodFee') ? document.getElementById('stockOutCodFee').value : 0) || 0;
+    const paymentStatus = document.getElementById('stockOutPaymentStatus') ? document.getElementById('stockOutPaymentStatus').value : 'Paid';
 
     const receiptItems = [...state.stockOutCart];
-    const receiptTotal = receiptItems.reduce((sum, i) => sum + (i.qty * i.price), 0);
+    const subtotal = receiptItems.reduce((sum, i) => sum + (i.qty * i.price), 0);
+    const grandTotal = subtotal + serviceFee + codFee;
 
     state.stockOutCart.forEach(item => {
         const prod = state.products.find(p => p.code === item.code);
@@ -1311,10 +1827,17 @@ function completeStockOutTx() {
             code: item.code,
             name: item.name,
             customer,
+            supplier: prod ? (prod.supplier || getUserStoreName()) : getUserStoreName(),
+            seller: sellerName,
             qty: item.qty,
+            unit: item.unit || 'កញ្ចប់',
             price: item.price,
             discount: 0,
-            total: item.qty * item.price
+            total: item.qty * item.price,
+            serviceFee,
+            codFee,
+            paymentStatus,
+            grandTotal
         };
         state.stockOutLogs.unshift(logObj);
         syncToGoogleSheets('addStockOut', logObj);
@@ -1322,37 +1845,136 @@ function completeStockOutTx() {
 
     state.stockOutCart = [];
     document.getElementById('stockOutInvoiceNo').value = `SAL-${Math.floor(100000 + Math.random() * 900000)}`;
+    if (document.getElementById('stockOutServiceFee')) document.getElementById('stockOutServiceFee').value = '0.00';
+    if (document.getElementById('stockOutCodFee')) document.getElementById('stockOutCodFee').value = '0.00';
+    if (document.getElementById('stockOutPaymentStatus')) {
+        document.getElementById('stockOutPaymentStatus').value = 'Paid';
+        document.getElementById('stockOutPaymentStatus').className = 'form-select form-select-sm fw-bold text-success';
+    }
 
     refreshCurrentUI();
     showToast('បានកាត់ស្តុកចេញ និងចេញវិក្កយបត្រជោគជ័យ!', 'success');
-    openReceiptModal(invNo, 'StockOut', date, customer, receiptItems, receiptTotal);
+    openReceiptModal(invNo, 'StockOut', date, customer, receiptItems, subtotal, serviceFee, codFee, paymentStatus, grandTotal);
 }
 
 function renderStockOutTable() {
     const tbody = document.getElementById('stockOutTableBody');
     if (!tbody) return;
     tbody.innerHTML = '';
-    state.stockOutLogs.forEach(l => {
+
+    const userRole = state.currentUser ? (state.currentUser.role || 'Cashier') : 'Cashier';
+    const isStoreUser = (userRole === 'Store' || userRole === 'Seller');
+    const isAdminOrManager = (userRole === 'Admin' || userRole === 'Manager');
+
+    getStoreFilteredStockOutLogs().forEach(l => {
+        const isBooked = (state.bookings || []).some(b => 
+            b.invoiceNo && l.id && String(b.invoiceNo).trim().toLowerCase() === String(l.id).trim().toLowerCase()
+        );
+
+        const statusBadge = (l.paymentStatus === 'Unpaid') 
+            ? '<span class="badge bg-danger text-white text-xs ms-1">🔴 មិនទាន់បង់</span>' 
+            : '<span class="badge badge-success text-xs ms-1">🟢 បង់រួច</span>';
+
+        // Store role can edit only items that have NOT been booked yet
+        const canEdit = isStoreUser ? (!isBooked) : (isAdminOrManager || !isBooked);
+
+        // Booking action button ("ទទួលការកក់") is hidden for Store role
+        const canShowBookingBtn = isAdminOrManager;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td data-label="DATE">${l.date}</td>
-            <td data-label="លេខវិក្កយបត្រ"><code>${l.id}</code></td>
+            <td data-label="លេខវិក្កយបត្រ"><code>${l.id}</code> ${statusBadge}</td>
             <td data-label="កូដទំនិញ"><code>${l.code}</code></td>
             <td data-label="ឈ្មោះទំនិញ"><strong>${l.name}</strong></td>
-            <td data-label="ចំនួន" class="text-center"><span class="badge badge-warning">-${l.qty}</span></td>
-            <td data-label="តម្លៃលក់" class="text-end">$${Number(l.price).toFixed(2)}</td>
-            <td data-label="TOTAL" class="text-end"><strong class="text-primary">$${Number(l.total).toFixed(2)}</strong></td>
+            <td data-label="ចំនួន" class="text-center"><span class="badge badge-warning">-${l.qty} ${l.unit || 'កញ្ចប់'}</span></td>
+            <td data-label="តម្លៃលក់" class="text-end">${fmtAcc(l.price, 'text-slate-700')}</td>
+            <td data-label="TOTAL" class="text-end">
+                ${fmtAcc(l.grandTotal || l.total, 'text-primary fw-bold')}
+                ${(l.serviceFee || l.codFee) ? `<br><small class="text-muted" style="font-size:10px;">(សេវា: $${Number(l.serviceFee||0).toFixed(2)} | COD: $${Number(l.codFee||0).toFixed(2)})</small>` : ''}
+            </td>
             <td data-label="អតិថិជន">${l.customer || 'អតិថិជនទូទៅ'}</td>
             <td data-label="សកម្មភាព" class="text-center">
-                <button class="btn btn-xs btn-outline-primary" onclick="reprintStockOutReceipt('${l.id}')" title="បោះពុម្ពវិក្កយបត្រ"><i class="fa-solid fa-print"></i></button>
+                <div class="flex-center gap-2 justify-content-center">
+                    ${canShowBookingBtn ? (isBooked ? `
+                    <button class="btn btn-action-booked" disabled title="បានទទួលការកក់រួចរាល់">
+                        <i class="fa-solid fa-circle-check text-success"></i> <span>បានកក់រួច</span>
+                    </button>` : `
+                    <button class="btn btn-action-booking" onclick="openBookingModal('${l.id}')" title="ទទួលការកក់ទំនិញ">
+                        <i class="fa-solid fa-hand-holding-dollar"></i> <span>ទទួលការកក់</span>
+                    </button>`) : ''}
+                    ${canEdit ? `
+                    <button class="btn btn-action-edit-sm" onclick="openEditStockOutModal('${l.id}')" title="កែប្រែប្រតិបត្តិការលក់">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>` : ''}
+                    <button class="btn btn-action-print" onclick="reprintStockOutReceipt('${l.id}')" title="បោះពុម្ពវិក្កយបត្រ">
+                        <i class="fa-solid fa-print"></i>
+                    </button>
+                    ${isAdminOrManager || (isStoreUser && !isBooked) ? `
+                    <button class="btn btn-action-delete-sm" onclick="deleteStockOutLog('${l.id}')" title="លុបទិន្នន័យលក់ចេញ">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>` : ''}
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
     });
+
+    const logs = getStoreFilteredStockOutLogs();
+    const totalQtyOut = logs.reduce((sum, l) => sum + (Number(l.qty) || 0), 0);
+    const totalAmountOut = logs.reduce((sum, l) => sum + (Number(l.grandTotal || l.total) || 0), 0);
+    const totalPaid = logs.filter(l => l.paymentStatus !== 'Unpaid').reduce((sum, l) => sum + (Number(l.grandTotal || l.total) || 0), 0);
+    const totalUnpaid = logs.filter(l => l.paymentStatus === 'Unpaid').reduce((sum, l) => sum + (Number(l.grandTotal || l.total) || 0), 0);
+
+    const outTfoot = getOrCreateTfoot('stockOutTableBody', 'stockOutTableFoot');
+    if (outTfoot) {
+        outTfoot.innerHTML = `
+            <tr class="table-summary-row">
+                <td colspan="4" class="text-end fw-bold text-dark">សរុបការលក់ចេញ (${logs.length} វិក្កយបត្រ)៖</td>
+                <td class="text-center"><span class="badge badge-warning">-${totalQtyOut.toLocaleString()}</span></td>
+                <td class="text-end text-muted">-</td>
+                <td class="text-end">
+                    ${fmtAcc(totalAmountOut, 'text-primary fw-bold')}
+                    ${totalUnpaid > 0 ? `<br><small class="text-danger" style="font-size:10px;">(នៅខ្វះ: $${totalUnpaid.toFixed(2)})</small>` : ''}
+                </td>
+                <td colspan="2"></td>
+            </tr>`;
+    }
+}
+
+function deleteStockOutLog(id) {
+    const userRole = state.currentUser ? (state.currentUser.role || 'Cashier') : 'Cashier';
+    if (userRole === 'Cashier') {
+        showToast('គណនី Cashier គ្មានសិទ្ធិលុបទិន្នន័យទេ!', 'warning');
+        return;
+    }
+
+    const logIndex = state.stockOutLogs.findIndex(l => l.id === id);
+    if (logIndex < 0) return;
+    const log = state.stockOutLogs[logIndex];
+
+    const isBooked = (state.bookings || []).some(b => 
+        b.invoiceNo && log.id && String(b.invoiceNo).trim().toLowerCase() === String(log.id).trim().toLowerCase()
+    );
+
+    if (userRole === 'Store' && isBooked) {
+        showToast('គណនីម្ចាស់ហាង មិនអាចលុបទិន្នន័យដែលបានទទួលការកក់រួចទេ!', 'warning');
+        return;
+    }
+
+    if (confirm(`តើអ្នកពិតជាចង់លុបទិន្នន័យលក់ចេញលេខ "${id}" នេះ ឬ?`)) {
+        state.stockOutLogs.splice(logIndex, 1);
+        saveToLocalStorage();
+
+        syncToGoogleSheets('deleteStockOut', { id }, () => {
+            renderStockOutTable();
+            showToast('បានលុបទិន្នន័យលក់ចេញជោគជ័យ!', 'success');
+        });
+    }
 }
 
 // Receipt Modal Controls (80mm POS Format)
-function openReceiptModal(invNo, type, date, contactName, items, grandTotal) {
+function openReceiptModal(invNo, type, date, contactName, items, subtotal = 0, serviceFee = 0, codFee = 0, paymentStatus = 'Paid', grandTotal = subtotal) {
     document.getElementById('receiptInvoiceNo').textContent = invNo;
     document.getElementById('receiptDate').textContent = date;
 
@@ -1371,15 +1993,41 @@ function openReceiptModal(invNo, type, date, contactName, items, grandTotal) {
             typeBadge.style.backgroundColor = '#10b981';
             typeBadge.style.color = '#ffffff';
         }
-        if (contactLabel) contactLabel.textContent = 'អ្នកផ្គត់ផ្គង់ / Supplier:';
+        if (contactLabel) contactLabel.textContent = 'ម្ចាស់ហាង / Store:';
     }
 
     document.getElementById('receiptContactName').textContent = contactName || 'ទូទៅ';
     
-    const fmtTotal = `$${Number(grandTotal).toFixed(2)}`;
     const subtotalEl = document.getElementById('receiptSubtotal');
-    if (subtotalEl) subtotalEl.textContent = fmtTotal;
-    document.getElementById('receiptGrandTotal').textContent = fmtTotal;
+    if (subtotalEl) subtotalEl.textContent = `$${Number(subtotal).toFixed(2)}`;
+
+    const serviceFeeEl = document.getElementById('receiptServiceFee');
+    const serviceFeeRow = document.getElementById('receiptServiceFeeRow');
+    if (serviceFeeEl && serviceFeeRow) {
+        serviceFeeEl.textContent = `$${Number(serviceFee).toFixed(2)}`;
+        serviceFeeRow.style.display = serviceFee > 0 ? 'flex' : 'none';
+    }
+
+    const codFeeEl = document.getElementById('receiptCodFee');
+    const codFeeRow = document.getElementById('receiptCodFeeRow');
+    if (codFeeEl && codFeeRow) {
+        codFeeEl.textContent = `$${Number(codFee).toFixed(2)}`;
+        codFeeRow.style.display = codFee > 0 ? 'flex' : 'none';
+    }
+
+    const grandTotalEl = document.getElementById('receiptGrandTotal');
+    if (grandTotalEl) grandTotalEl.textContent = `$${Number(grandTotal).toFixed(2)}`;
+
+    const statusBadge = document.getElementById('receiptPaymentStatusBadge');
+    if (statusBadge) {
+        if (paymentStatus === 'Unpaid') {
+            statusBadge.className = 'badge bg-danger text-white';
+            statusBadge.textContent = '🔴 មិនទាន់បង់ (Unpaid/COD)';
+        } else {
+            statusBadge.className = 'badge bg-success text-white';
+            statusBadge.textContent = '🟢 បង់រួច (Paid)';
+        }
+    }
 
     const tbody = document.getElementById('receiptItemsTbody');
     tbody.innerHTML = '';
@@ -1393,7 +2041,7 @@ function openReceiptModal(invNo, type, date, contactName, items, grandTotal) {
                 <strong style="color: #0f172a;">${item.name}</strong><br>
                 <span style="color: #64748b; font-size: 0.78rem; font-weight: 400; display: inline-block; margin-top: 2px;">${item.code}</span>
             </td>
-            <td class="text-center fw-bold" style="padding: 0.45rem 0; color: #0f172a;">${item.qty}</td>
+            <td class="text-center fw-bold" style="padding: 0.45rem 0; color: #0f172a;">${item.qty} ${item.unit || 'កញ្ចប់'}</td>
             <td class="text-end" style="padding: 0.45rem 0; color: #475569;">$${Number(price).toFixed(2)}</td>
             <td class="text-end fw-bold" style="padding: 0.45rem 0; color: #0f172a;">$${Number(total).toFixed(2)}</td>
         `;
@@ -1433,8 +2081,12 @@ function reprintStockOutReceipt(invNo) {
     if (logs.length === 0) return;
     const first = logs[0];
     const items = logs.map(l => ({ code: l.code, name: l.name, qty: l.qty, price: l.price }));
-    const grandTotal = logs.reduce((sum, l) => sum + (l.total || (l.qty * l.price)), 0);
-    openReceiptModal(invNo, 'StockOut', first.date, first.customer, items, grandTotal);
+    const subtotal = logs.reduce((sum, l) => sum + (l.total || (l.qty * l.price)), 0);
+    const serviceFee = first.serviceFee || 0;
+    const codFee = first.codFee || 0;
+    const paymentStatus = first.paymentStatus || 'Paid';
+    const grandTotal = first.grandTotal || (subtotal + serviceFee + codFee);
+    openReceiptModal(invNo, 'StockOut', first.date, first.customer, items, subtotal, serviceFee, codFee, paymentStatus, grandTotal);
 }
 
 function reprintStockInReceipt(invNo) {
@@ -1450,77 +2102,171 @@ function reprintStockInReceipt(invNo) {
 function renderContactsTables() {
     // Suppliers
     const supTbody = document.getElementById('suppliersTableBody');
-    supTbody.innerHTML = '';
-    state.suppliers.forEach((s, idx) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td data-label="ឈ្មោះ"><strong>${s.name}</strong></td>
-            <td data-label="លេខទូរស័ព្ទ">${s.phone || '-'}</td>
-            <td data-label="អាសយដ្ឋាន/ក្រុមហ៊ុន">${s.address || '-'}</td>
-            <td data-label="សកម្មភាព" class="text-end">
-                <button class="btn btn-xs btn-danger" onclick="deleteContact('supplier', ${idx})"><i class="fa-solid fa-trash"></i></button>
-            </td>
-        `;
-        supTbody.appendChild(tr);
-    });
+    if (supTbody) {
+        supTbody.innerHTML = '';
+        if (!state.suppliers || state.suppliers.length === 0) {
+            supTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-3">ពុំទាន់មានព័ត៌មានម្ចាស់ហាងនៅឡើយទេ</td></tr>';
+        } else {
+            state.suppliers.forEach((s, idx) => {
+                if (!s) return;
+                const usernameBadge = s.username 
+                    ? `<span class="text-dark fw-normal">${s.username}</span>` 
+                    : '<span class="text-muted">-</span>';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td data-label="ឈ្មោះ"><strong>${s.name || '-'}</strong></td>
+                    <td data-label="ឈ្មោះគណនី (Username)" class="text-center">${usernameBadge}</td>
+                    <td data-label="លេខទូរស័ព្ទ">${s.phone || '-'}</td>
+                    <td data-label="អាសយដ្ឋាន/ក្រុមហ៊ុន">${s.address || '-'}</td>
+                    <td data-label="សកម្មភាព" class="text-end">
+                        <div class="flex-center gap-2 justify-content-end">
+                            <button class="btn btn-action-edit-sm" onclick="openContactModal('supplier', ${idx})" title="កែប្រែម្ចាស់ហាង"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="btn btn-action-delete-sm" onclick="deleteContact('supplier', ${idx})" title="លុបម្ចាស់ហាង"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </td>
+                `;
+                supTbody.appendChild(tr);
+            });
+        }
+    }
 
     // Customers
     const custTbody = document.getElementById('customersTableBody');
-    custTbody.innerHTML = '';
-    state.customers.forEach((c, idx) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td data-label="ឈ្មោះ"><strong>${c.name}</strong></td>
-            <td data-label="លេខទូរស័ព្ទ">${c.phone || '-'}</td>
-            <td data-label="អាសយដ្ឋាន/ទីតាំង">${c.address || '-'}</td>
-            <td data-label="សកម្មភាព" class="text-end">
-                <button class="btn btn-xs btn-danger" onclick="deleteContact('customer', ${idx})"><i class="fa-solid fa-trash"></i></button>
-            </td>
-        `;
-        custTbody.appendChild(tr);
-    });
+    if (custTbody) {
+        custTbody.innerHTML = '';
+        if (!state.customers || state.customers.length === 0) {
+            custTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted p-3">ពុំទាន់មានព័ត៌មានអតិថិជននៅឡើយទេ</td></tr>';
+        } else {
+            state.customers.forEach((c, idx) => {
+                if (!c) return;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td data-label="ឈ្មោះ"><strong>${c.name || '-'}</strong></td>
+                    <td data-label="លេខទូរស័ព្ទ">${c.phone || '-'}</td>
+                    <td data-label="អាសយដ្ឋាន/ទីតាំង">${c.address || '-'}</td>
+                    <td data-label="សកម្មភាព" class="text-end">
+                        <div class="flex-center gap-2 justify-content-end">
+                            <button class="btn btn-action-edit-sm" onclick="openContactModal('customer', ${idx})" title="កែប្រែអតិថិជន"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="btn btn-action-delete-sm" onclick="deleteContact('customer', ${idx})" title="លុបអតិថិជន"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </td>
+                `;
+                custTbody.appendChild(tr);
+            });
+        }
+    }
 }
 
-function openContactModal(type) {
+function openContactModal(type, editIdx = -1) {
     document.getElementById('contactType').value = type;
-    document.getElementById('contactModalTitle').textContent = type === 'supplier' ? 'បន្ថែមអ្នកផ្គត់ផ្គង់' : 'បន្ថែមអតិថិជន';
+    if (document.getElementById('contactEditIdx')) {
+        document.getElementById('contactEditIdx').value = editIdx;
+    }
     document.getElementById('contactForm').reset();
+
+    const usernameGroup = document.getElementById('contactUsernameGroup');
+    const usernameSelect = document.getElementById('contactUsernameSelect');
+
+    if (type === 'supplier') {
+        if (usernameGroup) usernameGroup.style.display = 'block';
+        if (usernameSelect) {
+            usernameSelect.innerHTML = '<option value="">-- គ្មាន (None / ទូទៅ) --</option>' +
+                state.users.map(u => `<option value="${u.username}">[${u.username}] ${u.fullName} (${u.role})</option>`).join('');
+        }
+    } else {
+        if (usernameGroup) usernameGroup.style.display = 'none';
+    }
+
+    if (editIdx >= 0) {
+        const list = type === 'supplier' ? state.suppliers : state.customers;
+        const item = list[editIdx];
+        if (item) {
+            document.getElementById('contactModalTitle').textContent = type === 'supplier' 
+                ? `កែប្រែម្ចាស់ហាង (${item.name})` 
+                : `កែប្រែអតិថិជន (${item.name})`;
+            document.getElementById('contactName').value = item.name || '';
+            document.getElementById('contactPhone').value = item.phone || '';
+            document.getElementById('contactAddress').value = item.address || '';
+            if (type === 'supplier' && usernameSelect) {
+                usernameSelect.value = item.username || '';
+            }
+        }
+    } else {
+        document.getElementById('contactModalTitle').textContent = type === 'supplier' ? 'បន្ថែមម្ចាស់ហាង (Store)' : 'បន្ថែមអតិថិជន';
+    }
+
     document.getElementById('contactModal').classList.add('show');
 }
 
 function handleContactSubmit(e) {
     e.preventDefault();
     const type = document.getElementById('contactType').value;
+    const editIdxEl = document.getElementById('contactEditIdx');
+    const editIdx = editIdxEl ? parseInt(editIdxEl.value, 10) : -1;
+
     const name = document.getElementById('contactName').value.trim();
     const phone = document.getElementById('contactPhone').value.trim();
     const address = document.getElementById('contactAddress').value.trim();
-
-    const obj = { id: Date.now(), name, phone, address };
+    const username = document.getElementById('contactUsernameSelect') ? document.getElementById('contactUsernameSelect').value : '';
 
     if (type === 'supplier') {
-        state.suppliers.push(obj);
-        syncToGoogleSheets('saveSupplier', obj, () => {
-            document.getElementById('contactModal').classList.remove('show');
-            renderContactsTables();
-            showToast('បានរក្សាទុកអ្នកផ្គត់ផ្គង់!', 'success');
-        });
+        if (editIdx >= 0 && state.suppliers[editIdx]) {
+            const oldObj = state.suppliers[editIdx];
+            const updatedObj = { ...oldObj, name, phone, address, username };
+            state.suppliers[editIdx] = updatedObj;
+            syncToGoogleSheets('saveSupplier', updatedObj, () => {
+                document.getElementById('contactModal').classList.remove('show');
+                renderContactsTables();
+                showToast('បានកែប្រែម្ចាស់ហាងជោគជ័យ!', 'success');
+            });
+        } else {
+            const obj = { id: Date.now(), name, phone, address, username };
+            state.suppliers.push(obj);
+            syncToGoogleSheets('saveSupplier', obj, () => {
+                document.getElementById('contactModal').classList.remove('show');
+                renderContactsTables();
+                showToast('បានបន្ថែមម្ចាស់ហាងជោគជ័យ!', 'success');
+            });
+        }
     } else {
-        state.customers.push(obj);
-        syncToGoogleSheets('saveCustomer', obj, () => {
-            document.getElementById('contactModal').classList.remove('show');
-            renderContactsTables();
-            showToast('បានរក្សាទុកអតិថិជន!', 'success');
-        });
+        if (editIdx >= 0 && state.customers[editIdx]) {
+            const oldObj = state.customers[editIdx];
+            const updatedObj = { ...oldObj, name, phone, address };
+            state.customers[editIdx] = updatedObj;
+            syncToGoogleSheets('saveCustomer', updatedObj, () => {
+                document.getElementById('contactModal').classList.remove('show');
+                renderContactsTables();
+                showToast('បានកែប្រែអតិថិជនជោគជ័យ!', 'success');
+            });
+        } else {
+            const obj = { id: Date.now(), name, phone, address };
+            state.customers.push(obj);
+            syncToGoogleSheets('saveCustomer', obj, () => {
+                document.getElementById('contactModal').classList.remove('show');
+                renderContactsTables();
+                showToast('បានបន្ថែមអតិថិជនជោគជ័យ!', 'success');
+            });
+        }
     }
 }
 
 function deleteContact(type, idx) {
-    if (confirm('តើអ្នកពិតជាចង់លុបព័ត៌មាននេះឬ?')) {
-        if (type === 'supplier') state.suppliers.splice(idx, 1);
-        else state.customers.splice(idx, 1);
+    const list = type === 'supplier' ? state.suppliers : state.customers;
+    const item = list[idx];
+    if (!item) return;
+
+    if (type === 'supplier') {
+        state.suppliers.splice(idx, 1);
         saveToLocalStorage();
         renderContactsTables();
-        showToast('បានលុបព័ត៌មានទំនាក់ទំនង', 'success');
+        showToast(`បានលុបម្ចាស់ហាង "${item.name}" ជោគជ័យ!`, 'success');
+        syncToGoogleSheets('deleteSupplier', item);
+    } else {
+        state.customers.splice(idx, 1);
+        saveToLocalStorage();
+        renderContactsTables();
+        showToast(`បានលុបអតិថិជន "${item.name}" ជោគជ័យ!`, 'success');
+        syncToGoogleSheets('deleteCustomer', item);
     }
 }
 
@@ -1533,7 +2279,7 @@ function renderReportSection() {
     let combined = [];
 
     if (typeFilter === 'all' || typeFilter === 'IN') {
-        state.stockInLogs.forEach(l => combined.push({
+        getStoreFilteredStockInLogs().forEach(l => combined.push({
             date: l.date,
             type: 'STOCK_IN',
             code: l.code,
@@ -1546,7 +2292,7 @@ function renderReportSection() {
     }
 
     if (typeFilter === 'all' || typeFilter === 'OUT') {
-        state.stockOutLogs.forEach(l => combined.push({
+        getStoreFilteredStockOutLogs().forEach(l => combined.push({
             date: l.date,
             type: 'STOCK_OUT',
             code: l.code,
@@ -1590,26 +2336,54 @@ function renderReportSection() {
             <td data-label="កូដទំនិញ"><code>${c.code}</code></td>
             <td data-label="ឈ្មោះទំនិញ"><strong>${c.name}</strong></td>
             <td data-label="ចំនួន" class="text-center fw-bold">${isIn ? '+' : '-'}${c.qty}</td>
-            <td data-label="តម្លៃឯកតា" class="text-end">$${Number(c.price).toFixed(2)}</td>
-            <td data-label="សរុប ($)" class="text-end"><strong class="text-primary">$${Number(c.total).toFixed(2)}</strong></td>
+            <td data-label="តម្លៃឯកតា" class="text-end">${fmtAcc(c.price, 'text-slate-700')}</td>
+            <td data-label="សរុប ($)" class="text-end">${fmtAcc(c.total, 'text-primary fw-bold')}</td>
             <td data-label="ដៃគូពាក់ព័ន្ធ">${c.partner}</td>
         `;
         tbody.appendChild(tr);
     });
+
+    const qtyIn = combined.filter(c => c.type === 'STOCK_IN').reduce((sum, c) => sum + (Number(c.qty) || 0), 0);
+    const qtyOut = combined.filter(c => c.type === 'STOCK_OUT').reduce((sum, c) => sum + (Number(c.qty) || 0), 0);
+    const netProfit = totalOut - totalIn;
+
+    const repTfoot = getOrCreateTfoot('reportTableBody', 'reportTableFoot');
+    if (repTfoot) {
+        repTfoot.innerHTML = `
+            <tr class="table-summary-row">
+                <td colspan="4" class="text-end fw-bold text-dark">សរុបប្រតិបត្តិការ (${combined.length} ច្រក)៖</td>
+                <td class="text-center">
+                    <span class="badge badge-success me-1">+${qtyIn}</span>
+                    <span class="badge badge-warning">-${qtyOut}</span>
+                </td>
+                <td class="text-end text-muted">-</td>
+                <td class="text-end">${fmtAcc(totalIn + totalOut, 'text-primary fw-bold')}</td>
+                <td class="text-start">
+                    <span class="badge badge-success me-1">ចូល: $${totalIn.toFixed(2)}</span>
+                    <span class="badge badge-amber me-1">ចេញ: $${totalOut.toFixed(2)}</span>
+                    <span class="badge ${netProfit >= 0 ? 'badge-info' : 'badge-danger'}">ចំណេញសុទ្ធ: $${netProfit.toFixed(2)}</span>
+                </td>
+            </tr>`;
+    }
 }
 
 // Utility Helpers
 function updateBadges() {
-    document.getElementById('totalProductsBadge').textContent = state.products.length;
+    const storeProds = getStoreFilteredProducts();
+    document.getElementById('totalProductsBadge').textContent = storeProds.length;
+    const bBadge = document.getElementById('totalBookingsBadge');
+    if (bBadge) bBadge.textContent = state.bookings.length;
 }
 
 function exportProductsExcel() {
     try {
-        let content = `\uFEFFកូដទំនិញ,ឈ្មោះទំនិញ,ប្រភេទទំនិញ,តម្លៃដើម ($),តម្លៃលក់ ($),ចំនួនក្នុងស្តុក,កម្រិតព្រមានស្តុក\n`;
-        state.products.forEach(p => {
+        let content = `\uFEFFកូដទំនិញ,ឈ្មោះទំនិញ,ប្រភេទទំនិញ,អ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង,តម្លៃដើម ($),តម្លៃលក់ ($),ចំនួនក្នុងស្តុក,កម្រិតព្រមានស្តុក\n`;
+        const productsToExport = getStoreFilteredProducts();
+        productsToExport.forEach(p => {
             const cleanName = (p.name || '').replace(/"/g, '""');
             const cleanCat = (p.category || '').replace(/"/g, '""');
-            content += `"${p.code}","${cleanName}","${cleanCat}",${p.cost},${p.price},${p.qty},${p.minAlert}\n`;
+            const cleanSup = (p.supplier || 'ទូទៅ').replace(/"/g, '""');
+            content += `"${p.code}","${cleanName}","${cleanCat}","${cleanSup}",${p.cost},${p.price},${p.qty},${p.minAlert}\n`;
         });
 
         const blob = new Blob([content], { type: 'application/vnd.ms-excel;charset=utf-8;' });
@@ -1632,13 +2406,15 @@ function exportProductsPDF() {
     try {
         const today = new Date().toISOString().split('T')[0];
         let rowsHTML = '';
-        state.products.forEach((p, i) => {
+        const productsToExport = getStoreFilteredProducts();
+        productsToExport.forEach((p, i) => {
             rowsHTML += `
                 <tr>
                     <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${i + 1}</td>
                     <td style="padding: 8px; border: 1px solid #cbd5e1;"><code>${p.code}</code></td>
                     <td style="padding: 8px; border: 1px solid #cbd5e1; font-weight: bold;">${p.name}</td>
                     <td style="padding: 8px; border: 1px solid #cbd5e1;">${p.category}</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1;">${p.supplier || 'ទូទៅ'}</td>
                     <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">$${Number(p.cost).toFixed(2)}</td>
                     <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #2563eb;">$${Number(p.price).toFixed(2)}</td>
                     <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">${p.qty}</td>
@@ -1679,6 +2455,7 @@ function exportProductsPDF() {
                             <th>កូដទំនិញ</th>
                             <th>ឈ្មោះទំនិញ / ផលិតផល</th>
                             <th>ប្រភេទទំនិញ</th>
+                            <th>អ្នកផ្គត់ផ្គង់</th>
                             <th style="text-align: right;">តម្លៃដើម</th>
                             <th style="text-align: right;">តម្លៃលក់</th>
                             <th style="text-align: center;">ចំនួនស្តុក</th>
@@ -1816,6 +2593,12 @@ function renderSettingsCategories() {
     });
 }
 
+function renderSettingsProductsTable() {
+    const tbody = document.getElementById('settingsProductsTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+}
+
 function addNewCategoryFromSettings() {
     const input = document.getElementById('newCategoryInput');
     if (!input) return;
@@ -1861,13 +2644,13 @@ function renderSettingsProductsTable() {
     if (!tbody) return;
 
     const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-    const filtered = state.products.filter(p => p.name.toLowerCase().includes(query) || p.code.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
+    const filtered = state.products.filter(p => p.name.toLowerCase().includes(query) || p.code.toLowerCase().includes(query) || p.category.toLowerCase().includes(query) || (p.supplier && p.supplier.toLowerCase().includes(query)));
 
     if (countText) countText.textContent = `ទំនិញសរុប៖ ${filtered.length} / ${state.products.length} ប្រភេទ`;
     tbody.innerHTML = '';
 
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-4"><i class="fa-solid fa-box-open me-2 fs-4"></i><br>ពុំទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted p-4"><i class="fa-solid fa-box-open me-2 fs-4"></i><br>ពុំទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>';
         return;
     }
 
@@ -1882,6 +2665,7 @@ function renderSettingsProductsTable() {
             <td><code class="px-2 py-1 bg-main border rounded fw-bold text-dark">${p.code}</code></td>
             <td><strong class="text-primary fs-6">${p.name}</strong></td>
             <td class="text-center"><span class="badge badge-info"><i class="fa-solid ${getCategoryIcon(p.category)} me-1"></i>${p.category}</span></td>
+            <td class="text-center"><span class="badge badge-outline-secondary"><i class="fa-solid fa-truck-field me-1"></i>${p.supplier || 'ទូទៅ'}</span></td>
             <td class="text-end"><span class="text-muted">$${Number(p.cost || 0).toFixed(2)}</span></td>
             <td class="text-end"><strong class="text-success">$${Number(p.price || 0).toFixed(2)}</strong></td>
             <td class="text-center"><span class="badge ${badgeClass}">${p.qty}</span></td>
@@ -2088,6 +2872,765 @@ function resetAllSystemData() {
         refreshCurrentUI();
         showToast('បានលុបទិន្នន័យទាំងអស់ក្នុងប្រព័ន្ធ!', 'warning');
     }
+}
+
+// ==========================================================================
+// User Authentication & Role-Based Access Control (RBAC) Logic
+// ==========================================================================
+function checkLoginSession() {
+    let savedUserJson = safeSessionStorage.getItem('km_logged_user');
+    if (!savedUserJson) {
+        savedUserJson = safeStorage.getItem('km_logged_user');
+        if (savedUserJson) {
+            safeSessionStorage.setItem('km_logged_user', savedUserJson);
+            safeStorage.removeItem('km_logged_user');
+        }
+    }
+
+    const loginOverlay = document.getElementById('loginOverlay');
+
+    if (savedUserJson) {
+        try {
+            const userObj = JSON.parse(savedUserJson);
+            let matched = state.users.find(u => u.username.toLowerCase() === userObj.username.toLowerCase());
+            if (!matched && defaultSeedData.users) {
+                matched = defaultSeedData.users.find(u => u.username.toLowerCase() === userObj.username.toLowerCase());
+            }
+            if (matched && matched.status !== 'Inactive') {
+                state.currentUser = matched;
+                if (loginOverlay) loginOverlay.classList.add('hidden');
+                updateUserHeaderBadge();
+                applyRolePermissions();
+                return true;
+            }
+        } catch (e) {}
+    }
+
+    state.currentUser = null;
+    if (loginOverlay) loginOverlay.classList.remove('hidden');
+    updateUserHeaderBadge();
+    return false;
+}
+
+function updateUserHeaderBadge() {
+    const roleBadge = document.getElementById('headerUserRoleBadge');
+    const nameText = document.getElementById('headerUserNameText');
+    const profileBar = document.getElementById('userProfileHeaderBar');
+
+    if (state.currentUser) {
+        if (profileBar) profileBar.classList.remove('hidden');
+        if (roleBadge) {
+            roleBadge.textContent = state.currentUser.role === 'Store' ? 'ម្ចាស់ហាង (Store)' : state.currentUser.role;
+            if (state.currentUser.role === 'Admin') {
+                roleBadge.className = 'badge badge-primary user-role-badge';
+            } else if (state.currentUser.role === 'Store') {
+                roleBadge.className = 'badge badge-purple user-role-badge';
+            } else if (state.currentUser.role === 'Manager') {
+                roleBadge.className = 'badge badge-success user-role-badge';
+            } else if (state.currentUser.role === 'Customer') {
+                roleBadge.className = 'badge badge-info user-role-badge';
+            } else {
+                roleBadge.className = 'badge badge-warning user-role-badge';
+            }
+        }
+        if (nameText) nameText.textContent = state.currentUser.fullName || state.currentUser.username;
+    } else {
+        if (profileBar) profileBar.classList.add('hidden');
+    }
+}
+
+function handleLoginSubmit(e) {
+    if (e) e.preventDefault();
+    const userEl = document.getElementById('loginUsername');
+    const pwdEl = document.getElementById('loginPassword');
+    const alertBox = document.getElementById('loginAlertBox');
+    const alertText = document.getElementById('loginAlertText');
+
+    const username = (userEl ? userEl.value : '').trim();
+    const password = (pwdEl ? pwdEl.value : '').trim();
+
+    if (!username || !password) {
+        if (alertText) alertText.textContent = 'សូមបញ្ចូល ឈ្មោះគណនី និង លេខសម្ងាត់!';
+        if (alertBox) alertBox.classList.remove('hidden');
+        return;
+    }
+
+    let matchedUser = state.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if (!matchedUser && defaultSeedData.users) {
+        matchedUser = defaultSeedData.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    }
+
+    if (!matchedUser || matchedUser.password !== password) {
+        if (alertText) alertText.textContent = 'ឈ្មោះគណនី ឬ ពាក្យសម្ងាត់ មិនត្រឹមត្រូវឡើយ!';
+        if (alertBox) alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (matchedUser.status === 'Inactive') {
+        if (alertText) alertText.textContent = 'គណនីនេះត្រូវបានផ្អាកដំណើរការ! សូមទាក់ទង Admin';
+        if (alertBox) alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (alertBox) alertBox.classList.add('hidden');
+    state.currentUser = matchedUser;
+    safeSessionStorage.setItem('km_logged_user', JSON.stringify(matchedUser));
+    safeStorage.removeItem('km_logged_user');
+
+    const loginOverlay = document.getElementById('loginOverlay');
+    if (loginOverlay) loginOverlay.classList.add('hidden');
+
+    if (userEl) userEl.value = '';
+    if (pwdEl) pwdEl.value = '';
+
+    updateUserHeaderBadge();
+    applyRolePermissions();
+    refreshCurrentUI();
+    showToast(`ជម្រាបសួរ ${matchedUser.fullName}! បានចូលប្រើប្រាស់ប្រព័ន្ធជោគជ័យ`, 'success');
+}
+
+function handleLogout() {
+    if (confirm('តើអ្នកពិតជាចង់ចាកចេញពីប្រព័ន្ធ ឬ?')) {
+        state.currentUser = null;
+        safeSessionStorage.removeItem('km_logged_user');
+        safeStorage.removeItem('km_logged_user');
+        const loginOverlay = document.getElementById('loginOverlay');
+        if (loginOverlay) loginOverlay.classList.remove('hidden');
+        updateUserHeaderBadge();
+        showToast('បានចាកចេញពីប្រព័ន្ធជោគជ័យ!', 'info');
+    }
+}
+
+function applyRolePermissions() {
+    if (!state.currentUser) return;
+
+    const allowedPages = getUserAllowedPages(state.currentUser);
+    const navItems = document.querySelectorAll('.sidebar-nav li[data-page]');
+    const quickActions = document.querySelector('.quick-actions');
+    const userMgmtCard = document.getElementById('userManagementCard');
+
+    navItems.forEach(item => {
+        const page = item.getAttribute('data-page');
+        if (allowedPages.includes(page)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    if (userMgmtCard) {
+        if (state.currentUser.role === 'Admin' || allowedPages.includes('settings')) {
+            userMgmtCard.style.display = 'block';
+            renderUsersTable();
+        } else {
+            userMgmtCard.style.display = 'none';
+        }
+    }
+
+    if (quickActions) {
+        const canQuickAction = allowedPages.includes('products') || allowedPages.includes('stock-in');
+        quickActions.style.display = canQuickAction ? 'flex' : 'none';
+    }
+
+    if (!allowedPages.includes(state.currentPage)) {
+        renderPage(allowedPages[0] || 'stock-out');
+    }
+}
+
+function renderUsersTable() {
+    const tbody = document.getElementById('usersListTbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (state.users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted p-3">ពុំទាន់មានគណនីប្រើប្រាស់នៅឡើយទេ</td></tr>';
+        return;
+    }
+
+    state.users.forEach((u) => {
+        const isSelf = state.currentUser && state.currentUser.username.toLowerCase() === u.username.toLowerCase();
+        let roleBadge = '<span class="badge badge-warning">Cashier</span>';
+        if (u.role === 'Admin') roleBadge = '<span class="badge badge-primary">Admin</span>';
+        else if (u.role === 'Store') roleBadge = '<span class="badge badge-purple">ម្ចាស់ហាង (Store)</span>';
+        else if (u.role === 'Manager') roleBadge = '<span class="badge badge-success">Manager</span>';
+        else if (u.role === 'Customer') roleBadge = '<span class="badge badge-info">Customer</span>';
+
+        let statusBadge = u.status === 'Active' 
+            ? '<span class="badge badge-success"><i class="fa-solid fa-check me-1"></i>Active</span>'
+            : '<span class="badge badge-danger"><i class="fa-solid fa-ban me-1"></i>Inactive</span>';
+
+        const userPages = getUserAllowedPages(u);
+        const pagesBadge = `<span class="badge badge-info" title="ទំព័រដែលអនុញ្ញាត៖ ${userPages.join(', ')}">${userPages.length} ទំព័រ</span>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td data-label="ឈ្មោះគណនី"><code>${u.username}</code> ${isSelf ? '<span class="badge badge-info ms-1">អ្នក</span>' : ''}</td>
+            <td data-label="ឈ្មោះពេញ"><strong>${u.fullName || u.username}</strong></td>
+            <td data-label="តួនាទី" class="text-center">${roleBadge}</td>
+            <td data-label="សិទ្ធិចូលទំព័រ" class="text-center">${pagesBadge}</td>
+            <td data-label="ស្ថានភាព" class="text-center">${statusBadge}</td>
+            <td data-label="សកម្មភាព" class="text-center">
+                <div class="flex-center gap-2">
+                    <button class="btn btn-action-edit" onclick="openUserModal('${u.username}')" title="កែប្រែគណនី">
+                        <i class="fa-solid fa-pen-to-square"></i> <span>កែប្រែ</span>
+                    </button>
+                    ${!isSelf ? `
+                    <button class="btn btn-action-delete" onclick="deleteUserByUsername('${u.username}')" title="លុបគណនី">
+                        <i class="fa-solid fa-trash-can"></i> <span>លុប</span>
+                    </button>` : ''}
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function openUserModal(username = '') {
+    const modal = document.getElementById('userModal');
+    const form = document.getElementById('userForm');
+    if (!modal || !form) return;
+    form.reset();
+
+    if (username) {
+        const u = state.users.find(item => item.username.toLowerCase() === username.toLowerCase());
+        if (u) {
+            document.getElementById('userModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> កែប្រែគណនី (${u.username})`;
+            document.getElementById('userEditUsername').value = u.username;
+            document.getElementById('userFormUsername').value = u.username;
+            document.getElementById('userFormUsername').readOnly = true;
+            document.getElementById('userFormPassword').value = u.password;
+            document.getElementById('userFormFullName').value = u.fullName || u.username;
+            document.getElementById('userFormRole').value = u.role || 'Cashier';
+            document.getElementById('userFormStatus').value = u.status || 'Active';
+
+            const userPages = getUserAllowedPages(u);
+            document.querySelectorAll('.user-page-checkbox').forEach(cb => {
+                cb.checked = userPages.includes(cb.value);
+            });
+        }
+    } else {
+        document.getElementById('userModalTitle').innerHTML = `<i class="fa-solid fa-user-plus"></i> បន្ថែមគណនីថ្មី`;
+        document.getElementById('userEditUsername').value = '';
+        document.getElementById('userFormUsername').readOnly = false;
+        document.getElementById('userFormRole').value = 'Cashier';
+        document.getElementById('userFormStatus').value = 'Active';
+
+        const defaultPages = getRoleDefaultPages('Cashier');
+        document.querySelectorAll('.user-page-checkbox').forEach(cb => {
+            cb.checked = defaultPages.includes(cb.value);
+        });
+    }
+
+    modal.classList.add('show');
+}
+
+function closeUserModal() {
+    const modal = document.getElementById('userModal');
+    if (modal) modal.classList.remove('show');
+}
+
+function handleUserFormSubmit(e) {
+    e.preventDefault();
+    const editUsername = document.getElementById('userEditUsername').value.trim();
+    const username = document.getElementById('userFormUsername').value.trim();
+    const password = document.getElementById('userFormPassword').value.trim();
+    const fullName = document.getElementById('userFormFullName').value.trim();
+    const role = document.getElementById('userFormRole').value;
+    const status = document.getElementById('userFormStatus').value;
+
+    const allowedPages = Array.from(document.querySelectorAll('.user-page-checkbox:checked')).map(cb => cb.value);
+
+    const userObj = { username, password, fullName, role, status, allowedPages };
+
+    if (editUsername) {
+        const idx = state.users.findIndex(u => u.username.toLowerCase() === editUsername.toLowerCase());
+        if (idx >= 0) state.users[idx] = userObj;
+    } else {
+        if (state.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+            showToast('ឈ្មោះគណនីនេះមានរួចហើយ! សូមប្រើឈ្មោះផ្សេង', 'danger');
+            return;
+        }
+        state.users.push(userObj);
+    }
+
+    syncToGoogleSheets('saveUser', userObj, () => {
+        closeUserModal();
+        renderUsersTable();
+        showToast('បានរក្សាទុកគណនីប្រើប្រាស់ជោគជ័យ!', 'success');
+    });
+}
+
+function deleteUserByUsername(username) {
+    if (state.currentUser && state.currentUser.username.toLowerCase() === username.toLowerCase()) {
+        showToast('មិនអាចលុបគណនីខ្លួនឯងដែលកំពុង Login បានទេ!', 'warning');
+        return;
+    }
+
+    if (confirm(`តើអ្នកពិតជាចង់លុបគណនី "${username}" នេះ ឬ?`)) {
+        const idx = state.users.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
+        if (idx >= 0) {
+            state.users.splice(idx, 1);
+            syncToGoogleSheets('deleteUser', { username }, () => {
+                renderUsersTable();
+                showToast('បានលុបគណនីជោគជ័យ!', 'success');
+            });
+        }
+    }
+}
+
+// ==========================================================================
+// Receive Booking (ទទួលការកក់) & Bookings Management Logic
+// ==========================================================================
+let currentBookingImages = [];
+
+function openBookingModal(logId) {
+    if (state.currentUser && state.currentUser.role === 'Cashier') {
+        showToast('គណនី Cashier គ្មានសិទ្ធិប្រើប្រាស់មុខងារទទួលការកក់ទេ!', 'warning');
+        return;
+    }
+
+    if (state.bookings.some(b => b.invoiceNo === logId)) {
+        showToast('ប្រតិបត្តិការនេះបានទទួលការកក់រួចរាល់ហើយ!', 'warning');
+        return;
+    }
+
+    const log = state.stockOutLogs.find(l => l.id === logId);
+    if (!log) {
+        showToast('ពុំរកឃើញប្រវត្តិលក់នេះទេ!', 'danger');
+        return;
+    }
+
+    const modal = document.getElementById('bookingModal');
+    const form = document.getElementById('bookingForm');
+    if (!modal || !form) return;
+    form.reset();
+
+    currentBookingImages = [];
+    renderBookingImagePreviews();
+
+    const now = new Date();
+    const formattedNow = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    document.getElementById('bookingSalesLogId').value = log.id;
+    document.getElementById('bookingProdCode').value = log.code || '';
+    document.getElementById('bookingAutoTimestampText').textContent = formattedNow;
+    document.getElementById('bookingInvoiceNoText').textContent = log.id;
+    document.getElementById('bookingProductNameText').textContent = log.name;
+    document.getElementById('bookingCustomerNameText').textContent = log.customer || 'អតិថិជនទូទៅ';
+    document.getElementById('bookingTotalAmountText').textContent = `$${Number(log.total).toFixed(2)}`;
+
+    document.getElementById('bookingNotes').value = '';
+
+    modal.classList.add('show');
+}
+
+window.openBookingModal = openBookingModal;
+window.closeBookingModal = closeBookingModal;
+
+function closeBookingModal() {
+    const modal = document.getElementById('bookingModal');
+    if (modal) modal.classList.remove('show');
+}
+
+function handleBookingImageSelect(e) {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    if (currentBookingImages.length >= 5) {
+        showToast('លោកអ្នកបានជ្រើសរើសរូបភាពគ្រប់ចំនួន ៥ សន្លឹកហើយ!', 'warning');
+        return;
+    }
+
+    const availableSlots = 5 - currentBookingImages.length;
+    const selectedFiles = files.slice(0, availableSlots);
+
+    if (files.length > availableSlots) {
+        showToast(`ប្រព័ន្ធបានជ្រើសយកត្រឹមតែ ${availableSlots} រូបភាពដំបូង (អតិបរមា ៥ សន្លឹក)`, 'info');
+    }
+
+    let processedCount = 0;
+
+    selectedFiles.forEach(file => {
+        if (!file.type.startsWith('image/')) {
+            showToast('សូមជ្រើសរើសប្រភេទរូបភាព (JPG, PNG, WebP)!', 'warning');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxDimension = 800;
+
+                if (width > height && width > maxDimension) {
+                    height = Math.round((height * maxDimension) / width);
+                    width = maxDimension;
+                } else if (height > maxDimension) {
+                    width = Math.round((width * maxDimension) / height);
+                    height = maxDimension;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                currentBookingImages.push(dataUrl);
+
+                processedCount++;
+                if (processedCount === selectedFiles.length) {
+                    renderBookingImagePreviews();
+                    const fileInput = document.getElementById('bookingImageInput');
+                    if (fileInput) fileInput.value = '';
+                }
+            };
+            img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderBookingImagePreviews() {
+    const container = document.getElementById('bookingImagePreviewContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (currentBookingImages.length === 0) return;
+
+    currentBookingImages.forEach((img, idx) => {
+        const item = document.createElement('div');
+        item.className = 'position-relative d-inline-block m-1';
+        item.style.cssText = 'width: 75px; height: 75px;';
+        item.innerHTML = `
+            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px; border: 1px solid #cbd5e1; cursor: pointer;" onclick="openImageViewerModal('${img}', 'រូបភាពទី ${idx + 1}')">
+            <button type="button" class="btn btn-sm btn-danger p-0 flex-center" onclick="removeBookingImageAt(${idx})" title="លុបរូបភាព" style="position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        `;
+        container.appendChild(item);
+    });
+
+    const info = document.createElement('div');
+    info.className = 'w-100 text-muted text-xs mt-1 fw-semibold';
+    info.innerHTML = `រូបភាពបង្កាន់ដៃបានជ្រើសរើស៖ <span class="text-primary fw-bold">${currentBookingImages.length}</span> / 5 សន្លឹក`;
+    container.appendChild(info);
+}
+
+function removeBookingImageAt(index) {
+    if (index >= 0 && index < currentBookingImages.length) {
+        currentBookingImages.splice(index, 1);
+        renderBookingImagePreviews();
+    }
+}
+
+function handleBookingFormSubmit(e) {
+    e.preventDefault();
+    const logId = document.getElementById('bookingSalesLogId').value;
+    const prodCode = document.getElementById('bookingProdCode').value;
+    const timestamp = document.getElementById('bookingAutoTimestampText').textContent;
+    const invoiceNo = document.getElementById('bookingInvoiceNoText').textContent;
+    const productName = document.getElementById('bookingProductNameText').textContent;
+    const customerName = document.getElementById('bookingCustomerNameText').textContent;
+    const totalAmount = parseFloat(document.getElementById('bookingTotalAmountText').textContent.replace('$', '')) || 0;
+    const notes = document.getElementById('bookingNotes').value.trim();
+    const staffName = state.currentUser ? (state.currentUser.fullName || state.currentUser.username) : 'Staff';
+
+    const bookingObj = {
+        id: `BKG-${Math.floor(100000 + Math.random() * 900000)}`,
+        timestamp,
+        invoiceNo,
+        productCode: prodCode,
+        productName,
+        customerName,
+        totalAmount,
+        notes,
+        images: [...currentBookingImages],
+        imageUrl: currentBookingImages[0] || '',
+        staffName,
+        status: 'Pending'
+    };
+
+    state.bookings.unshift(bookingObj);
+    saveToLocalStorage();
+
+    syncToGoogleSheets('addBooking', bookingObj, () => {
+        closeBookingModal();
+        updateBadges();
+        renderBookingsTable();
+        showToast('បានទទួល និង រក្សាទុកការកក់ទំនិញជោគជ័យ!', 'success');
+    });
+}
+
+function renderBookingsTable() {
+    const tbody = document.getElementById('bookingsTableBody');
+    const searchInput = document.getElementById('bookingSearchInput');
+    const statusFilter = document.getElementById('bookingStatusFilter');
+    if (!tbody) return;
+
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const selStatus = statusFilter ? statusFilter.value : '';
+
+    const pendingCount = (state.bookings || []).filter(b => b.status === 'Pending').length;
+    const completedCount = (state.bookings || []).filter(b => b.status === 'Completed').length;
+
+    const pendingSummaryEl = document.getElementById('bookingPendingCountSummary');
+    if (pendingSummaryEl) pendingSummaryEl.innerHTML = `<i class="fa-solid fa-clock text-amber me-1"></i> កំពុងកក់: <strong>${pendingCount}</strong>`;
+    
+    const completedSummaryEl = document.getElementById('bookingCompletedCountSummary');
+    if (completedSummaryEl) completedSummaryEl.innerHTML = `<i class="fa-solid fa-circle-check text-green me-1"></i> បង្ហើយ: <strong>${completedCount}</strong>`;
+
+    let filtered = (state.bookings || []).filter(b => {
+        const matchesQuery = (b.invoiceNo && b.invoiceNo.toLowerCase().includes(query)) ||
+                             (b.productName && b.productName.toLowerCase().includes(query)) ||
+                             (b.customerName && b.customerName.toLowerCase().includes(query)) ||
+                             (b.notes && b.notes.toLowerCase().includes(query));
+        const matchesStatus = !selStatus || b.status === selStatus;
+        return matchesQuery && matchesStatus;
+    });
+
+    tbody.innerHTML = '';
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center text-muted p-5">
+                    <div class="empty-cart-box">
+                        <div class="empty-cart-icon bg-amber-light">
+                            <i class="fa-solid fa-bookmark text-warning"></i>
+                        </div>
+                        <div class="empty-cart-title">ពុំទាន់មានទិន្នន័យការកក់ទំនិញនៅឡើយទេ</div>
+                        <p class="empty-cart-subtitle">ការកក់ពីអតិថិជននឹងបង្ហាញនៅទីនេះពេលមានការទទួលកក់</p>
+                    </div>
+                </td>
+            </tr>`;
+        return;
+    }
+
+    filtered.forEach((b) => {
+        const isCompleted = b.status === 'Completed';
+        
+        const statusBadge = isCompleted
+            ? '<span class="badge-status-completed"><i class="fa-solid fa-circle-check"></i> បង្ហើយ</span>'
+            : '<span class="badge-status-pending"><span class="pulse-dot"></span> កំពុងកក់</span>';
+
+        const imgs = (b.images && Array.isArray(b.images) && b.images.length > 0) ? b.images : (b.imageUrl ? [b.imageUrl] : []);
+        let imageCell = '<span class="text-muted text-xs">-</span>';
+        if (imgs.length > 0) {
+            imageCell = `
+                <button class="btn btn-receipt-preview flex-center gap-1 mx-auto" onclick="openImageViewerModalGroup('${b.id}')">
+                    <i class="fa-solid fa-images text-primary"></i>
+                    <span>រូបភាព (${imgs.length})</span>
+                </button>`;
+        }
+
+        const iconClass = getCategoryIcon(b.productCategory || '');
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td data-label="ថ្ងៃខែម៉ោង">
+                <div class="booking-date-pill">
+                    <i class="fa-regular fa-clock text-muted me-1"></i>
+                    <span>${b.timestamp}</span>
+                </div>
+            </td>
+            <td data-label="លេខវិក្កយបត្រ">
+                <code class="booking-inv-badge">${b.invoiceNo}</code>
+            </td>
+            <td data-label="ឈ្មោះទំនិញ / ផលិតផល">
+                <div class="d-flex align-items-center gap-1 text-nowrap">
+                    <i class="fa-solid ${iconClass} text-primary me-1" style="font-size: 0.85rem;"></i>
+                    <strong class="text-dark fw-semibold" style="font-size: 0.84rem;">${b.productName}</strong>
+                    ${b.productCode ? `<code class="text-muted text-xs ms-1">(${b.productCode})</code>` : ''}
+                </div>
+            </td>
+            <td data-label="អតិថិជន">
+                <div class="d-flex align-items-center gap-1 text-slate-700 fw-semibold">
+                    <i class="fa-solid fa-user-circle text-secondary fs-6 me-1"></i>
+                    <span>${b.customerName}</span>
+                </div>
+            </td>
+            <td data-label="តម្លៃសរុប" class="text-end">
+                ${fmtAcc(b.totalAmount, 'text-primary fw-bold')}
+            </td>
+            <td data-label="រូបភាពបង្កាន់ដៃ" class="text-center">
+                ${imageCell}
+            </td>
+            <td data-label="អ្នកទទួលកក់">
+                <span class="badge badge-outline-secondary font-monospace" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-user-shield me-1 text-primary"></i>${b.staffName || 'Admin'}
+                </span>
+            </td>
+            <td data-label="ស្ថានភាព" class="text-center">
+                ${statusBadge}
+            </td>
+            <td data-label="សកម្មភាព" class="text-center">
+                <button class="btn ${isCompleted ? 'btn-reopen-action' : 'btn-success-action'} flex-center gap-1 mx-auto" onclick="toggleBookingStatus('${b.id}')" title="ប្តូរស្ថានភាពកក់">
+                    <i class="fa-solid ${isCompleted ? 'fa-rotate-left' : 'fa-check'} me-1"></i>
+                    <span>${isCompleted ? 'កក់ឡើងវិញ' : 'បង្ហើយកក់'}</span>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    const totalBookedAmount = filtered.reduce((sum, b) => sum + (Number(b.totalAmount) || 0), 0);
+    const pendingAmount = filtered.filter(b => b.status === 'Pending').reduce((sum, b) => sum + (Number(b.totalAmount) || 0), 0);
+    const completedAmount = filtered.filter(b => b.status === 'Completed').reduce((sum, b) => sum + (Number(b.totalAmount) || 0), 0);
+
+    const bkgTfoot = getOrCreateTfoot('bookingsTableBody', 'bookingsTableFoot');
+    if (bkgTfoot) {
+        bkgTfoot.innerHTML = `
+            <tr class="table-summary-row">
+                <td colspan="4" class="text-end fw-bold text-dark">សរុបការកក់តាមការជ្រើសរើស (${filtered.length} ការកក់)៖</td>
+                <td class="text-end">${fmtAcc(totalBookedAmount, 'text-primary fw-bold')}</td>
+                <td colspan="2" class="text-center">
+                    <span class="badge badge-warning me-1">កំពុងកក់: $${pendingAmount.toFixed(2)}</span>
+                    <span class="badge badge-success">បង្ហើយ: $${completedAmount.toFixed(2)}</span>
+                </td>
+                <td colspan="2"></td>
+            </tr>`;
+    }
+}
+
+function toggleBookingStatus(id) {
+    const b = state.bookings.find(item => item.id === id);
+    if (!b) return;
+
+    b.status = (b.status === 'Completed') ? 'Pending' : 'Completed';
+    saveToLocalStorage();
+
+    syncToGoogleSheets('updateBookingStatus', { id: b.id, status: b.status }, () => {
+        renderBookingsTable();
+        showToast(`បានប្តូរស្ថានភាពកក់ទៅ «${b.status === 'Completed' ? 'បានបង្ហើយ' : 'កំពុងកក់'}» ជោគជ័យ!`, 'success');
+    });
+}
+
+function openImageViewerModal(imgSrc, title = '') {
+    const modal = document.getElementById('imageViewerModal');
+    const imgEl = document.getElementById('imageViewerSrc');
+    const titleEl = document.getElementById('imageViewerTitle');
+    const thumbsContainer = document.getElementById('imageViewerThumbnails');
+
+    if (imgEl) imgEl.src = imgSrc;
+    if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-image"></i> រូបភាពបង្កាន់ដៃកក់ (${title})`;
+    if (thumbsContainer) thumbsContainer.innerHTML = '';
+    if (modal) modal.classList.add('show');
+}
+
+function openImageViewerModalGroup(bookingId) {
+    const b = state.bookings.find(item => item.id === bookingId);
+    if (!b) return;
+
+    const imgs = (b.images && Array.isArray(b.images) && b.images.length > 0) ? b.images : (b.imageUrl ? [b.imageUrl] : []);
+    if (imgs.length === 0) return;
+
+    const modal = document.getElementById('imageViewerModal');
+    const imgEl = document.getElementById('imageViewerSrc');
+    const titleEl = document.getElementById('imageViewerTitle');
+    const thumbsContainer = document.getElementById('imageViewerThumbnails');
+
+    if (imgEl) imgEl.src = imgs[0];
+    if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-images"></i> រូបភាពបង្កាន់ដៃកក់ (${b.invoiceNo}) - ${imgs.length} សន្លឹក`;
+
+    if (thumbsContainer) {
+        thumbsContainer.innerHTML = '';
+        imgs.forEach((src, idx) => {
+            const thumb = document.createElement('img');
+            thumb.src = src;
+            thumb.style.cssText = `width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 2px solid ${idx === 0 ? '#1862f6' : '#cbd5e1'}; cursor: pointer; transition: all 0.2s;`;
+            thumb.onclick = () => {
+                imgEl.src = src;
+                Array.from(thumbsContainer.children).forEach(c => c.style.borderColor = '#cbd5e1');
+                thumb.style.borderColor = '#1862f6';
+            };
+            thumbsContainer.appendChild(thumb);
+        });
+    }
+
+    if (modal) modal.classList.add('show');
+}
+
+function closeImageViewerModal() {
+    const modal = document.getElementById('imageViewerModal');
+    if (modal) modal.classList.remove('show');
+}
+
+// Edit Stock Out Transaction Handlers
+function openEditStockOutModal(id) {
+    const log = state.stockOutLogs.find(l => l.id === id);
+    if (!log) {
+        showToast('ពុំរកឃើញទិន្នន័យលក់នេះទេ!', 'warning');
+        return;
+    }
+
+    const userRole = state.currentUser ? (state.currentUser.role || 'Admin') : 'Admin';
+    const isBooked = (state.bookings || []).some(b => 
+        b.invoiceNo && id && String(b.invoiceNo).trim().toLowerCase() === String(id).trim().toLowerCase()
+    );
+
+    if ((userRole === 'Cashier' || userRole === 'Customer') && isBooked) {
+        showToast('ប្រតិបត្តិការនេះត្រូវអ្នកគ្រប់គ្រងទទួលការកក់រួចហើយ! គណនីរបស់អ្នកពុំអាចកែប្រែបានទេ', 'warning');
+        return;
+    }
+
+    const modal = document.getElementById('editStockOutModal');
+    const form = document.getElementById('editStockOutForm');
+    if (!modal || !form) return;
+    form.reset();
+
+    document.getElementById('editStockOutLogId').value = log.id;
+    document.getElementById('editStockOutInfoDisplay').value = `${log.id} - ${log.name} (${log.code})`;
+    document.getElementById('editStockOutCustomer').value = log.customer || 'អតិថិជនទូទៅ';
+    document.getElementById('editStockOutQty').value = log.qty;
+    document.getElementById('editStockOutPrice').value = log.price;
+
+    modal.classList.add('show');
+}
+
+window.openEditStockOutModal = openEditStockOutModal;
+window.closeEditStockOutModal = closeEditStockOutModal;
+
+function closeEditStockOutModal() {
+    const modal = document.getElementById('editStockOutModal');
+    if (modal) modal.classList.remove('show');
+}
+
+function handleEditStockOutSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('editStockOutLogId').value;
+    const customer = document.getElementById('editStockOutCustomer').value.trim();
+    const newQty = parseInt(document.getElementById('editStockOutQty').value) || 1;
+    const newPrice = parseFloat(document.getElementById('editStockOutPrice').value) || 0;
+
+    const logIndex = state.stockOutLogs.findIndex(l => l.id === id);
+    if (logIndex < 0) return;
+    const oldLog = state.stockOutLogs[logIndex];
+
+    const qtyDiff = newQty - oldLog.qty;
+
+    // Adjust product stock
+    const prod = state.products.find(p => p.code === oldLog.code);
+    if (prod) {
+        prod.qty = Math.max(0, prod.qty - qtyDiff);
+        syncToGoogleSheets('saveProduct', prod);
+    }
+
+    oldLog.customer = customer;
+    oldLog.qty = newQty;
+    oldLog.price = newPrice;
+    oldLog.total = newQty * newPrice;
+
+    saveToLocalStorage();
+
+    syncToGoogleSheets('updateStockOut', oldLog, () => {
+        closeEditStockOutModal();
+        refreshCurrentUI();
+        showToast('បានកែប្រែប្រតិបត្តិការលក់ចេញជោគជ័យ!', 'success');
+    });
 }
 
 </script>
