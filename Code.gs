@@ -93,6 +93,20 @@ function handleApiRequest(action, payload) {
       result = saveCustomer(payload);
     } else if (action === 'deleteCustomer') {
       result = deleteCustomer(payload);
+    } else if (action === 'updateStockOut') {
+      result = updateStockOut(payload);
+    } else if (action === 'deleteStockOut') {
+      result = deleteStockOut(payload);
+    } else if (action === 'saveUser') {
+      result = saveUser(payload);
+    } else if (action === 'deleteUser') {
+      result = deleteUser(payload);
+    } else if (action === 'addBooking') {
+      result = addBooking(payload);
+    } else if (action === 'updateBookingStatus') {
+      result = updateBookingStatus(payload);
+    } else if (action === 'pushAllData' || action === 'syncAllData') {
+      result = pushAllData(payload);
     }
   } catch (err) {
     result = { success: false, message: err.toString() };
@@ -184,10 +198,10 @@ function setupDatabase() {
     },
     {
       name: SHEETS.STOCK_OUT,
-      headers: ['ID', 'Date', 'ProductCode', 'ProductName', 'Customer', 'Quantity', 'SalePrice', 'Discount', 'TotalAmount', 'Unit'],
+      headers: ['ID', 'Date', 'ProductCode', 'ProductName', 'Customer', 'Quantity', 'SalePrice', 'Discount', 'TotalAmount', 'Unit', 'ServiceFee', 'CodFee', 'PaymentStatus', 'GrandTotal'],
       defaultRows: [
-        ['OUT-2001', '2026-07-19', 'PRD-001', 'កាហ្វេអាល់ប៊ីកា (Arabica Coffee Beans 1kg)', 'ហាងកាហ្វេ ជ័យជំនះ', 5, 18.00, 0, 90.00, 'កញ្ចប់'],
-        ['OUT-2002', '2026-07-20', 'PRD-005', 'តែបៃតងជប៉ុន (Matcha Green Tea 500g)', 'អតិថិជនទូទៅ', 2, 22.00, 2.00, 42.00, 'កញ្ចប់']
+        ['OUT-2001', '2026-07-19', 'PRD-001', 'កាហ្វេអាល់ប៊ីកា (Arabica Coffee Beans 1kg)', 'ហាងកាហ្វេ ជ័យជំនះ', 5, 18.00, 0, 90.00, 'កញ្ចប់', 0, 0, 'Paid', 90.00],
+        ['OUT-2002', '2026-07-20', 'PRD-005', 'តែបៃតងជប៉ុន (Matcha Green Tea 500g)', 'អតិថិជនទូទៅ', 2, 22.00, 2.00, 42.00, 'កញ្ចប់', 0, 0, 'Paid', 42.00]
       ]
     },
     {
@@ -296,7 +310,11 @@ function getInitialData() {
         price: Number(row[6] || 0),
         discount: Number(row[7] || 0),
         total: Number(row[8] || 0),
-        unit: String(row[9] || 'កញ្ចប់')
+        unit: String(row[9] || 'កញ្ចប់'),
+        serviceFee: Number(row[10] || 0),
+        codFee: Number(row[11] || 0),
+        paymentStatus: String(row[12] || 'Paid'),
+        grandTotal: Number(row[13] || (Number(row[8] || 0) + Number(row[10] || 0) + Number(row[11] || 0)))
       };
     });
 
@@ -779,5 +797,138 @@ function updateBookingStatus(booking) {
     return { success: false, message: 'ពុំរកឃើញ Booking នេះទេ' };
   } catch (err) {
     return { success: false, message: err.toString() };
+  }
+}
+
+/**
+ * Push/Sync all Local Data into Google Sheets
+ */
+function pushAllData(data) {
+  try {
+    if (!data) return { success: false, message: 'Invalid payload' };
+    var ss = getSpreadsheet();
+    setupDatabase();
+
+    if (data.products && Array.isArray(data.products)) {
+      data.products.forEach(function(p) { saveProduct(p); });
+    }
+    if (data.stockInLogs && Array.isArray(data.stockInLogs)) {
+      data.stockInLogs.forEach(function(l) { saveStockInLogDirect(ss, l); });
+    }
+    if (data.stockOutLogs && Array.isArray(data.stockOutLogs)) {
+      data.stockOutLogs.forEach(function(l) { saveStockOutLogDirect(ss, l); });
+    }
+    if (data.suppliers && Array.isArray(data.suppliers)) {
+      data.suppliers.forEach(function(s) { saveSupplier(s); });
+    }
+    if (data.customers && Array.isArray(data.customers)) {
+      data.customers.forEach(function(c) { saveCustomer(c); });
+    }
+    if (data.users && Array.isArray(data.users)) {
+      data.users.forEach(function(u) { saveUser(u); });
+    }
+    if (data.bookings && Array.isArray(data.bookings)) {
+      data.bookings.forEach(function(b) { addBookingDirect(ss, b); });
+    }
+
+    return { success: true, message: 'បានបញ្ជូនទិន្នន័យ Local ទាំងអស់ទៅ Google Sheets ជោគជ័យ!' };
+  } catch (err) {
+    return { success: false, message: err.toString() };
+  }
+}
+
+function saveStockInLogDirect(ss, log) {
+  if (!log || !log.id) return;
+  var sheet = ss.getSheetByName(SHEETS.STOCK_IN);
+  if (!sheet) return;
+  var data = sheet.getDataRange().getValues();
+  var found = false;
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(log.id)) {
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    sheet.appendRow([
+      log.id,
+      log.date || '',
+      log.code || '',
+      log.name || '',
+      log.supplier || '',
+      log.qty || 0,
+      log.cost || 0,
+      log.total || 0,
+      log.notes || '',
+      log.unit || 'កញ្ចប់'
+    ]);
+  }
+}
+
+function saveStockOutLogDirect(ss, log) {
+  if (!log || !log.id) return;
+  var sheet = ss.getSheetByName(SHEETS.STOCK_OUT);
+  if (!sheet) return;
+  var data = sheet.getDataRange().getValues();
+  var found = false;
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(log.id)) {
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    sheet.appendRow([
+      log.id,
+      log.date || '',
+      log.code || '',
+      log.name || '',
+      log.customer || '',
+      log.qty || 0,
+      log.price || 0,
+      log.discount || 0,
+      log.total || 0,
+      log.unit || 'កញ្ចប់',
+      log.serviceFee || 0,
+      log.codFee || 0,
+      log.paymentStatus || 'Paid',
+      log.grandTotal || log.total || 0
+    ]);
+  }
+}
+
+function addBookingDirect(ss, booking) {
+  if (!booking || !booking.id) return;
+  var sheet = ss.getSheetByName(SHEETS.BOOKINGS);
+  if (!sheet) return;
+  var data = sheet.getDataRange().getValues();
+  var found = false;
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(booking.id)) {
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    var imagesStr = '';
+    if (booking.images && Array.isArray(booking.images) && booking.images.length > 0) {
+      imagesStr = JSON.stringify(booking.images);
+    } else if (booking.imageUrl) {
+      imagesStr = booking.imageUrl;
+    }
+    sheet.appendRow([
+      booking.id,
+      booking.timestamp || '',
+      booking.invoiceNo || '',
+      booking.productCode || '',
+      booking.productName || '',
+      booking.customerName || '',
+      booking.depositAmount || 0,
+      booking.totalAmount || 0,
+      booking.notes || '',
+      imagesStr,
+      booking.staffName || '',
+      booking.status || 'Pending'
+    ]);
   }
 }

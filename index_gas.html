@@ -975,8 +975,11 @@
                                                 <span class="status-indicator" id="settingStatusDot"></span>
                                                 <span id="settingStatusText" class="fw-bold text-sm">ស្ថានភាព៖ Local Mode</span>
                                             </div>
-                                            <div class="flex-center gap-2">
-                                                <button class="btn btn-sm btn-success" onclick="pullDataFromGoogleSheets()">
+                                            <div class="flex-center gap-2 flex-wrap">
+                                                <button class="btn btn-sm btn-primary" onclick="pushDataToGoogleSheets()" title="បញ្ជូនទិន្នន័យ Local ទាំងអស់ទៅរក្សាទុកក្នុង Google Sheets">
+                                                    <i class="fa-solid fa-cloud-arrow-up"></i> បញ្ជូនទិន្នន័យ Local ទៅ Sheets
+                                                </button>
+                                                <button class="btn btn-sm btn-success" onclick="pullDataFromGoogleSheets()" title="ទាញយកទិន្នន័យពី Google Sheets មក Local">
                                                     <i class="fa-solid fa-cloud-arrow-down"></i> ទាញយកទិន្នន័យពី Sheets
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-primary" onclick="testGoogleSheetsConnection()">
@@ -1043,6 +1046,49 @@
                                         <label class="form-label fw-semibold text-sm mb-2">បញ្ជីប្រភេទទំនិញបច្ចុប្បន្ន៖</label>
                                         <div class="category-pills-list" id="settingsCategoryList">
                                             <!-- Dynamic Category Badges -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Prefix Configuration Settings Card -->
+                                <div class="settings-card full-width">
+                                    <div class="settings-card-header">
+                                        <i class="fa-solid fa-hashtag text-purple fs-2" style="color: #8b5cf6;"></i>
+                                        <div>
+                                            <h4 class="mb-1 fw-bold">កំណត់ក្បាលលេខ កូដទំនិញ & វិក្កយបត្រ (Prefix Numbering Settings)</h4>
+                                            <p class="text-muted text-sm mb-0">កំណត់ក្បាលលេខ Prefix សម្រាប់បង្កើតកូដទំនិញ វិក្កយបត្រទិញចូល វិក្កយបត្រលក់ និងបញ្ជីកក់ទំនិញអូតូ</p>
+                                        </div>
+                                    </div>
+                                    <div class="settings-card-body mt-3">
+                                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                                            <div class="form-group">
+                                                <label class="form-label fw-semibold text-sm"><i class="fa-solid fa-barcode text-primary me-1"></i> កូដទំនិញ (Product SKU Prefix)</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control fw-bold" id="settingPrefixProduct" placeholder="PRD-" value="PRD-">
+                                                </div>
+                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖ <code>PRD-001</code>, <code>PRD-002</code></small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label fw-semibold text-sm"><i class="fa-solid fa-truck-ramp-box text-success me-1"></i> វិក្កយបត្រទិញចូល (Stock-In Prefix)</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control fw-bold" id="settingPrefixStockIn" placeholder="PUR-" value="PUR-">
+                                                </div>
+                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖ <code>PUR-600123</code></small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label fw-semibold text-sm"><i class="fa-solid fa-cart-arrow-down text-primary me-1"></i> វិក្កយបត្រលក់ចេញ (Stock-Out Prefix)</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control fw-bold" id="settingPrefixStockOut" placeholder="SAL-" value="SAL-">
+                                                </div>
+                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖ <code>SAL-789012</code></small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label fw-semibold text-sm"><i class="fa-solid fa-bookmark text-warning me-1"></i> វិក្កយបត្រកក់ទំនិញ (Booking Prefix)</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control fw-bold" id="settingPrefixBooking" placeholder="BKG-" value="BKG-">
+                                                </div>
+                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖ <code>BKG-1001</code></small>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1180,7 +1226,12 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="prodCode">កូដទំនិញ (SKU/Barcode) <span class="text-danger">*</span></label>
-                                <input type="text" id="prodCode" class="form-control" placeholder="ឧទាហរណ៍: PRD-001" required>
+                                <div class="input-group" style="display: flex;">
+                                    <input type="text" id="prodCode" class="form-control" placeholder="ឧទាហរណ៍: PRD-001" required style="border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;">
+                                    <button type="button" class="btn btn-outline" id="btnAutoGenerateProdCode" onclick="generateAutoProductCode()" title="បង្កើតកូដទំនិញអូតូ" style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; border-radius: 0 12px 12px 0 !important; height: 38px !important; white-space: nowrap; border: 1px solid #cbd5e1; border-left: none; background: #ffffff;">
+                                        <i class="fa-solid fa-wand-magic-sparkles text-primary me-1"></i> ⚡ កូដអូតូ
+                                    </button>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="prodCategory">ប្រភេទទំនិញ <span class="text-danger">*</span></label>

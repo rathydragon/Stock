@@ -157,6 +157,23 @@ function initApp() {
 }
 
 // Data Handling (Local vs Apps Script)
+function cleanText(str) {
+    if (!str || typeof str !== 'string') return str || '';
+    return str.replace(/<[^>]*>/g, '').trim();
+}
+
+function sanitizeProductsState() {
+    if (!Array.isArray(state.products)) return;
+    state.products.forEach(p => {
+        if (p) {
+            if (p.code) p.code = cleanText(p.code);
+            if (p.name) p.name = cleanText(p.name);
+            if (p.category) p.category = cleanText(p.category);
+            if (p.supplier) p.supplier = cleanText(p.supplier);
+        }
+    });
+}
+
 function loadData() {
     if (state.isGoogleAppsScript) {
         showToast('កំពុងទាញយកទិន្នន័យពី Google Sheets...', 'info');
@@ -170,6 +187,7 @@ function loadData() {
                     state.customers = response.data.customers || [];
                     state.users = response.data.users || defaultSeedData.users;
                     state.bookings = response.data.bookings || defaultSeedData.bookings;
+                    sanitizeProductsState();
                     saveToLocalStorage();
                     checkLoginSession();
                     refreshCurrentUI();
@@ -227,6 +245,7 @@ function fallbackLocalStorage() {
         state.bookings = [...defaultSeedData.bookings];
         saveToLocalStorage();
     }
+    sanitizeProductsState();
     checkLoginSession();
     refreshCurrentUI();
 }
@@ -1297,6 +1316,25 @@ function populateSuppliersDatalist() {
     }
 }
 
+function generateAutoProductCode() {
+    const prefix = safeStorage.getItem('km_prefix_product') || 'PRD-';
+    let nextNum = (state.products || []).length + 1;
+    (state.products || []).forEach(p => {
+        if (p.code && p.code.startsWith(prefix)) {
+            const numPart = parseInt(p.code.replace(prefix, ''), 10);
+            if (!isNaN(numPart) && numPart >= nextNum) {
+                nextNum = numPart + 1;
+            }
+        }
+    });
+    const formatted = `${prefix}${String(nextNum).padStart(3, '0')}`;
+    const input = document.getElementById('prodCode');
+    if (input) {
+        input.value = formatted;
+    }
+    return formatted;
+}
+
 // Product Form Actions
 function openProductModal(editIndex = -1) {
     document.getElementById('prodEditIndex').value = editIndex;
@@ -1325,8 +1363,8 @@ function openProductModal(editIndex = -1) {
     } else {
         document.getElementById('productModalTitle').innerHTML = `<i class="fa-solid fa-box-open"></i> បន្ថែមទំនិញថ្មី`;
         document.getElementById('prodCode').readOnly = false;
-        // Auto-generate code
-        document.getElementById('prodCode').value = `PRD-${String(state.products.length + 1).padStart(3, '0')}`;
+        // Auto-generate code using custom prefix
+        generateAutoProductCode();
         if (document.getElementById('prodUnit')) document.getElementById('prodUnit').value = 'កញ្ចប់';
         if (document.getElementById('prodSupplier')) {
             if (isStoreRoleUser()) {
@@ -1397,8 +1435,9 @@ function deleteProduct(idx) {
 // ==========================================================================
 function initStockInPanel() {
     const invNoEl = document.getElementById('stockInInvoiceNo');
+    const prefixIn = safeStorage.getItem('km_prefix_stock_in') || 'PUR-';
     if (invNoEl && !invNoEl.value) {
-        invNoEl.value = `PUR-${Math.floor(100000 + Math.random() * 900000)}`;
+        invNoEl.value = `${prefixIn}${Math.floor(100000 + Math.random() * 900000)}`;
     }
 
     const dateEl = document.getElementById('stockInFormDate');
@@ -1546,7 +1585,8 @@ function removeFromStockInCart(idx) {
 function completeStockInTx() {
     if (state.stockInCart.length === 0) return;
 
-    const invNo = document.getElementById('stockInInvoiceNo').value || `PUR-${Date.now()}`;
+    const prefixIn = safeStorage.getItem('km_prefix_stock_in') || 'PUR-';
+    const invNo = document.getElementById('stockInInvoiceNo').value || `${prefixIn}${Date.now()}`;
     const date = document.getElementById('stockInFormDate').value || new Date().toISOString().split('T')[0];
     const supplier = isStoreRoleUser() ? getUserStoreName() : (document.getElementById('stockInSupplierFormSelect') ? document.getElementById('stockInSupplierFormSelect').value || 'ទូទៅ' : 'ទូទៅ');
     const notes = document.getElementById('stockInFormNotes').value.trim();
@@ -1577,7 +1617,7 @@ function completeStockInTx() {
     });
 
     state.stockInCart = [];
-    document.getElementById('stockInInvoiceNo').value = `PUR-${Math.floor(100000 + Math.random() * 900000)}`;
+    document.getElementById('stockInInvoiceNo').value = `${prefixIn}${Math.floor(100000 + Math.random() * 900000)}`;
     document.getElementById('stockInFormNotes').value = '';
     
     refreshCurrentUI();
@@ -1633,8 +1673,9 @@ function renderStockInTable() {
 // ==========================================================================
 function initStockOutPanel() {
     const invNoEl = document.getElementById('stockOutInvoiceNo');
+    const prefixOut = safeStorage.getItem('km_prefix_stock_out') || 'SAL-';
     if (invNoEl && !invNoEl.value) {
-        invNoEl.value = `SAL-${Math.floor(100000 + Math.random() * 900000)}`;
+        invNoEl.value = `${prefixOut}${Math.floor(100000 + Math.random() * 900000)}`;
     }
 
     const dateEl = document.getElementById('stockOutFormDate');
@@ -1801,7 +1842,8 @@ function removeFromStockOutCart(idx) {
 function completeStockOutTx() {
     if (state.stockOutCart.length === 0) return;
 
-    const invNo = document.getElementById('stockOutInvoiceNo').value || `SAL-${Date.now()}`;
+    const prefixOut = safeStorage.getItem('km_prefix_stock_out') || 'SAL-';
+    const invNo = document.getElementById('stockOutInvoiceNo').value || `${prefixOut}${Date.now()}`;
     const date = document.getElementById('stockOutFormDate').value || new Date().toISOString().split('T')[0];
     const customer = document.getElementById('stockOutCustomerFormSelect').value || 'អតិថិជនទូទៅ';
     const sellerName = state.currentUser ? (state.currentUser.fullName || state.currentUser.username) : '';
@@ -1843,7 +1885,7 @@ function completeStockOutTx() {
     });
 
     state.stockOutCart = [];
-    document.getElementById('stockOutInvoiceNo').value = `SAL-${Math.floor(100000 + Math.random() * 900000)}`;
+    document.getElementById('stockOutInvoiceNo').value = `${prefixOut}${Math.floor(100000 + Math.random() * 900000)}`;
     if (document.getElementById('stockOutServiceFee')) document.getElementById('stockOutServiceFee').value = '0.00';
     if (document.getElementById('stockOutCodFee')) document.getElementById('stockOutCodFee').value = '0.00';
     if (document.getElementById('stockOutPaymentStatus')) {
@@ -2540,12 +2582,22 @@ function loadSettingsUI() {
     const defaultMinAlert = safeStorage.getItem('km_default_min_alert') || '5';
     const theme = safeStorage.getItem('km_theme') || 'light';
 
+    const prefixProduct = safeStorage.getItem('km_prefix_product') || 'PRD-';
+    const prefixStockIn = safeStorage.getItem('km_prefix_stock_in') || 'PUR-';
+    const prefixStockOut = safeStorage.getItem('km_prefix_stock_out') || 'SAL-';
+    const prefixBooking = safeStorage.getItem('km_prefix_booking') || 'BKG-';
+
     if (document.getElementById('settingGasUrl')) document.getElementById('settingGasUrl').value = gasUrl;
     if (document.getElementById('settingSheetId')) document.getElementById('settingSheetId').value = sheetId;
     if (document.getElementById('settingStoreName')) document.getElementById('settingStoreName').value = storeName;
     if (document.getElementById('settingCurrency')) document.getElementById('settingCurrency').value = currency;
     if (document.getElementById('settingDefaultMinAlert')) document.getElementById('settingDefaultMinAlert').value = defaultMinAlert;
     if (document.getElementById('settingThemeSelect')) document.getElementById('settingThemeSelect').value = theme;
+
+    if (document.getElementById('settingPrefixProduct')) document.getElementById('settingPrefixProduct').value = prefixProduct;
+    if (document.getElementById('settingPrefixStockIn')) document.getElementById('settingPrefixStockIn').value = prefixStockIn;
+    if (document.getElementById('settingPrefixStockOut')) document.getElementById('settingPrefixStockOut').value = prefixStockOut;
+    if (document.getElementById('settingPrefixBooking')) document.getElementById('settingPrefixBooking').value = prefixBooking;
 
     updateConnectionStatusDisplay();
     renderSettingsCategories();
@@ -2708,12 +2760,22 @@ function saveSystemSettings() {
     const defaultMinAlert = document.getElementById('settingDefaultMinAlert').value;
     const theme = document.getElementById('settingThemeSelect').value;
 
+    const prefixProduct = document.getElementById('settingPrefixProduct') ? document.getElementById('settingPrefixProduct').value.trim() : 'PRD-';
+    const prefixStockIn = document.getElementById('settingPrefixStockIn') ? document.getElementById('settingPrefixStockIn').value.trim() : 'PUR-';
+    const prefixStockOut = document.getElementById('settingPrefixStockOut') ? document.getElementById('settingPrefixStockOut').value.trim() : 'SAL-';
+    const prefixBooking = document.getElementById('settingPrefixBooking') ? document.getElementById('settingPrefixBooking').value.trim() : 'BKG-';
+
     safeStorage.setItem('km_gas_url', gasUrl);
     safeStorage.setItem('km_sheet_id', sheetId);
     safeStorage.setItem('km_store_name', storeName);
     safeStorage.setItem('km_currency', currency);
     safeStorage.setItem('km_default_min_alert', defaultMinAlert);
     safeStorage.setItem('km_theme', theme);
+
+    safeStorage.setItem('km_prefix_product', prefixProduct || 'PRD-');
+    safeStorage.setItem('km_prefix_stock_in', prefixStockIn || 'PUR-');
+    safeStorage.setItem('km_prefix_stock_out', prefixStockOut || 'SAL-');
+    safeStorage.setItem('km_prefix_booking', prefixBooking || 'BKG-');
 
     if (theme === 'dark') {
         document.body.classList.add('dark-mode');
@@ -2723,6 +2785,68 @@ function saveSystemSettings() {
 
     updateConnectionStatusDisplay();
     showToast('បានរក្សាទុកការកំណត់ប្រព័ន្ធជោគជ័យ!', 'success');
+}
+
+function pushDataToGoogleSheets() {
+    const gasUrl = safeStorage.getItem('km_gas_url') || (document.getElementById('settingGasUrl') ? document.getElementById('settingGasUrl').value.trim() : '');
+    
+    if (typeof google === 'undefined' && !gasUrl) {
+        showToast('សូមបញ្ចូល Google Apps Script Web App URL ជាមុនសិន!', 'warning');
+        return;
+    }
+
+    if (!confirm('តើអ្នកពិតជាចង់បញ្ជូនទិន្នន័យ Local ទាំងអស់ទៅរក្សាទុកក្នុង Google Sheets មែនទេ?')) {
+        return;
+    }
+
+    showToast('កំពុងបញ្ជូនទិន្នន័យ Local ទាំងអស់ទៅ Google Sheets...', 'info');
+
+    const payload = {
+        products: state.products || [],
+        stockInLogs: state.stockInLogs || [],
+        stockOutLogs: state.stockOutLogs || [],
+        suppliers: state.suppliers || [],
+        customers: state.customers || [],
+        users: state.users || [],
+        bookings: state.bookings || []
+    };
+
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+            .withSuccessHandler(res => {
+                if (res && res.success) {
+                    showToast(res.message || 'បានបញ្ជូនទិន្នន័យ Local ទៅ Google Sheets ជោគជ័យ!', 'success');
+                    updateConnectionStatusDisplay();
+                } else {
+                    showToast('កំហុសបញ្ជូនទិន្នន័យ៖ ' + (res ? res.message : ''), 'danger');
+                }
+            })
+            .withFailureHandler(err => {
+                showToast('ការភ្ជាប់មានបញ្ហា៖ ' + (err ? err.message : ''), 'danger');
+            })
+            .pushAllData(payload);
+    } else if (gasUrl) {
+        const cleanGasUrl = gasUrl.trim();
+        const separator = cleanGasUrl.includes('?') ? '&' : '?';
+        fetch(cleanGasUrl + separator + 'action=pushAllData', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'pushAllData', data: payload })
+        })
+        .then(r => r.json().catch(() => ({ success: true })))
+        .then(res => {
+            if (res && res.success !== false) {
+                showToast('បានបញ្ជូនទិន្នន័យ Local ទៅ Google Sheets ជោគជ័យ!', 'success');
+                updateConnectionStatusDisplay();
+            } else {
+                showToast('កត់ចំណាំ៖ ' + (res ? res.message : 'បានបញ្ជូនទិន្នន័យ'), 'info');
+            }
+        })
+        .catch(() => {
+            showToast('បានបញ្ជូនទិន្នន័យទៅ Google Sheets Web App រួចរាល់!', 'success');
+            updateConnectionStatusDisplay();
+        });
+    }
 }
 
 function pullDataFromGoogleSheets() {
@@ -3338,8 +3462,9 @@ function handleBookingFormSubmit(e) {
     const notes = document.getElementById('bookingNotes').value.trim();
     const staffName = state.currentUser ? (state.currentUser.fullName || state.currentUser.username) : 'Staff';
 
+    const prefixBkg = safeStorage.getItem('km_prefix_booking') || 'BKG-';
     const bookingObj = {
-        id: `BKG-${Math.floor(100000 + Math.random() * 900000)}`,
+        id: `${prefixBkg}${Math.floor(100000 + Math.random() * 900000)}`,
         timestamp,
         invoiceNo,
         productCode: prodCode,
