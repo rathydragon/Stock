@@ -1,0 +1,9 @@
+{
+  "name": "stock-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stock Management System with Google Apps Script Backend",
+  "scripts": {
+    "build": "node rebuild_all.js"
+  }
+}

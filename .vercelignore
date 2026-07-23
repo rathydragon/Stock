@@ -1,10 +1,5 @@
-# Ignore node build scripts & GAS backend files from Vercel function builder
-rebuild_all.js
+# Ignore GAS backend and metadata files
 Code.gs
 *.gs
 SETUP_GUIDE.md
 .agents
-app.html
-gas_bundle.html
-index_gas.html
-styles.html
