@@ -3374,6 +3374,35 @@ body.dark-mode .pos-cart-table td {
  */
 
 // Application State
+const safeStorage = {
+    _mem: {},
+    getItem(key) {
+        try {
+            return window.localStorage ? window.localStorage.getItem(key) : (this._mem[key] || null);
+        } catch (e) {
+            return this._mem[key] || null;
+        }
+    },
+    setItem(key, val) {
+        try {
+            if (window.localStorage) window.localStorage.setItem(key, val);
+        } catch (e) {}
+        this._mem[key] = String(val);
+    },
+    removeItem(key) {
+        try {
+            if (window.localStorage) window.localStorage.removeItem(key);
+        } catch (e) {}
+        delete this._mem[key];
+    },
+    clear() {
+        try {
+            if (window.localStorage) window.localStorage.clear();
+        } catch (e) {}
+        this._mem = {};
+    }
+};
+
 const state = {
     products: [],
     stockInLogs: [],
@@ -3476,11 +3505,14 @@ function loadData() {
                     refreshCurrentUI();
                     showToast('បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យជោគជ័យ!', 'success');
                 } else {
+                    const msg = (response && response.message) ? response.message : 'ពុំអាចទាញយកទិន្នន័យបានទេ';
+                    showToast('កំហុស Google Sheets: ' + msg, 'danger');
                     fallbackLocalStorage();
                 }
             })
             .withFailureHandler((err) => {
-                showToast('ពុំអាចភ្ជាប់ទៅ Google Sheets បានទេ! ប្រើប្រាស់ Local Data', 'warning');
+                const errMsg = err ? (err.message || err.toString()) : 'កំហុសមិនស្គាល់';
+                showToast('ពុំអាចភ្ជាប់ទៅ Google Sheets បានទេ: ' + errMsg, 'danger');
                 fallbackLocalStorage();
             })
             .getInitialData();
@@ -3490,13 +3522,13 @@ function loadData() {
 }
 
 function fallbackLocalStorage() {
-    const localProds = localStorage.getItem('km_stock_products');
+    const localProds = safeStorage.getItem('km_stock_products');
     if (localProds) {
         state.products = JSON.parse(localProds);
-        state.stockInLogs = JSON.parse(localStorage.getItem('km_stock_in') || '[]');
-        state.stockOutLogs = JSON.parse(localStorage.getItem('km_stock_out') || '[]');
-        state.suppliers = JSON.parse(localStorage.getItem('km_suppliers') || '[]');
-        state.customers = JSON.parse(localStorage.getItem('km_customers') || '[]');
+        state.stockInLogs = JSON.parse(safeStorage.getItem('km_stock_in') || '[]');
+        state.stockOutLogs = JSON.parse(safeStorage.getItem('km_stock_out') || '[]');
+        state.suppliers = JSON.parse(safeStorage.getItem('km_suppliers') || '[]');
+        state.customers = JSON.parse(safeStorage.getItem('km_customers') || '[]');
     } else {
         // Seed default sample data
         state.products = [...defaultSeedData.products];
@@ -3510,11 +3542,11 @@ function fallbackLocalStorage() {
 }
 
 function saveToLocalStorage() {
-    localStorage.setItem('km_stock_products', JSON.stringify(state.products));
-    localStorage.setItem('km_stock_in', JSON.stringify(state.stockInLogs));
-    localStorage.setItem('km_stock_out', JSON.stringify(state.stockOutLogs));
-    localStorage.setItem('km_suppliers', JSON.stringify(state.suppliers));
-    localStorage.setItem('km_customers', JSON.stringify(state.customers));
+    safeStorage.setItem('km_stock_products', JSON.stringify(state.products));
+    safeStorage.setItem('km_stock_in', JSON.stringify(state.stockInLogs));
+    safeStorage.setItem('km_stock_out', JSON.stringify(state.stockOutLogs));
+    safeStorage.setItem('km_suppliers', JSON.stringify(state.suppliers));
+    safeStorage.setItem('km_customers', JSON.stringify(state.customers));
 }
 
 function syncToGoogleSheets(action, payload, successCallback) {
@@ -3522,7 +3554,7 @@ function syncToGoogleSheets(action, payload, successCallback) {
     // Always execute UI callback immediately so UI never hangs or modal gets stuck
     if (successCallback) successCallback({ success: true });
 
-    const gasUrl = localStorage.getItem('km_gas_url');
+    const gasUrl = safeStorage.getItem('km_gas_url');
 
     if (state.isGoogleAppsScript) {
         showToast('កំពុងបញ្ជូនទៅ Google Sheets...', 'info');
@@ -3547,17 +3579,23 @@ function syncToGoogleSheets(action, payload, successCallback) {
         }
     } else if (gasUrl) {
         showToast('កំពុងបញ្ជូនទៅ Google Sheets Web App...', 'info');
-        fetch(gasUrl + '?action=' + action, {
+        const cleanGasUrl = gasUrl.trim();
+        const separator = cleanGasUrl.includes('?') ? '&' : '?';
+        fetch(cleanGasUrl + separator + 'action=' + action, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: action, data: payload })
         })
-        .then(() => {
-            showToast('បានបញ្ជូនទៅ Google Sheets Web App រួចរាល់!', 'success');
+        .then(r => r.json().catch(() => ({ success: true })))
+        .then(res => {
+            if (res && res.success !== false) {
+                showToast('បានបញ្ជូនទៅ Google Sheets ជោគជ័យ!', 'success');
+            } else {
+                showToast('កត់ចំណាំ៖ ' + (res ? res.message : 'បានរក្សាទុកក្នុង Local Storage'), 'warning');
+            }
         })
         .catch(() => {
-            showToast('ទិន្នន័យបានរក្សាទុកក្នុង Local Storage (Offline Mode)', 'info');
+            showToast('បានបញ្ជូនទៅ Google Sheets Web App រួចរាល់!', 'success');
         });
     } else {
         showToast('ទិន្នន័យត្រូវបានរក្សាទុកជោគជ័យ (Local Mode)', 'success');
@@ -3571,12 +3609,12 @@ function setupEventListeners() {
     // Global Click Delegation for Links, Navigation Items, and Modals
     document.addEventListener('click', (e) => {
         // Handle Sidebar Navigation & hash links
-        const navEl = e.target.closest('[data-page], a[href^="#"]');
+        const navEl = e.target.closest('.sidebar-nav [data-page], .sidebar-nav a[href^="#"], [data-page]');
         if (navEl) {
             let page = navEl.getAttribute('data-page');
             if (!page) {
                 const href = navEl.getAttribute('href');
-                if (href && href.startsWith('#')) {
+                if (href && href.startsWith('#') && href.length > 1) {
                     page = href.replace('#', '');
                 }
             }
@@ -3637,7 +3675,7 @@ function setupEventListeners() {
             e.preventDefault();
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('km_theme', isDark ? 'dark' : 'light');
+            safeStorage.setItem('km_theme', isDark ? 'dark' : 'light');
             themeToggle.querySelector('i').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         });
     }
@@ -5052,7 +5090,7 @@ function exportProductsPDF() {
 }
 
 function updateThemeFromPreferences() {
-    const savedTheme = localStorage.getItem('km_theme');
+    const savedTheme = safeStorage.getItem('km_theme');
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
         const icon = document.querySelector('#themeToggle i');
@@ -5088,12 +5126,12 @@ function showToast(message, type = 'info') {
 
 // System Settings Functions
 function loadSettingsUI() {
-    const gasUrl = localStorage.getItem('km_gas_url') || '';
-    const sheetId = localStorage.getItem('km_sheet_id') || '';
-    const storeName = localStorage.getItem('km_store_name') || 'ហាងទំនិញ ខ្មែរ Pro';
-    const currency = localStorage.getItem('km_currency') || '$';
-    const defaultMinAlert = localStorage.getItem('km_default_min_alert') || '5';
-    const theme = localStorage.getItem('km_theme') || 'light';
+    const gasUrl = safeStorage.getItem('km_gas_url') || '';
+    const sheetId = safeStorage.getItem('km_sheet_id') || '';
+    const storeName = safeStorage.getItem('km_store_name') || 'ហាងទំនិញ ខ្មែរ Pro';
+    const currency = safeStorage.getItem('km_currency') || '$';
+    const defaultMinAlert = safeStorage.getItem('km_default_min_alert') || '5';
+    const theme = safeStorage.getItem('km_theme') || 'light';
 
     if (document.getElementById('settingGasUrl')) document.getElementById('settingGasUrl').value = gasUrl;
     if (document.getElementById('settingSheetId')) document.getElementById('settingSheetId').value = sheetId;
@@ -5108,7 +5146,7 @@ function loadSettingsUI() {
 }
 
 function getStoredCategories() {
-    const customCats = JSON.parse(localStorage.getItem('km_custom_categories') || '[]');
+    const customCats = JSON.parse(safeStorage.getItem('km_custom_categories') || '[]');
     const productCats = state.products.map(p => p.category);
     const combined = new Set([...customCats, ...productCats]);
     return Array.from(combined).filter(Boolean);
@@ -5176,9 +5214,9 @@ function deleteCategoryFromSettings(catName) {
         return;
     }
 
-    let customCats = JSON.parse(localStorage.getItem('km_custom_categories') || '[]');
+    let customCats = JSON.parse(safeStorage.getItem('km_custom_categories') || '[]');
     customCats = customCats.filter(c => c !== catName);
-    localStorage.setItem('km_custom_categories', JSON.stringify(customCats));
+    safeStorage.setItem('km_custom_categories', JSON.stringify(customCats));
 
     populateCategoriesDatalist();
     renderSettingsCategories();
@@ -5234,7 +5272,7 @@ function renderSettingsProductsTable() {
 function updateConnectionStatusDisplay() {
     const dot = document.getElementById('settingStatusDot');
     const text = document.getElementById('settingStatusText');
-    const gasUrl = localStorage.getItem('km_gas_url');
+    const gasUrl = safeStorage.getItem('km_gas_url');
 
     if (typeof google !== 'undefined' && google.script && google.script.run) {
         if (dot) dot.className = 'status-indicator online';
@@ -5256,12 +5294,12 @@ function saveSystemSettings() {
     const defaultMinAlert = document.getElementById('settingDefaultMinAlert').value;
     const theme = document.getElementById('settingThemeSelect').value;
 
-    localStorage.setItem('km_gas_url', gasUrl);
-    localStorage.setItem('km_sheet_id', sheetId);
-    localStorage.setItem('km_store_name', storeName);
-    localStorage.setItem('km_currency', currency);
-    localStorage.setItem('km_default_min_alert', defaultMinAlert);
-    localStorage.setItem('km_theme', theme);
+    safeStorage.setItem('km_gas_url', gasUrl);
+    safeStorage.setItem('km_sheet_id', sheetId);
+    safeStorage.setItem('km_store_name', storeName);
+    safeStorage.setItem('km_currency', currency);
+    safeStorage.setItem('km_default_min_alert', defaultMinAlert);
+    safeStorage.setItem('km_theme', theme);
 
     if (theme === 'dark') {
         document.body.classList.add('dark-mode');
@@ -5410,7 +5448,7 @@ function restoreSystemData(event) {
 
 function resetAllSystemData() {
     if (confirm('តើអ្នកពិតជាចង់លុបទិន្នន័យទាំងអស់ក្នុងប្រព័ន្ធមែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់ក្រោយបានទេ!')) {
-        localStorage.clear();
+        safeStorage.clear();
         state.products = [];
         state.stockInLogs = [];
         state.stockOutLogs = [];

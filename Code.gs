@@ -1,11 +1,11 @@
 /**
  * ============================================================================
- * Google Apps Script Backend Code for Khmer Stock Management System
- * Attach this file to your Google Sheets Apps Script Project (script.google.com)
+ * Stock Management System - Ultra-Reliable Google Apps Script Backend
+ * Attach this file to Google Sheets Apps Script (Extensions > Apps Script)
  * ============================================================================
  */
 
-// Global Sheet Names Constants
+// Global Sheet Names
 const SHEETS = {
   PRODUCTS: 'Products',
   STOCK_IN: 'StockIn',
@@ -14,12 +14,11 @@ const SHEETS = {
   CUSTOMERS: 'Customers'
 };
 
-// Optional: Enter your Google Sheet ID if using Standalone Script on script.google.com
-// Leave blank if script is opened directly inside Google Sheet (Extensions > Apps Script)
+// Optional: Fill only if using standalone script at script.google.com
 const SPREADSHEET_ID = '';
 
 /**
- * Gets the active or specified Spreadsheet safely
+ * Gets the active or configured Spreadsheet safely
  */
 function getSpreadsheet() {
   if (SPREADSHEET_ID && SPREADSHEET_ID.trim() !== '') {
@@ -35,7 +34,7 @@ function getSpreadsheet() {
 }
 
 /**
- * Serves the Web App UI or handles GET API requests
+ * Serves HTML Web App or GET API
  */
 function doGet(e) {
   if (e && e.parameter && e.parameter.action) {
@@ -51,10 +50,12 @@ function doPost(e) {
   try {
     var contents = {};
     if (e && e.postData && e.postData.contents) {
-      contents = JSON.parse(e.postData.contents);
+      try {
+        contents = JSON.parse(e.postData.contents);
+      } catch (parseErr) {}
     }
     var action = (e && e.parameter && e.parameter.action) || contents.action;
-    var payload = contents.data || contents;
+    var payload = (contents.data !== undefined) ? contents.data : contents;
     return handleApiRequest(action, payload);
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.toString() }))
@@ -95,57 +96,65 @@ function handleApiRequest(action, payload) {
 }
 
 /**
- * Serves the HTML Web App UI with automatic file detection & error fallback
+ * Serves HTML Web App UI with safe fallback
  */
 function renderWebApp() {
-  var htmlOutput;
-  try {
-    // Try modular template evaluation first (index or index_gas with <?!= include('styles'); ?> and <?!= include('app'); ?>)
-    htmlOutput = HtmlService.createTemplateFromFile('index').evaluate();
-  } catch (e1) {
+  var filenames = ['index', 'index_gas', 'gas_bundle', 'Index'];
+  var htmlOutput = null;
+
+  for (var i = 0; i < filenames.length; i++) {
     try {
-      htmlOutput = HtmlService.createTemplateFromFile('index_gas').evaluate();
-    } catch (e2) {
+      htmlOutput = HtmlService.createTemplateFromFile(filenames[i]).evaluate();
+      if (htmlOutput) break;
+    } catch (e) {
       try {
-        htmlOutput = HtmlService.createHtmlOutputFromFile('index');
-      } catch (e3) {
-        try {
-          htmlOutput = HtmlService.createHtmlOutputFromFile('gas_bundle');
-        } catch (e4) {
-          htmlOutput = HtmlService.createHtmlOutput(
-            '<div style="font-family: sans-serif; padding: 30px; text-align: center; line-height: 1.6;">' +
-            '<h2 style="color: #e11d48;">⚠️ រកមិនឃើញឯកសារ HTML ក្នុង Apps Script ទេ!</h2>' +
-            '<p>សូមបង្កើតឯកសារ HTML ក្នុង Apps Script (Files +):<br>' +
-            '១. <b>index</b> (Copy ពី index_gas.html)<br>' +
-            '២. <b>styles</b> (Copy ពី styles.html)<br>' +
-            '៣. <b>app</b> (Copy ពី app.html)</p>' +
-            '</div>'
-          );
-        }
-      }
+        htmlOutput = HtmlService.createHtmlOutputFromFile(filenames[i]);
+        if (htmlOutput) break;
+      } catch (e2) {}
     }
   }
 
+  if (!htmlOutput) {
+    htmlOutput = HtmlService.createHtmlOutput(
+      '<div style="font-family: system-ui, -apple-system, sans-serif; padding: 40px; text-align: center; line-height: 1.6; max-width: 600px; margin: 50px auto; background: #ffffff; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">' +
+      '<h2 style="color: #e11d48; margin-bottom: 10px;">⚠️ រកមិនឃើញឯកសារ HTML ក្នុង Apps Script ទេ!</h2>' +
+      '<p style="color: #475569; font-size: 0.95rem;">សូមបង្កើតឯកសារ HTML ក្នុង Apps Script Editor (Files + ➔ HTML) ៖<br><br>' +
+      '<b>១. ឈ្មោះ index</b> (ចម្លងពី index_gas.html ឬ gas_bundle.html)<br>' +
+      '<b>២. ឈ្មោះ styles</b> (ចម្លងពី styles.html)<br>' +
+      '<b>៣. ឈ្មោះ app</b> (ចម្លងពី app.html)</p>' +
+      '</div>'
+    );
+  }
+
   return htmlOutput
-    .setTitle('ប្រព័ន្ធគ្រប់គ្រងស្តុក - Inventory Management')
+    .setTitle('ប្រព័ន្ធគ្រប់គ្រងស្តុក - Inventory Management System')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 /**
- * Helper to include sub-HTML files (if modularized)
+ * Helper to include sub-HTML files cleanly
  */
 function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+  if (!filename) return '';
+  var cleanName = filename.replace(/\.html$/i, '');
+  try {
+    return HtmlService.createHtmlOutputFromFile(cleanName).getContent();
+  } catch (e1) {
+    try {
+      return HtmlService.createHtmlOutputFromFile(cleanName + '.html').getContent();
+    } catch (e2) {
+      return '<!-- Included file missing: ' + filename + ' -->';
+    }
+  }
 }
 
 /**
- * Initializes Google Sheet Database with required Tabs, Headers & Sample Data
+ * Initializes Database Tabs & Headers
  */
 function setupDatabase() {
   var ss = getSpreadsheet();
   
-  // Sheet definitions with headers & initial rows
   var sheetDefs = [
     {
       name: SHEETS.PRODUCTS,
@@ -198,12 +207,8 @@ function setupDatabase() {
     if (!sheet) {
       sheet = ss.insertSheet(def.name);
     }
-    
-    // Check if header exists
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(def.headers);
-      
-      // Format header style
       var headerRange = sheet.getRange(1, 1, 1, def.headers.length);
       headerRange.setFontWeight('bold')
                  .setBackground('#0f172a')
@@ -218,7 +223,7 @@ function setupDatabase() {
     }
   });
 
-  return { success: true, message: 'បានកំណត់ទម្រង់ និងទិន្នន័យ Google Sheets រួចរាល់!' };
+  return { success: true, message: 'កំណត់ទិន្នន័យ Google Sheets រួចរាល់!' };
 }
 
 /**
@@ -227,7 +232,7 @@ function setupDatabase() {
 function getInitialData() {
   try {
     var ss = getSpreadsheet();
-    setupDatabase(); // Ensure sheets exist & sample data populated if empty
+    setupDatabase();
 
     var products = getSheetDataAsJson(ss.getSheetByName(SHEETS.PRODUCTS), function(row) {
       return {
@@ -309,12 +314,13 @@ function saveProduct(product) {
   try {
     if (!product || !product.code) return { success: false, message: 'Invalid product payload' };
     var sheet = getSpreadsheet().getSheetByName(SHEETS.PRODUCTS);
+    if (!sheet) { setupDatabase(); sheet = getSpreadsheet().getSheetByName(SHEETS.PRODUCTS); }
     var data = sheet.getDataRange().getValues();
     var foundIndex = -1;
 
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][0]) === String(product.code)) {
-        foundIndex = i + 1; // 1-indexed row number
+        foundIndex = i + 1;
         break;
       }
     }
@@ -348,6 +354,7 @@ function deleteProduct(payload) {
   try {
     if (!payload || !payload.code) return { success: false, message: 'Invalid code' };
     var sheet = getSpreadsheet().getSheetByName(SHEETS.PRODUCTS);
+    if (!sheet) return { success: false, message: 'Products sheet not found' };
     var data = sheet.getDataRange().getValues();
 
     for (var i = 1; i < data.length; i++) {
@@ -363,7 +370,7 @@ function deleteProduct(payload) {
 }
 
 /**
- * Add Stock In Record & Update Product Quantity
+ * Add Stock In Record
  */
 function addStockIn(log) {
   try {
@@ -371,8 +378,8 @@ function addStockIn(log) {
     var ss = getSpreadsheet();
     var inSheet = ss.getSheetByName(SHEETS.STOCK_IN);
     var prodSheet = ss.getSheetByName(SHEETS.PRODUCTS);
+    if (!inSheet || !prodSheet) { setupDatabase(); inSheet = ss.getSheetByName(SHEETS.STOCK_IN); prodSheet = ss.getSheetByName(SHEETS.PRODUCTS); }
 
-    // Append to StockIn log
     inSheet.appendRow([
       log.id,
       log.date,
@@ -385,7 +392,6 @@ function addStockIn(log) {
       log.notes
     ]);
 
-    // Update Product stock
     updateProductQty(prodSheet, log.code, log.qty, true, log.cost);
 
     return { success: true };
@@ -395,7 +401,7 @@ function addStockIn(log) {
 }
 
 /**
- * Add Stock Out Record & Deduct Product Quantity
+ * Add Stock Out Record
  */
 function addStockOut(log) {
   try {
@@ -403,8 +409,8 @@ function addStockOut(log) {
     var ss = getSpreadsheet();
     var outSheet = ss.getSheetByName(SHEETS.STOCK_OUT);
     var prodSheet = ss.getSheetByName(SHEETS.PRODUCTS);
+    if (!outSheet || !prodSheet) { setupDatabase(); outSheet = ss.getSheetByName(SHEETS.STOCK_OUT); prodSheet = ss.getSheetByName(SHEETS.PRODUCTS); }
 
-    // Append to StockOut log
     outSheet.appendRow([
       log.id,
       log.date,
@@ -417,7 +423,6 @@ function addStockOut(log) {
       log.total
     ]);
 
-    // Deduct Product stock
     updateProductQty(prodSheet, log.code, log.qty, false);
 
     return { success: true };
@@ -433,6 +438,7 @@ function saveSupplier(supplier) {
   try {
     if (!supplier) return { success: false, message: 'Invalid supplier' };
     var sheet = getSpreadsheet().getSheetByName(SHEETS.SUPPLIERS);
+    if (!sheet) { setupDatabase(); sheet = getSpreadsheet().getSheetByName(SHEETS.SUPPLIERS); }
     sheet.appendRow([supplier.id, supplier.name, supplier.phone, supplier.address]);
     return { success: true };
   } catch (err) {
@@ -447,6 +453,7 @@ function saveCustomer(customer) {
   try {
     if (!customer) return { success: false, message: 'Invalid customer' };
     var sheet = getSpreadsheet().getSheetByName(SHEETS.CUSTOMERS);
+    if (!sheet) { setupDatabase(); sheet = getSpreadsheet().getSheetByName(SHEETS.CUSTOMERS); }
     sheet.appendRow([customer.id, customer.name, customer.phone, customer.address]);
     return { success: true };
   } catch (err) {
@@ -463,10 +470,10 @@ function updateProductQty(prodSheet, code, deltaQty, isAdd, newCostPrice) {
       var currentQty = Number(data[i][5] || 0);
       var newQty = isAdd ? (currentQty + deltaQty) : Math.max(0, currentQty - deltaQty);
       
-      prodSheet.getRange(i + 1, 6).setValue(newQty); // 6th column is Quantity
+      prodSheet.getRange(i + 1, 6).setValue(newQty);
 
       if (isAdd && newCostPrice && newCostPrice > 0) {
-        prodSheet.getRange(i + 1, 4).setValue(newCostPrice); // Update cost price
+        prodSheet.getRange(i + 1, 4).setValue(newCostPrice);
       }
       break;
     }
