@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- QRCode.js CDN for Invoice QR Code Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="styles.css?v=101.0">
+    <link rel="stylesheet" href="styles.css?v=107.0">
 </head>
 <body class="light-mode">
     <!-- Login Glassmorphic Overlay -->
@@ -107,12 +107,7 @@
                             <span>កាត់ស្តុកចេញ (លក់)</span>
                         </a>
                     </li>
-                    <li class="nav-item" data-page="contacts">
-                        <a href="#contacts" onclick="return navigateToPage('contacts', event)">
-                            <i class="fa-solid fa-users"></i>
-                            <span>អតិថិជន & ម្ចាស់ហាង</span>
-                        </a>
-                    </li>
+
                     <li class="nav-item" data-page="reports">
                         <a href="#reports" onclick="return navigateToPage('reports', event)">
                             <i class="fa-solid fa-file-invoice-dollar"></i>
@@ -188,7 +183,7 @@
                             <span class="badge badge-primary user-role-badge" id="headerUserRoleBadge">Admin</span>
                             <span class="user-name-text fw-bold" id="headerUserNameText">អ្នកគ្រប់គ្រង</span>
                         </div>
-                        <button class="btn btn-sm btn-outline-danger" id="btnLogoutBtn" title="ចាកចេញពីប្រព័ន្ធ">
+                        <button class="btn btn-sm btn-outline-danger" id="btnLogoutBtn" title="ចាកចេញពីប្រព័ន្ធ" onclick="handleLogout(event)">
                             <i class="fa-solid fa-right-from-bracket"></i> <span>ចាកចេញ</span>
                         </button>
                     </div>
@@ -274,21 +269,21 @@
                     <!-- Low Stock Table & Recent Activity -->
                     <div class="dashboard-grid mt-4">
                         <div class="card flex-1">
-                            <div class="card-header border-amber-top">
-                                <h3><i class="fa-solid fa-bell text-amber"></i> ការព្រមានទំនិញជិតអស់ស្តុក</h3>
+                            <div class="card-header border-amber-top flex-between align-center">
+                                <h3><i class="fa-solid fa-bell text-warning me-2"></i> ការព្រមានទំនិញជិតអស់ស្តុក</h3>
                                 <span class="badge badge-warning" id="lowStockBadge">0 ALERTS</span>
                             </div>
                             <div class="card-body p-0">
-                                <div class="table mobile-cards-table-responsive">
-                                    <table class="table mobile-cards-table table-hover">
+                                <div class="table-responsive">
+                                    <table class="table mobile-cards-table table-hover align-middle mb-0">
                                         <thead>
                                             <tr>
                                                 <th>កូដ</th>
                                                 <th>ឈ្មោះទំនិញ</th>
-                                                <th>ប្រភេទទំនិញ</th>
-                                                <th>ស្តុកបច្ចុប្បន្ន</th>
-                                                <th>កម្រិតរ៉កកាត</th>
-                                                <th>សកម្មភាព</th>
+                                                <th class="text-center">ប្រភេទទំនិញ</th>
+                                                <th class="text-center">ស្តុកបច្ចុប្បន្ន</th>
+                                                <th class="text-center">កម្រិតរំលឹក</th>
+                                                <th class="text-end">សកម្មភាព</th>
                                             </tr>
                                         </thead>
                                         <tbody id="lowStockTableBody">
@@ -740,61 +735,7 @@
                     </div>
                 </section>
 
-                <!-- PAGE 5: CONTACTS (SUPPLIERS & CUSTOMERS) -->
-                <section class="page-section" id="page-contacts">
-                    <div class="grid-2">
-                        <!-- Suppliers Card -->
-                        <div class="card">
-                            <div class="card-header flex-between">
-                                <h3><i class="fa-solid fa-store"></i> ម្ចាស់ហាង (Store)</h3>
-                                <button class="btn btn-sm btn-outline-primary" id="btnAddSupplierBtn">
-                                    <i class="fa-solid fa-plus"></i> បន្ថែមម្ចាស់ហាង
-                                </button>
-                            </div>
-                            <div class="card-body p-0">
-                                <table class="table mobile-cards-table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>ឈ្មោះ</th>
-                                            <th class="text-center">ឈ្មោះគណនី (Username)</th>
-                                            <th>លេខទូរស័ព្ទ</th>
-                                            <th>អាសយដ្ឋាន/ក្រុមហ៊ុន</th>
-                                            <th class="text-end">សកម្មភាព</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="suppliersTableBody">
-                                        <!-- JS populated -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
 
-                        <!-- Customers Card -->
-                        <div class="card">
-                            <div class="card-header flex-between">
-                                <h3><i class="fa-solid fa-user-tag"></i> អតិថិជន (Customers)</h3>
-                                <button class="btn btn-sm btn-outline-primary" id="btnAddCustomerBtn">
-                                    <i class="fa-solid fa-plus"></i> បន្ថែមអតិថិជន
-                                </button>
-                            </div>
-                            <div class="card-body p-0">
-                                <table class="table mobile-cards-table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>ឈ្មោះ</th>
-                                            <th>លេខទូរស័ព្ទ</th>
-                                            <th>អាសយដ្ឋាន/ទីតាំង</th>
-                                            <th class="text-end">សកម្មភាព</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="customersTableBody">
-                                        <!-- JS populated -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </section>
 
                 <!-- PAGE: BOOKINGS LIST (ADMIN & MANAGER) -->
                 <section class="page-section" id="page-bookings">
@@ -1101,7 +1042,76 @@
                                     </div>
                                 </div>
 
+                                <!-- Contacts Management Card (Store Owners & Customers) -->
+                                <div class="settings-card full-width">
+                                    <div class="settings-card-header flex-between align-center flex-wrap">
+                                        <div class="flex-center gap-3">
+                                            <i class="fa-solid fa-address-book text-primary fs-2"></i>
+                                            <div>
+                                                <h4 class="mb-1 fw-bold">គ្រប់គ្រង ម្ចាស់ហាង & អតិថិជន (Contacts & Store Management)</h4>
+                                                <p class="text-muted text-sm mb-0">បន្ថែម កែប្រែ ឬលុប ព័ត៌មានម្ចាស់ហាង (Store/Suppliers) និងអតិថិជន (Customers)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="settings-card-body mt-3 p-0">
+                                        <div class="grid-2 gap-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+                                            <!-- Suppliers / Store Card -->
+                                            <div class="card mb-0 shadow-none border" style="border-radius: 14px; border: 1px solid var(--border-color, #cbd5e1);">
+                                                <div class="card-header flex-between align-center p-3 bg-light" style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
+                                                    <h5 class="mb-0 fw-bold fs-6 text-dark"><i class="fa-solid fa-store text-primary me-2"></i> ម្ចាស់ហាង (Store)</h5>
+                                                    <button class="btn btn-sm btn-outline-primary" id="btnAddSupplierBtn">
+                                                        <i class="fa-solid fa-plus"></i> បន្ថែមម្ចាស់ហាង
+                                                    </button>
+                                                </div>
+                                                <div class="card-body p-0">
+                                                    <div class="table-responsive">
+                                                        <table class="table mobile-cards-table table-striped align-middle mb-0">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>ឈ្មោះ</th>
+                                                                    <th class="text-center">ឈ្មោះគណនី (Username)</th>
+                                                                    <th>លេខទូរស័ព្ទ</th>
+                                                                    <th>អាសយដ្ឋាន/ក្រុមហ៊ុន</th>
+                                                                    <th class="text-end">សកម្មភាព</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="suppliersTableBody">
+                                                                <!-- JS populated -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
 
+                                            <!-- Customers Card -->
+                                            <div class="card mb-0 shadow-none border" style="border-radius: 14px; border: 1px solid var(--border-color, #cbd5e1);">
+                                                <div class="card-header flex-between align-center p-3 bg-light" style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
+                                                    <h5 class="mb-0 fw-bold fs-6 text-dark"><i class="fa-solid fa-user-tag text-info me-2"></i> អតិថិជន (Customers)</h5>
+                                                    <button class="btn btn-sm btn-outline-primary" id="btnAddCustomerBtn">
+                                                        <i class="fa-solid fa-plus"></i> បន្ថែមអតិថិជន
+                                                    </button>
+                                                </div>
+                                                <div class="card-body p-0">
+                                                    <div class="table-responsive">
+                                                        <table class="table mobile-cards-table table-striped align-middle mb-0">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>ឈ្មោះ</th>
+                                                                    <th>លេខទូរស័ព្ទ</th>
+                                                                    <th>អាសយដ្ឋាន/ទីតាំង</th>
+                                                                    <th class="text-end">សកម្មភាព</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="customersTableBody">
+                                                                <!-- JS populated -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <!-- Data Backup & Management -->
                                 <div class="settings-card full-width">
@@ -1810,6 +1820,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=101.0"></script>
+    <script src="app.js?v=107.0"></script>
 </body>
 </html>

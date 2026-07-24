@@ -3323,12 +3323,7 @@ body.dark-mode .login-input {
                             <span>កាត់ស្តុកចេញ (លក់)</span>
                         </a>
                     </li>
-                    <li class="nav-item" data-page="contacts">
-                        <a href="#contacts" onclick="return navigateToPage('contacts', event)">
-                            <i class="fa-solid fa-users"></i>
-                            <span>អតិថិជន & ម្ចាស់ហាង</span>
-                        </a>
-                    </li>
+
                     <li class="nav-item" data-page="reports">
                         <a href="#reports" onclick="return navigateToPage('reports', event)">
                             <i class="fa-solid fa-file-invoice-dollar"></i>
@@ -3404,7 +3399,7 @@ body.dark-mode .login-input {
                             <span class="badge badge-primary user-role-badge" id="headerUserRoleBadge">Admin</span>
                             <span class="user-name-text fw-bold" id="headerUserNameText">អ្នកគ្រប់គ្រង</span>
                         </div>
-                        <button class="btn btn-sm btn-outline-danger" id="btnLogoutBtn" title="ចាកចេញពីប្រព័ន្ធ">
+                        <button class="btn btn-sm btn-outline-danger" id="btnLogoutBtn" title="ចាកចេញពីប្រព័ន្ធ" onclick="handleLogout(event)">
                             <i class="fa-solid fa-right-from-bracket"></i> <span>ចាកចេញ</span>
                         </button>
                     </div>
@@ -3490,21 +3485,21 @@ body.dark-mode .login-input {
                     <!-- Low Stock Table & Recent Activity -->
                     <div class="dashboard-grid mt-4">
                         <div class="card flex-1">
-                            <div class="card-header border-amber-top">
-                                <h3><i class="fa-solid fa-bell text-amber"></i> ការព្រមានទំនិញជិតអស់ស្តុក</h3>
+                            <div class="card-header border-amber-top flex-between align-center">
+                                <h3><i class="fa-solid fa-bell text-warning me-2"></i> ការព្រមានទំនិញជិតអស់ស្តុក</h3>
                                 <span class="badge badge-warning" id="lowStockBadge">0 ALERTS</span>
                             </div>
                             <div class="card-body p-0">
-                                <div class="table mobile-cards-table-responsive">
-                                    <table class="table mobile-cards-table table-hover">
+                                <div class="table-responsive">
+                                    <table class="table mobile-cards-table table-hover align-middle mb-0">
                                         <thead>
                                             <tr>
                                                 <th>កូដ</th>
                                                 <th>ឈ្មោះទំនិញ</th>
-                                                <th>ប្រភេទទំនិញ</th>
-                                                <th>ស្តុកបច្ចុប្បន្ន</th>
-                                                <th>កម្រិតរ៉កកាត</th>
-                                                <th>សកម្មភាព</th>
+                                                <th class="text-center">ប្រភេទទំនិញ</th>
+                                                <th class="text-center">ស្តុកបច្ចុប្បន្ន</th>
+                                                <th class="text-center">កម្រិតរំលឹក</th>
+                                                <th class="text-end">សកម្មភាព</th>
                                             </tr>
                                         </thead>
                                         <tbody id="lowStockTableBody">
@@ -3956,61 +3951,7 @@ body.dark-mode .login-input {
                     </div>
                 </section>
 
-                <!-- PAGE 5: CONTACTS (SUPPLIERS & CUSTOMERS) -->
-                <section class="page-section" id="page-contacts">
-                    <div class="grid-2">
-                        <!-- Suppliers Card -->
-                        <div class="card">
-                            <div class="card-header flex-between">
-                                <h3><i class="fa-solid fa-store"></i> ម្ចាស់ហាង (Store)</h3>
-                                <button class="btn btn-sm btn-outline-primary" id="btnAddSupplierBtn">
-                                    <i class="fa-solid fa-plus"></i> បន្ថែមម្ចាស់ហាង
-                                </button>
-                            </div>
-                            <div class="card-body p-0">
-                                <table class="table mobile-cards-table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>ឈ្មោះ</th>
-                                            <th class="text-center">ឈ្មោះគណនី (Username)</th>
-                                            <th>លេខទូរស័ព្ទ</th>
-                                            <th>អាសយដ្ឋាន/ក្រុមហ៊ុន</th>
-                                            <th class="text-end">សកម្មភាព</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="suppliersTableBody">
-                                        <!-- JS populated -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
 
-                        <!-- Customers Card -->
-                        <div class="card">
-                            <div class="card-header flex-between">
-                                <h3><i class="fa-solid fa-user-tag"></i> អតិថិជន (Customers)</h3>
-                                <button class="btn btn-sm btn-outline-primary" id="btnAddCustomerBtn">
-                                    <i class="fa-solid fa-plus"></i> បន្ថែមអតិថិជន
-                                </button>
-                            </div>
-                            <div class="card-body p-0">
-                                <table class="table mobile-cards-table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>ឈ្មោះ</th>
-                                            <th>លេខទូរស័ព្ទ</th>
-                                            <th>អាសយដ្ឋាន/ទីតាំង</th>
-                                            <th class="text-end">សកម្មភាព</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="customersTableBody">
-                                        <!-- JS populated -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </section>
 
                 <!-- PAGE: BOOKINGS LIST (ADMIN & MANAGER) -->
                 <section class="page-section" id="page-bookings">
@@ -4317,7 +4258,76 @@ body.dark-mode .login-input {
                                     </div>
                                 </div>
 
+                                <!-- Contacts Management Card (Store Owners & Customers) -->
+                                <div class="settings-card full-width">
+                                    <div class="settings-card-header flex-between align-center flex-wrap">
+                                        <div class="flex-center gap-3">
+                                            <i class="fa-solid fa-address-book text-primary fs-2"></i>
+                                            <div>
+                                                <h4 class="mb-1 fw-bold">គ្រប់គ្រង ម្ចាស់ហាង & អតិថិជន (Contacts & Store Management)</h4>
+                                                <p class="text-muted text-sm mb-0">បន្ថែម កែប្រែ ឬលុប ព័ត៌មានម្ចាស់ហាង (Store/Suppliers) និងអតិថិជន (Customers)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="settings-card-body mt-3 p-0">
+                                        <div class="grid-2 gap-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+                                            <!-- Suppliers / Store Card -->
+                                            <div class="card mb-0 shadow-none border" style="border-radius: 14px; border: 1px solid var(--border-color, #cbd5e1);">
+                                                <div class="card-header flex-between align-center p-3 bg-light" style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
+                                                    <h5 class="mb-0 fw-bold fs-6 text-dark"><i class="fa-solid fa-store text-primary me-2"></i> ម្ចាស់ហាង (Store)</h5>
+                                                    <button class="btn btn-sm btn-outline-primary" id="btnAddSupplierBtn">
+                                                        <i class="fa-solid fa-plus"></i> បន្ថែមម្ចាស់ហាង
+                                                    </button>
+                                                </div>
+                                                <div class="card-body p-0">
+                                                    <div class="table-responsive">
+                                                        <table class="table mobile-cards-table table-striped align-middle mb-0">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>ឈ្មោះ</th>
+                                                                    <th class="text-center">ឈ្មោះគណនី (Username)</th>
+                                                                    <th>លេខទូរស័ព្ទ</th>
+                                                                    <th>អាសយដ្ឋាន/ក្រុមហ៊ុន</th>
+                                                                    <th class="text-end">សកម្មភាព</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="suppliersTableBody">
+                                                                <!-- JS populated -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
 
+                                            <!-- Customers Card -->
+                                            <div class="card mb-0 shadow-none border" style="border-radius: 14px; border: 1px solid var(--border-color, #cbd5e1);">
+                                                <div class="card-header flex-between align-center p-3 bg-light" style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
+                                                    <h5 class="mb-0 fw-bold fs-6 text-dark"><i class="fa-solid fa-user-tag text-info me-2"></i> អតិថិជន (Customers)</h5>
+                                                    <button class="btn btn-sm btn-outline-primary" id="btnAddCustomerBtn">
+                                                        <i class="fa-solid fa-plus"></i> បន្ថែមអតិថិជន
+                                                    </button>
+                                                </div>
+                                                <div class="card-body p-0">
+                                                    <div class="table-responsive">
+                                                        <table class="table mobile-cards-table table-striped align-middle mb-0">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>ឈ្មោះ</th>
+                                                                    <th>លេខទូរស័ព្ទ</th>
+                                                                    <th>អាសយដ្ឋាន/ទីតាំង</th>
+                                                                    <th class="text-end">សកម្មភាព</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="customersTableBody">
+                                                                <!-- JS populated -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <!-- Data Backup & Management -->
                                 <div class="settings-card full-width">
@@ -5186,6 +5196,16 @@ function initApp() {
 }
 
 // Data Handling (Local vs Apps Script)
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function cleanText(str) {
     if (!str || typeof str !== 'string') return str || '';
     return str.replace(/<[^>]*>/g, '').trim();
@@ -5193,6 +5213,15 @@ function cleanText(str) {
 
 function sanitizeProductsState() {
     if (!Array.isArray(state.products)) return;
+    state.products = state.products.filter(p => {
+        if (!p || !p.code || !p.name) return false;
+        const codeStr = String(p.code);
+        const nameStr = String(p.name);
+        if (codeStr.includes('XSS') || nameStr.includes('document.get') || nameStr.includes('<script>')) {
+            return false;
+        }
+        return true;
+    });
     state.products.forEach(p => {
         if (p) {
             if (p.code) p.code = cleanText(p.code);
@@ -5203,35 +5232,58 @@ function sanitizeProductsState() {
     });
 }
 
-function loadData() {
+function loadData(isUserClick = false) {
+    const btnSync = document.getElementById('btnSyncNow');
+    const syncIcon = btnSync ? btnSync.querySelector('i') : null;
+    const syncStatusText = document.querySelector('#syncStatus .status-text');
+    const syncIndicator = document.querySelector('#syncStatus .status-indicator');
+
+    // 1. Immediately render cached data from LocalStorage for 0ms latency
+    fallbackLocalStorage();
+
+    // 2. Add visual spinning animation
+    if (syncIcon) syncIcon.classList.add('fa-spin');
+    if (syncStatusText) syncStatusText.textContent = 'កំពុង Sync...';
+
     const gasUrl = safeStorage.getItem('km_gas_url');
-    if (state.isGoogleAppsScript) {
-        showToast('កំពុងទាញយកទិន្នន័យពី Google Sheets...', 'info');
+
+    function onSyncComplete(success, message) {
+        if (syncIcon) syncIcon.classList.remove('fa-spin');
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (syncStatusText) {
+            syncStatusText.textContent = success ? `ភ្ជាប់ Sheets (${timeStr})` : `Local Mode (${timeStr})`;
+        }
+        if (syncIndicator) {
+            syncIndicator.className = success ? 'status-indicator online' : 'status-indicator offline';
+        }
+        if (isUserClick) {
+            showToast(message || (success ? 'បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យចុងក្រោយជោគជ័យ!' : 'បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យ (Local Mode) ជោគជ័យ!'), success ? 'success' : 'info');
+        }
+    }
+
+    if (state.isGoogleAppsScript && typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
             .withSuccessHandler((response) => {
                 if (response && response.success && response.data) {
-                    state.products = response.data.products || [];
-                    state.stockInLogs = response.data.stockInLogs || [];
-                    state.stockOutLogs = response.data.stockOutLogs || [];
-                    state.suppliers = response.data.suppliers || [];
-                    state.customers = response.data.customers || [];
-                    if (response.data.users && response.data.users.length > 0) state.users = response.data.users;
-                    if (response.data.bookings && response.data.bookings.length > 0) state.bookings = response.data.bookings;
+                    if (Array.isArray(response.data.products)) state.products = response.data.products;
+                    if (Array.isArray(response.data.stockInLogs)) state.stockInLogs = response.data.stockInLogs;
+                    if (Array.isArray(response.data.stockOutLogs)) state.stockOutLogs = response.data.stockOutLogs;
+                    if (Array.isArray(response.data.suppliers)) state.suppliers = response.data.suppliers;
+                    if (Array.isArray(response.data.customers)) state.customers = response.data.customers;
+                    if (Array.isArray(response.data.users) && response.data.users.length > 0) state.users = response.data.users;
+                    if (Array.isArray(response.data.bookings) && response.data.bookings.length > 0) state.bookings = response.data.bookings;
                     sanitizeProductsState();
                     saveToLocalStorage();
                     checkLoginSession();
                     refreshCurrentUI();
-                    showToast('បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យជោគជ័យ!', 'success');
+                    onSyncComplete(true, 'បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យពី Google Sheets ជោគជ័យ!');
                 } else {
-                    const msg = (response && response.message) ? response.message : 'ពុំអាចទាញយកទិន្នន័យបានទេ';
-                    showToast('កំហុស Google Sheets: ' + msg, 'danger');
-                    fallbackLocalStorage();
+                    onSyncComplete(false, 'បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យ Local Mode រួចរាល់');
                 }
             })
-            .withFailureHandler((err) => {
-                const errMsg = err ? (err.message || err.toString()) : 'កំហុសមិនស្គាល់';
-                showToast('ពុំអាចភ្ជាប់ទៅ Google Sheets បានទេ: ' + errMsg, 'danger');
-                fallbackLocalStorage();
+            .withFailureHandler(() => {
+                onSyncComplete(false, 'ភ្ជាប់ Google Sheets មិនបាន (ប្រើប្រាស់ Local Mode)');
             })
             .getInitialData();
     } else if (gasUrl) {
@@ -5241,26 +5293,27 @@ function loadData() {
             .then(res => res.json())
             .then(res => {
                 if (res && res.success && res.data) {
-                    state.products = res.data.products || [];
-                    state.stockInLogs = res.data.stockInLogs || [];
-                    state.stockOutLogs = res.data.stockOutLogs || [];
-                    state.suppliers = res.data.suppliers || [];
-                    state.customers = res.data.customers || [];
-                    if (res.data.users && res.data.users.length > 0) state.users = res.data.users;
-                    if (res.data.bookings && res.data.bookings.length > 0) state.bookings = res.data.bookings;
+                    if (Array.isArray(res.data.products)) state.products = res.data.products;
+                    if (Array.isArray(res.data.stockInLogs)) state.stockInLogs = res.data.stockInLogs;
+                    if (Array.isArray(res.data.stockOutLogs)) state.stockOutLogs = res.data.stockOutLogs;
+                    if (Array.isArray(res.data.suppliers)) state.suppliers = res.data.suppliers;
+                    if (Array.isArray(res.data.customers)) state.customers = res.data.customers;
+                    if (Array.isArray(res.data.users) && res.data.users.length > 0) state.users = res.data.users;
+                    if (Array.isArray(res.data.bookings) && res.data.bookings.length > 0) state.bookings = res.data.bookings;
                     sanitizeProductsState();
                     saveToLocalStorage();
                     checkLoginSession();
                     refreshCurrentUI();
+                    onSyncComplete(true, 'បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យពី Web App API ជោគជ័យ!');
                 } else {
-                    fallbackLocalStorage();
+                    onSyncComplete(false, 'បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យ Local Mode រួចរាល់');
                 }
             })
             .catch(() => {
-                fallbackLocalStorage();
+                onSyncComplete(false, 'បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យ Local Mode រួចរាល់');
             });
     } else {
-        fallbackLocalStorage();
+        onSyncComplete(false, 'បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យ (Local Mode) ជោគជ័យ!');
     }
 }
 
@@ -5448,7 +5501,7 @@ function setupEventListeners() {
 
     // Refresh Sync Button
     const btnSync = document.getElementById('btnSyncNow');
-    if (btnSync) btnSync.addEventListener('click', (e) => { e.preventDefault(); loadData(); });
+    if (btnSync) btnSync.addEventListener('click', (e) => { e.preventDefault(); loadData(true); });
 
     // Global Search (if present)
     const globalSearchInput = document.getElementById('globalSearch');
@@ -5767,7 +5820,7 @@ function refreshCurrentUI() {
             renderStockOutTable();
             break;
         case 'contacts':
-            renderContactsTables();
+            renderPage('settings');
             break;
         case 'reports':
             renderReportSection();
@@ -5831,7 +5884,37 @@ function fmtAcc(val, valClass = '') {
 
 function getUserStoreName() {
     if (!state.currentUser) return '';
+    if (state.suppliers && Array.isArray(state.suppliers)) {
+        const matched = state.suppliers.find(s => s && s.username && s.username.trim().toLowerCase() === state.currentUser.username.trim().toLowerCase());
+        if (matched && matched.name) return matched.name.trim();
+    }
     return (state.currentUser.fullName || state.currentUser.username || '').trim();
+}
+
+function getLoggedUserStoreNames() {
+    if (!state.currentUser) return [];
+    const names = new Set();
+    const curUser = state.currentUser;
+
+    if (curUser.fullName) names.add(curUser.fullName.trim().toLowerCase());
+    if (curUser.username) names.add(curUser.username.trim().toLowerCase());
+
+    if (state.suppliers && Array.isArray(state.suppliers)) {
+        state.suppliers.forEach(s => {
+            if (s && s.username && s.username.trim().toLowerCase() === curUser.username.trim().toLowerCase()) {
+                if (s.name) names.add(s.name.trim().toLowerCase());
+            }
+        });
+    }
+
+    return Array.from(names);
+}
+
+function matchesStoreName(targetSupplier, storeNames) {
+    if (!targetSupplier) return false;
+    const supLower = String(targetSupplier).trim().toLowerCase();
+    if (!supLower) return false;
+    return storeNames.some(name => supLower === name || supLower.includes(name) || name.includes(supLower));
 }
 
 function isStoreRoleUser() {
@@ -5841,6 +5924,13 @@ function isStoreRoleUser() {
 function getStoreFilteredProducts() {
     if (!state.products || !Array.isArray(state.products)) return [];
     
+    // Strict isolation for Store / Seller role users: ONLY see their own store's products!
+    if (isStoreRoleUser()) {
+        const myStoreNames = getLoggedUserStoreNames();
+        return state.products.filter(p => p && matchesStoreName(p.supplier, myStoreNames));
+    }
+
+    // Admin / Manager: filter by dropdown if selected
     const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
 
     if (storeFilter) {
@@ -5857,6 +5947,12 @@ function getStoreFilteredProducts() {
 
 function getStoreFilteredStockInLogs() {
     if (!state.stockInLogs || !Array.isArray(state.stockInLogs)) return [];
+
+    if (isStoreRoleUser()) {
+        const myStoreNames = getLoggedUserStoreNames();
+        return state.stockInLogs.filter(l => l && matchesStoreName(l.supplier, myStoreNames));
+    }
+
     const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
 
     if (storeFilter) {
@@ -5872,6 +5968,12 @@ function getStoreFilteredStockInLogs() {
 
 function getStoreFilteredStockOutLogs() {
     if (!state.stockOutLogs || !Array.isArray(state.stockOutLogs)) return [];
+
+    if (isStoreRoleUser()) {
+        const myStoreNames = getLoggedUserStoreNames();
+        return state.stockOutLogs.filter(l => l && matchesStoreName(l.supplier || l.seller || l.staffName, myStoreNames));
+    }
+
     const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
 
     if (storeFilter) {
@@ -6021,10 +6123,11 @@ function renderDashboardCharts() {
 function renderLowStockTable() {
     const alerts = getStoreFilteredProducts().filter(p => p.qty <= p.minAlert);
     const tbody = document.getElementById('lowStockTableBody');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     if (alerts.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted p-3"><i class="fa-solid fa-circle-check text-success"></i> គ្មានស្តុកដែលត្រូវព្រមានទេ!</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted p-4"><i class="fa-solid fa-circle-check text-success me-2 fs-5"></i> គ្មានស្តុកដែលត្រូវព្រមានទេ!</td></tr>`;
         return;
     }
 
@@ -6035,14 +6138,14 @@ function renderLowStockTable() {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td data-label="កូដ"><code>${p.code}</code></td>
-            <td data-label="ឈ្មោះទំនិញ"><strong>${p.name}</strong></td>
-            <td data-label="ប្រភេទទំនិញ"><span class="badge badge-info">${p.category}</span></td>
-            <td data-label="ស្តុកបច្ចុប្បន្ន"><span class="badge ${badgeClass}">${p.qty}</span></td>
-            <td data-label="កម្រិតរ៉កកាត">${p.minAlert}</td>
-            <td data-label="សកម្មភាព">
-                <button class="btn btn-action-stockin" onclick="quickStockInForCode('${p.code}')">
-                    <i class="fa-solid fa-plus-circle"></i> <span>ថែមស្តុក</span>
+            <td data-label="កូដ"><code class="px-2 py-1 bg-main border rounded fw-bold text-dark">${escapeHtml(p.code)}</code></td>
+            <td data-label="ឈ្មោះទំនិញ"><strong class="text-dark">${escapeHtml(p.name)}</strong></td>
+            <td data-label="ប្រភេទទំនិញ" class="text-center"><span class="badge badge-info"><i class="fa-solid ${getCategoryIcon(p.category)} me-1"></i>${escapeHtml(p.category)}</span></td>
+            <td data-label="ស្តុកបច្ចុប្បន្ន" class="text-center"><span class="badge ${badgeClass} fw-bold fs-6">${p.qty}</span></td>
+            <td data-label="កម្រិតរំលឹក" class="text-center"><span class="text-muted fw-semibold">${p.minAlert}</span></td>
+            <td data-label="សកម្មភាព" class="text-end">
+                <button class="btn btn-sm btn-success flex-center gap-1" style="border-radius: 8px !important; height: 28px !important; font-size: 0.8rem; font-weight: 600; padding: 0 10px; margin-left: auto;" onclick="quickStockInForCode('${escapeHtml(p.code)}')" title="បន្ថែមស្តុកទំនិញ">
+                    <i class="fa-solid fa-circle-plus"></i> <span>ថែមស្តុក</span>
                 </button>
             </td>
         `;
@@ -6321,17 +6424,31 @@ function populateSuppliersDatalist() {
     const suppliersList = Array.from(supplierNames);
 
     if (supplierFilter) {
-        supplierFilter.disabled = false;
-        const curVal = supplierFilter.value;
-        supplierFilter.innerHTML = `<option value="">គ្រប់អ្នកផ្គត់ផ្គង់ / ម្ចាស់ហាង</option>` +
-            suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
+        if (isStoreRoleUser()) {
+            const userStore = getUserStoreName();
+            supplierFilter.innerHTML = `<option value="${userStore}">${userStore}</option>`;
+            supplierFilter.value = userStore;
+            supplierFilter.disabled = true;
+        } else {
+            supplierFilter.disabled = false;
+            const curVal = supplierFilter.value;
+            supplierFilter.innerHTML = `<option value="">គ្រប់អ្នកផ្គត់ផ្គង់ / ម្ចាស់ហាង</option>` +
+                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
+        }
     }
 
     if (modalSupplierSelect) {
-        modalSupplierSelect.disabled = false;
-        const curVal = modalSupplierSelect.value;
-        modalSupplierSelect.innerHTML = `<option value="">-- ជ្រើសរើសអ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង --</option>` +
-            suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
+        if (isStoreRoleUser()) {
+            const userStore = getUserStoreName();
+            modalSupplierSelect.innerHTML = `<option value="${userStore}">${userStore}</option>`;
+            modalSupplierSelect.value = userStore;
+            modalSupplierSelect.disabled = true;
+        } else {
+            modalSupplierSelect.disabled = false;
+            const curVal = modalSupplierSelect.value;
+            modalSupplierSelect.innerHTML = `<option value="">-- ជ្រើសរើសអ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង --</option>` +
+                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
+        }
     }
 }
 
@@ -6491,18 +6608,25 @@ function initStockInPanel() {
 
     const supSelect = document.getElementById('stockInSupplierFormSelect');
     if (supSelect) {
-        supSelect.disabled = false;
-        const supplierNames = new Set();
-        if (state.suppliers) {
-            state.suppliers.forEach(s => { if (s.name) supplierNames.add(s.name); });
+        if (isStoreRoleUser()) {
+            const userStore = getUserStoreName();
+            supSelect.innerHTML = `<option value="${userStore}">${userStore}</option>`;
+            supSelect.value = userStore;
+            supSelect.disabled = true;
+        } else {
+            supSelect.disabled = false;
+            const supplierNames = new Set();
+            if (state.suppliers) {
+                state.suppliers.forEach(s => { if (s.name) supplierNames.add(s.name); });
+            }
+            if (state.products) {
+                state.products.forEach(p => { if (p.supplier) supplierNames.add(p.supplier); });
+            }
+            const suppliersList = Array.from(supplierNames);
+            const curVal = supSelect.value;
+            supSelect.innerHTML = '<option value="">-- គ្រប់អ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង --</option>' +
+                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
         }
-        if (state.products) {
-            state.products.forEach(p => { if (p.supplier) supplierNames.add(p.supplier); });
-        }
-        const suppliersList = Array.from(supplierNames);
-        const curVal = supSelect.value;
-        supSelect.innerHTML = '<option value="">-- គ្រប់អ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង --</option>' +
-            suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
     }
 
     updateStockInProductDropdown();
@@ -6729,18 +6853,25 @@ function initStockOutPanel() {
 
     const supSelect = document.getElementById('stockOutSupplierFormSelect');
     if (supSelect) {
-        supSelect.disabled = false;
-        const supplierNames = new Set();
-        if (state.suppliers) {
-            state.suppliers.forEach(s => { if (s.name) supplierNames.add(s.name); });
+        if (isStoreRoleUser()) {
+            const userStore = getUserStoreName();
+            supSelect.innerHTML = `<option value="${userStore}">${userStore}</option>`;
+            supSelect.value = userStore;
+            supSelect.disabled = true;
+        } else {
+            supSelect.disabled = false;
+            const supplierNames = new Set();
+            if (state.suppliers) {
+                state.suppliers.forEach(s => { if (s.name) supplierNames.add(s.name); });
+            }
+            if (state.products) {
+                state.products.forEach(p => { if (p.supplier) supplierNames.add(p.supplier); });
+            }
+            const suppliersList = Array.from(supplierNames);
+            const curVal = supSelect.value;
+            supSelect.innerHTML = '<option value="">-- គ្រប់អ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង --</option>' +
+                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
         }
-        if (state.products) {
-            state.products.forEach(p => { if (p.supplier) supplierNames.add(p.supplier); });
-        }
-        const suppliersList = Array.from(supplierNames);
-        const curVal = supSelect.value;
-        supSelect.innerHTML = '<option value="">-- គ្រប់អ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង --</option>' +
-            suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
     }
 
     updateStockOutProductDropdown();
@@ -7631,6 +7762,7 @@ function loadSettingsUI() {
     updateConnectionStatusDisplay();
     renderSettingsCategories();
     renderSettingsProductsTable();
+    renderContactsTables();
 }
 
 function populateUserPrefixSelect() {
@@ -8255,17 +8387,33 @@ function handleLoginSubmit(e) {
     showToast(`ជម្រាបសួរ ${matchedUser.fullName}! បានចូលប្រើប្រាស់ប្រព័ន្ធជោគជ័យ`, 'success');
 }
 
-function handleLogout() {
-    if (confirm('តើអ្នកពិតជាចង់ចាកចេញពីប្រព័ន្ធ ឬ?')) {
-        state.currentUser = null;
-        safeSessionStorage.removeItem('km_logged_user');
-        safeStorage.removeItem('km_logged_user');
-        const loginOverlay = document.getElementById('loginOverlay');
-        if (loginOverlay) loginOverlay.classList.remove('hidden');
-        updateUserHeaderBadge();
-        showToast('បានចាកចេញពីប្រព័ន្ធជោគជ័យ!', 'info');
+function handleLogout(e) {
+    if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
     }
+    state.currentUser = null;
+    safeSessionStorage.removeItem('km_logged_user');
+    safeStorage.removeItem('km_logged_user');
+    try { if (window.localStorage) window.localStorage.removeItem('km_logged_user'); } catch (err) {}
+    try { if (window.sessionStorage) window.sessionStorage.removeItem('km_logged_user'); } catch (err) {}
+
+    const loginUser = document.getElementById('loginUsername');
+    const loginPwd = document.getElementById('loginPassword');
+    if (loginUser) loginUser.value = '';
+    if (loginPwd) loginPwd.value = '';
+
+    const loginOverlay = document.getElementById('loginOverlay');
+    if (loginOverlay) {
+        loginOverlay.classList.remove('hidden');
+        loginOverlay.style.display = 'flex';
+    }
+
+    updateUserHeaderBadge();
+    showToast('បានចាកចេញពីប្រព័ន្ធជោគជ័យ!', 'info');
+    return false;
 }
+window.handleLogout = handleLogout;
 
 function applyRolePermissions() {
     if (!state.currentUser) return;
