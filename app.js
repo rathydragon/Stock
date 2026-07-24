@@ -1175,15 +1175,25 @@ function getCategoryIcon(cat) {
 
 // Products Page
 function renderProductsTable() {
-    const search = document.getElementById('productSearchInput').value.toLowerCase().trim();
-    const cat = document.getElementById('productCategoryFilter').value;
-    const supplierFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value : '';
-    const status = document.getElementById('productStatusFilter').value;
+    const searchEl = document.getElementById('productSearchInput');
+    const catEl = document.getElementById('productCategoryFilter');
+    const supplierEl = document.getElementById('productSupplierFilter');
+    const statusEl = document.getElementById('productStatusFilter');
+
+    const search = searchEl ? searchEl.value.toLowerCase().trim() : '';
+    const cat = catEl ? catEl.value : '';
+    const supplierFilter = supplierEl ? supplierEl.value : '';
+    const status = statusEl ? statusEl.value : '';
 
     const baseProducts = getStoreFilteredProducts();
 
     let filtered = baseProducts.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search) || (p.supplier && p.supplier.toLowerCase().includes(search));
+        if (!p) return false;
+        const pName = String(p.name || '').toLowerCase();
+        const pCode = String(p.code || '').toLowerCase();
+        const pSup = String(p.supplier || '').toLowerCase();
+
+        const matchesSearch = !search || pName.includes(search) || pCode.includes(search) || pSup.includes(search);
         const matchesCat = !cat || p.category === cat;
         const matchesSupplier = true; // Store & Supplier filtering already processed by getStoreFilteredProducts
         let matchesStatus = true;
@@ -1348,13 +1358,17 @@ function renderProductsTable() {
 
     const headerBadge = document.getElementById('productsTotalHeaderBadge');
     if (headerBadge) headerBadge.textContent = total;
-    document.getElementById('productCountInfo').textContent = `បង្ហាញ ${paginated.length} នៃ ${total} ទំនិញ`;
+
+    const countInfoEl = document.getElementById('productCountInfo');
+    if (countInfoEl) countInfoEl.textContent = `បង្ហាញ ${paginated.length} នៃ ${total} ទំនិញ`;
+
     renderPagination(total);
 }
 
 function renderPagination(totalItems) {
     const totalPages = Math.ceil(totalItems / state.productsPerPage) || 1;
     const container = document.getElementById('productsPagination');
+    if (!container) return;
     container.innerHTML = '';
 
     for (let i = 1; i <= totalPages; i++) {
