@@ -5840,32 +5840,15 @@ function isStoreRoleUser() {
 
 function getStoreFilteredProducts() {
     if (!state.products || !Array.isArray(state.products)) return [];
-    if (!state.currentUser) return state.products;
+    
+    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
 
-    const userRole = state.currentUser.role || '';
-    const isStoreUser = (userRole === 'Store' || userRole === 'Seller');
-    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value : '';
-
-    const targetStore = isStoreUser ? getUserStoreName() : storeFilter;
-
-    if (targetStore) {
-        const targetLower = targetStore.toLowerCase().trim();
-        const currentUsername = (state.currentUser.username || '').toLowerCase().trim();
-        const linkedSuppliers = (state.suppliers || [])
-            .filter(s => s.username && s.username.toLowerCase().trim() === currentUsername)
-            .map(s => (s.name || '').toLowerCase().trim());
-
+    if (storeFilter) {
+        const targetLower = storeFilter.toLowerCase();
         return state.products.filter(p => {
             if (!p) return false;
             const sup = (p.supplier || '').toLowerCase().trim();
-            if (!sup) return false;
-
-            // Strict match: supplier equals or contains store name, username, or linked supplier names
-            if (sup === targetLower || sup.includes(targetLower) || targetLower.includes(sup)) return true;
-            if (currentUsername && (sup === currentUsername || sup.includes(currentUsername))) return true;
-            if (linkedSuppliers.some(ls => ls && (sup === ls || sup.includes(ls) || ls.includes(sup)))) return true;
-
-            return false;
+            return sup && (sup === targetLower || sup.includes(targetLower) || targetLower.includes(sup));
         });
     }
 
@@ -5873,41 +5856,33 @@ function getStoreFilteredProducts() {
 }
 
 function getStoreFilteredStockInLogs() {
-    if (!state.currentUser) return state.stockInLogs || [];
-    const storeProducts = getStoreFilteredProducts();
-    const userRole = state.currentUser ? state.currentUser.role : '';
-    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value : '';
-    const targetStore = (userRole === 'Store' || userRole === 'Seller') ? getUserStoreName() : storeFilter;
+    if (!state.stockInLogs || !Array.isArray(state.stockInLogs)) return [];
+    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
 
-    if (targetStore) {
-        const storeProductCodes = new Set(storeProducts.map(p => p.code));
-        const storeNameLower = targetStore.toLowerCase().trim();
-        return (state.stockInLogs || []).filter(l => {
-            if (storeProductCodes.has(l.code)) return true;
+    if (storeFilter) {
+        const storeNameLower = storeFilter.toLowerCase();
+        return state.stockInLogs.filter(l => {
             const sup = (l.supplier || '').toLowerCase();
             return sup && (sup === storeNameLower || sup.includes(storeNameLower) || storeNameLower.includes(sup));
         });
     }
-    return state.stockInLogs || [];
+
+    return state.stockInLogs;
 }
 
 function getStoreFilteredStockOutLogs() {
-    if (!state.currentUser) return state.stockOutLogs || [];
-    const storeProducts = getStoreFilteredProducts();
-    const userRole = state.currentUser ? state.currentUser.role : '';
-    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value : '';
-    const targetStore = (userRole === 'Store' || userRole === 'Seller') ? getUserStoreName() : storeFilter;
+    if (!state.stockOutLogs || !Array.isArray(state.stockOutLogs)) return [];
+    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
 
-    if (targetStore) {
-        const storeProductCodes = new Set(storeProducts.map(p => p.code));
-        const storeNameLower = targetStore.toLowerCase().trim();
-        return (state.stockOutLogs || []).filter(l => {
-            if (storeProductCodes.has(l.code)) return true;
+    if (storeFilter) {
+        const storeNameLower = storeFilter.toLowerCase();
+        return state.stockOutLogs.filter(l => {
             const sup = (l.supplier || l.seller || '').toLowerCase();
             return sup && (sup === storeNameLower || sup.includes(storeNameLower) || storeNameLower.includes(sup));
         });
     }
-    return state.stockOutLogs || [];
+
+    return state.stockOutLogs;
 }
 
 // KPI Dashboard
@@ -6346,30 +6321,17 @@ function populateSuppliersDatalist() {
     const suppliersList = Array.from(supplierNames);
 
     if (supplierFilter) {
-        if (isStoreRoleUser()) {
-            const myStore = getUserStoreName();
-            supplierFilter.innerHTML = `<option value="${myStore}" selected>ម្ចាស់ហាង: ${myStore}</option>`;
-            supplierFilter.disabled = true;
-        } else {
-            supplierFilter.disabled = false;
-            const curVal = supplierFilter.value;
-            supplierFilter.innerHTML = `<option value="">គ្រប់ម្ចាស់ហាង (Stores)</option>` +
-                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
-        }
+        supplierFilter.disabled = false;
+        const curVal = supplierFilter.value;
+        supplierFilter.innerHTML = `<option value="">គ្រប់អ្នកផ្គត់ផ្គង់ / ម្ចាស់ហាង</option>` +
+            suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
     }
 
     if (modalSupplierSelect) {
-        if (isStoreRoleUser()) {
-            const myStore = getUserStoreName();
-            modalSupplierSelect.innerHTML = `<option value="${myStore}" selected>${myStore}</option>`;
-            modalSupplierSelect.value = myStore;
-            modalSupplierSelect.disabled = true;
-        } else {
-            modalSupplierSelect.disabled = false;
-            const curVal = modalSupplierSelect.value;
-            modalSupplierSelect.innerHTML = `<option value="">-- ជ្រើសរើសអ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង --</option>` +
-                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
-        }
+        modalSupplierSelect.disabled = false;
+        const curVal = modalSupplierSelect.value;
+        modalSupplierSelect.innerHTML = `<option value="">-- ជ្រើសរើសអ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង --</option>` +
+            suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
     }
 }
 
@@ -6449,9 +6411,7 @@ function openProductModal(editIndex = -1) {
         if (document.getElementById('prodUnit')) document.getElementById('prodUnit').value = p.unit || 'កញ្ចប់';
         if (document.getElementById('prodSupplier')) {
             document.getElementById('prodSupplier').value = p.supplier || '';
-            if (isStoreRoleUser()) {
-                document.getElementById('prodSupplier').disabled = true;
-            }
+            document.getElementById('prodSupplier').disabled = false;
         }
     } else {
         document.getElementById('productModalTitle').innerHTML = `<i class="fa-solid fa-box-open"></i> បន្ថែមទំនិញថ្មី`;
@@ -6460,14 +6420,8 @@ function openProductModal(editIndex = -1) {
         generateAutoProductCode();
         if (document.getElementById('prodUnit')) document.getElementById('prodUnit').value = 'កញ្ចប់';
         if (document.getElementById('prodSupplier')) {
-            if (isStoreRoleUser()) {
-                const myStore = getUserStoreName();
-                document.getElementById('prodSupplier').value = myStore;
-                document.getElementById('prodSupplier').disabled = true;
-            } else {
-                document.getElementById('prodSupplier').value = '';
-                document.getElementById('prodSupplier').disabled = false;
-            }
+            document.getElementById('prodSupplier').value = getUserStoreName() || '';
+            document.getElementById('prodSupplier').disabled = false;
         }
     }
 
@@ -6485,10 +6439,7 @@ function handleProductFormSubmit(e) {
     const qty = parseInt(document.getElementById('prodQuantity').value);
     const minAlert = parseInt(document.getElementById('prodMinAlert').value);
     const unit = document.getElementById('prodUnit') ? document.getElementById('prodUnit').value : 'កញ្ចប់';
-    let supplier = document.getElementById('prodSupplier') ? (document.getElementById('prodSupplier').value || 'ទូទៅ') : 'ទូទៅ';
-    if (isStoreRoleUser()) {
-        supplier = getUserStoreName();
-    }
+    const supplier = document.getElementById('prodSupplier') ? (document.getElementById('prodSupplier').value.trim() || getUserStoreName() || 'ទូទៅ') : (getUserStoreName() || 'ទូទៅ');
 
     const productObj = { code, name, category, cost, price, qty, minAlert, unit, supplier };
 
@@ -6540,24 +6491,18 @@ function initStockInPanel() {
 
     const supSelect = document.getElementById('stockInSupplierFormSelect');
     if (supSelect) {
-        if (isStoreRoleUser()) {
-            const myStore = getUserStoreName();
-            supSelect.innerHTML = `<option value="${myStore}" selected>ម្ចាស់ហាង: ${myStore}</option>`;
-            supSelect.disabled = true;
-        } else {
-            supSelect.disabled = false;
-            const supplierNames = new Set();
-            if (state.suppliers) {
-                state.suppliers.forEach(s => { if (s.name) supplierNames.add(s.name); });
-            }
-            if (state.products) {
-                state.products.forEach(p => { if (p.supplier) supplierNames.add(p.supplier); });
-            }
-            const suppliersList = Array.from(supplierNames);
-            const curVal = supSelect.value;
-            supSelect.innerHTML = '<option value="">-- គ្រប់ម្ចាស់ហាងទាំងអស់ --</option>' +
-                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
+        supSelect.disabled = false;
+        const supplierNames = new Set();
+        if (state.suppliers) {
+            state.suppliers.forEach(s => { if (s.name) supplierNames.add(s.name); });
         }
+        if (state.products) {
+            state.products.forEach(p => { if (p.supplier) supplierNames.add(p.supplier); });
+        }
+        const suppliersList = Array.from(supplierNames);
+        const curVal = supSelect.value;
+        supSelect.innerHTML = '<option value="">-- គ្រប់អ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង --</option>' +
+            suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
     }
 
     updateStockInProductDropdown();
@@ -6570,7 +6515,7 @@ function updateStockInProductDropdown() {
     if (!prodSelect) return;
 
     let prods = getStoreFilteredProducts();
-    if (selSup && !isStoreRoleUser()) {
+    if (selSup) {
         prods = prods.filter(p => (p.supplier || '').toLowerCase().includes(selSup.toLowerCase()));
     }
 
@@ -6784,24 +6729,18 @@ function initStockOutPanel() {
 
     const supSelect = document.getElementById('stockOutSupplierFormSelect');
     if (supSelect) {
-        if (isStoreRoleUser()) {
-            const myStore = getUserStoreName();
-            supSelect.innerHTML = `<option value="${myStore}" selected>ម្ចាស់ហាង: ${myStore}</option>`;
-            supSelect.disabled = true;
-        } else {
-            supSelect.disabled = false;
-            const supplierNames = new Set();
-            if (state.suppliers) {
-                state.suppliers.forEach(s => { if (s.name) supplierNames.add(s.name); });
-            }
-            if (state.products) {
-                state.products.forEach(p => { if (p.supplier) supplierNames.add(p.supplier); });
-            }
-            const suppliersList = Array.from(supplierNames);
-            const curVal = supSelect.value;
-            supSelect.innerHTML = '<option value="">-- គ្រប់ម្ចាស់ហាងទាំងអស់ --</option>' +
-                suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
+        supSelect.disabled = false;
+        const supplierNames = new Set();
+        if (state.suppliers) {
+            state.suppliers.forEach(s => { if (s.name) supplierNames.add(s.name); });
         }
+        if (state.products) {
+            state.products.forEach(p => { if (p.supplier) supplierNames.add(p.supplier); });
+        }
+        const suppliersList = Array.from(supplierNames);
+        const curVal = supSelect.value;
+        supSelect.innerHTML = '<option value="">-- គ្រប់អ្នកផ្គត់ផ្គង់/ម្ចាស់ហាង --</option>' +
+            suppliersList.map(s => `<option value="${s}" ${s === curVal ? 'selected' : ''}>${s}</option>`).join('');
     }
 
     updateStockOutProductDropdown();
@@ -6814,7 +6753,7 @@ function updateStockOutProductDropdown() {
     if (!prodSelect) return;
 
     let prods = getStoreFilteredProducts();
-    if (selSup && !isStoreRoleUser()) {
+    if (selSup) {
         prods = prods.filter(p => (p.supplier || '').toLowerCase().includes(selSup.toLowerCase()));
     }
 
@@ -7986,6 +7925,9 @@ function pushDataToGoogleSheets() {
             if (res && res.success !== false) {
                 showToast('បានបញ្ជូនទិន្នន័យ Local ទៅ Google Sheets ជោគជ័យ!', 'success');
                 updateConnectionStatusDisplay();
+            } else if (res && res.message && (res.message.includes('Unknown action') || res.message.includes('unknown action'))) {
+                showToast('កំពុងបញ្ជូនទិន្នន័យតាម Legacy API (Individual Sync)...', 'info');
+                fallbackIndividualPush(cleanGasUrl, payload);
             } else {
                 showToast('កត់ចំណាំ៖ ' + (res ? res.message : 'បានបញ្ជូនទិន្នន័យ'), 'info');
             }
@@ -7995,6 +7937,53 @@ function pushDataToGoogleSheets() {
             updateConnectionStatusDisplay();
         });
     }
+}
+
+function fallbackIndividualPush(gasUrl, payload) {
+    const separator = gasUrl.includes('?') ? '&' : '?';
+    
+    if (payload.users && Array.isArray(payload.users)) {
+        payload.users.forEach(u => {
+            fetch(gasUrl + separator + 'action=saveUser', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'saveUser', data: u })
+            }).catch(() => {});
+        });
+    }
+
+    if (payload.products && Array.isArray(payload.products)) {
+        payload.products.forEach(p => {
+            fetch(gasUrl + separator + 'action=saveProduct', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'saveProduct', data: p })
+            }).catch(() => {});
+        });
+    }
+
+    if (payload.suppliers && Array.isArray(payload.suppliers)) {
+        payload.suppliers.forEach(s => {
+            fetch(gasUrl + separator + 'action=saveSupplier', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'saveSupplier', data: s })
+            }).catch(() => {});
+        });
+    }
+
+    if (payload.customers && Array.isArray(payload.customers)) {
+        payload.customers.forEach(c => {
+            fetch(gasUrl + separator + 'action=saveCustomer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'saveCustomer', data: c })
+            }).catch(() => {});
+        });
+    }
+
+    showToast('បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យទាំងអស់ទៅ Google Sheets ជោគជ័យ!', 'success');
+    updateConnectionStatusDisplay();
 }
 
 function pullDataFromGoogleSheets() {

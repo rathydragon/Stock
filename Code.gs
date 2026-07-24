@@ -69,45 +69,46 @@ function doPost(e) {
  * Handles API actions
  */
 function handleApiRequest(action, payload) {
+  var act = String(action || '').trim().toLowerCase();
   var result = { success: false, message: 'Unknown action: ' + action };
   try {
-    if (action === 'ping') {
+    if (act === 'ping') {
       result = { success: true, message: 'Google Sheets Connected' };
-    } else if (action === 'getData' || action === 'getInitialData') {
+    } else if (act === 'getdata' || act === 'getinitialdata') {
       result = getInitialData();
-    } else if (action === 'setupDatabase') {
+    } else if (act === 'setupdatabase') {
       result = setupDatabase();
-    } else if (action === 'saveProduct') {
+    } else if (act === 'saveproduct') {
       result = saveProduct(payload);
-    } else if (action === 'deleteProduct') {
+    } else if (act === 'deleteproduct') {
       result = deleteProduct(payload);
-    } else if (action === 'addStockIn') {
+    } else if (act === 'addstockin') {
       result = addStockIn(payload);
-    } else if (action === 'addStockOut') {
+    } else if (act === 'addstockout') {
       result = addStockOut(payload);
-    } else if (action === 'saveSupplier') {
+    } else if (act === 'savesupplier') {
       result = saveSupplier(payload);
-    } else if (action === 'deleteSupplier') {
+    } else if (act === 'deletesupplier') {
       result = deleteSupplier(payload);
-    } else if (action === 'saveCustomer') {
+    } else if (act === 'savecustomer') {
       result = saveCustomer(payload);
-    } else if (action === 'deleteCustomer') {
+    } else if (act === 'deletecustomer') {
       result = deleteCustomer(payload);
-    } else if (action === 'updateStockOut') {
+    } else if (act === 'updatestockout') {
       result = updateStockOut(payload);
-    } else if (action === 'deleteStockOut') {
+    } else if (act === 'deletestockout') {
       result = deleteStockOut(payload);
-    } else if (action === 'saveUser' || action === 'updateUserTable') {
+    } else if (act === 'saveuser' || act === 'updateusertable') {
       result = saveUser(payload);
-    } else if (action === 'updateAllUsers' || action === 'syncUsers') {
+    } else if (act === 'updateallusers' || act === 'syncusers') {
       result = updateAllUsers(payload);
-    } else if (action === 'deleteUser') {
+    } else if (act === 'deleteuser') {
       result = deleteUser(payload);
-    } else if (action === 'addBooking') {
+    } else if (act === 'addbooking') {
       result = addBooking(payload);
-    } else if (action === 'updateBookingStatus') {
+    } else if (act === 'updatebookingstatus') {
       result = updateBookingStatus(payload);
-    } else if (action === 'pushAllData' || action === 'syncAllData') {
+    } else if (act === 'pushalldata' || act === 'syncalldata' || act === 'pushdata' || act === 'syncdata') {
       result = pushAllData(payload);
     }
   } catch (err) {
