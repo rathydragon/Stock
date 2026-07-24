@@ -193,6 +193,38 @@ function sanitizeProductsState() {
     });
 }
 
+function setSafeSuppliersState(incomingSuppliers) {
+    if (!Array.isArray(incomingSuppliers)) return;
+    const existingMap = new Map();
+    if (Array.isArray(state.suppliers)) {
+        state.suppliers.forEach(s => {
+            if (s) {
+                if (s.id) existingMap.set(String(s.id), (s.username || '').trim());
+                if (s.name) existingMap.set(String(s.name).trim().toLowerCase(), (s.username || '').trim());
+            }
+        });
+    }
+
+    state.suppliers = incomingSuppliers.map(s => {
+        if (!s) return s;
+        let uName = (s.username || '').trim();
+        if (!uName) {
+            if (s.id && existingMap.has(String(s.id)) && existingMap.get(String(s.id))) {
+                uName = existingMap.get(String(s.id));
+            } else if (s.name && existingMap.has(String(s.name).trim().toLowerCase()) && existingMap.get(String(s.name).trim().toLowerCase())) {
+                uName = existingMap.get(String(s.name).trim().toLowerCase());
+            }
+        }
+        if (!uName && s.name && typeof defaultSeedData !== 'undefined' && Array.isArray(defaultSeedData.suppliers)) {
+            const matchedSeed = defaultSeedData.suppliers.find(seed => seed && seed.name && seed.name.trim().toLowerCase() === String(s.name).trim().toLowerCase());
+            if (matchedSeed && matchedSeed.username) {
+                uName = matchedSeed.username.trim();
+            }
+        }
+        return { ...s, username: uName };
+    });
+}
+
 function loadData(isUserClick = false) {
     const btnSync = document.getElementById('btnSyncNow');
     const syncIcon = btnSync ? btnSync.querySelector('i') : null;
@@ -230,7 +262,7 @@ function loadData(isUserClick = false) {
                     if (Array.isArray(response.data.products)) state.products = response.data.products;
                     if (Array.isArray(response.data.stockInLogs)) state.stockInLogs = response.data.stockInLogs;
                     if (Array.isArray(response.data.stockOutLogs)) state.stockOutLogs = response.data.stockOutLogs;
-                    if (Array.isArray(response.data.suppliers)) state.suppliers = response.data.suppliers;
+                    if (Array.isArray(response.data.suppliers)) setSafeSuppliersState(response.data.suppliers);
                     if (Array.isArray(response.data.customers)) state.customers = response.data.customers;
                     if (Array.isArray(response.data.users) && response.data.users.length > 0) state.users = response.data.users;
                     if (Array.isArray(response.data.bookings) && response.data.bookings.length > 0) state.bookings = response.data.bookings;
@@ -267,7 +299,7 @@ function loadData(isUserClick = false) {
                     if (Array.isArray(res.data.products)) state.products = res.data.products;
                     if (Array.isArray(res.data.stockInLogs)) state.stockInLogs = res.data.stockInLogs;
                     if (Array.isArray(res.data.stockOutLogs)) state.stockOutLogs = res.data.stockOutLogs;
-                    if (Array.isArray(res.data.suppliers)) state.suppliers = res.data.suppliers;
+                    if (Array.isArray(res.data.suppliers)) setSafeSuppliersState(res.data.suppliers);
                     if (Array.isArray(res.data.customers)) state.customers = res.data.customers;
                     if (Array.isArray(res.data.users) && res.data.users.length > 0) state.users = res.data.users;
                     if (Array.isArray(res.data.bookings) && res.data.bookings.length > 0) state.bookings = res.data.bookings;
@@ -896,6 +928,41 @@ function isStoreRoleUser() {
     return state.currentUser && (state.currentUser.role === 'Store' || state.currentUser.role === 'Seller');
 }
 
+function isCustomerRoleUser() {
+    return state.currentUser && state.currentUser.role === 'Customer';
+}
+
+function getLoggedCustomerNames() {
+    if (!state.currentUser) return [];
+    const names = new Set();
+    const curUser = state.currentUser;
+
+    if (curUser.fullName) names.add(curUser.fullName.trim().toLowerCase());
+    if (curUser.username) names.add(curUser.username.trim().toLowerCase());
+
+    if (state.customers && Array.isArray(state.customers)) {
+        state.customers.forEach(c => {
+            if (c) {
+                if (c.username && c.username.trim().toLowerCase() === curUser.username.trim().toLowerCase()) {
+                    if (c.name) names.add(c.name.trim().toLowerCase());
+                }
+                if (c.name && c.name.trim().toLowerCase() === curUser.username.trim().toLowerCase()) {
+                    names.add(c.name.trim().toLowerCase());
+                }
+            }
+        });
+    }
+
+    return Array.from(names);
+}
+
+function matchesCustomerName(targetCustomer, customerNames) {
+    if (!targetCustomer) return false;
+    const custLower = String(targetCustomer).trim().toLowerCase();
+    if (!custLower) return false;
+    return customerNames.some(name => custLower === name || custLower.includes(name) || name.includes(custLower));
+}
+
 function getStoreFilteredProducts() {
     if (!state.products || !Array.isArray(state.products)) return [];
     
@@ -905,7 +972,7 @@ function getStoreFilteredProducts() {
         return state.products.filter(p => p && matchesStoreName(p.supplier, myStoreNames));
     }
 
-    // Admin / Manager: filter by dropdown if selected
+    // Admin / Manager / Cashier / Customer: filter by dropdown if selected
     const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
 
     if (storeFilter) {
@@ -922,6 +989,10 @@ function getStoreFilteredProducts() {
 
 function getStoreFilteredStockInLogs() {
     if (!state.stockInLogs || !Array.isArray(state.stockInLogs)) return [];
+
+    if (isCustomerRoleUser()) {
+        return [];
+    }
 
     if (isStoreRoleUser()) {
         const myStoreNames = getLoggedUserStoreNames();
@@ -943,6 +1014,11 @@ function getStoreFilteredStockInLogs() {
 
 function getStoreFilteredStockOutLogs() {
     if (!state.stockOutLogs || !Array.isArray(state.stockOutLogs)) return [];
+
+    if (isCustomerRoleUser()) {
+        const myCustNames = getLoggedCustomerNames();
+        return state.stockOutLogs.filter(l => l && matchesCustomerName(l.customer, myCustNames));
+    }
 
     if (isStoreRoleUser()) {
         const myStoreNames = getLoggedUserStoreNames();
@@ -1836,8 +1912,16 @@ function initStockOutPanel() {
 
     const custSelect = document.getElementById('stockOutCustomerFormSelect');
     if (custSelect) {
-        custSelect.innerHTML = '<option value="អតិថិជនទូទៅ">-- អតិថិជនទូទៅ --</option>' +
-            state.customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        if (isCustomerRoleUser()) {
+            const myName = (state.currentUser.fullName || state.currentUser.username || '').trim();
+            custSelect.innerHTML = `<option value="${myName}">${myName}</option>`;
+            custSelect.value = myName;
+            custSelect.disabled = true;
+        } else {
+            custSelect.disabled = false;
+            custSelect.innerHTML = '<option value="អតិថិជនទូទៅ">-- អតិថិជនទូទៅ --</option>' +
+                state.customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        }
     }
 
     const supSelect = document.getElementById('stockOutSupplierFormSelect');
@@ -2137,8 +2221,8 @@ function renderStockOutTable() {
 
 function deleteStockOutLog(id) {
     const userRole = state.currentUser ? (state.currentUser.role || 'Cashier') : 'Cashier';
-    if (userRole === 'Cashier') {
-        showToast('គណនី Cashier គ្មានសិទ្ធិលុបទិន្នន័យទេ!', 'warning');
+    if (userRole === 'Cashier' || userRole === 'Customer') {
+        showToast(`គណនី ${userRole} គ្មានសិទ្ធិលុបទិន្នន័យទេ!`, 'warning');
         return;
     }
 
@@ -3118,7 +3202,7 @@ function pullDataFromGoogleSheets() {
                     state.products = res.data.products || [];
                     state.stockInLogs = res.data.stockInLogs || [];
                     state.stockOutLogs = res.data.stockOutLogs || [];
-                    state.suppliers = res.data.suppliers || [];
+                    if (res.data.suppliers) setSafeSuppliersState(res.data.suppliers);
                     state.customers = res.data.customers || [];
                     if (res.data.users && res.data.users.length > 0) state.users = res.data.users;
                     if (res.data.bookings && res.data.bookings.length > 0) state.bookings = res.data.bookings;
@@ -3144,7 +3228,7 @@ function pullDataFromGoogleSheets() {
                     state.products = res.data.products || [];
                     state.stockInLogs = res.data.stockInLogs || [];
                     state.stockOutLogs = res.data.stockOutLogs || [];
-                    state.suppliers = res.data.suppliers || [];
+                    if (res.data.suppliers) setSafeSuppliersState(res.data.suppliers);
                     state.customers = res.data.customers || [];
                     if (res.data.users && res.data.users.length > 0) state.users = res.data.users;
                     if (res.data.bookings && res.data.bookings.length > 0) state.bookings = res.data.bookings;
@@ -3814,8 +3898,18 @@ function renderBookingsTable() {
     const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
     const selStatus = statusFilter ? statusFilter.value : '';
 
-    const pendingCount = (state.bookings || []).filter(b => b.status === 'Pending').length;
-    const completedCount = (state.bookings || []).filter(b => b.status === 'Completed').length;
+    const isCust = isCustomerRoleUser();
+    const myCustNames = isCust ? getLoggedCustomerNames() : [];
+
+    const pendingCount = (state.bookings || []).filter(b => {
+        if (isCust && (!b || !matchesCustomerName(b.customerName || b.customer, myCustNames))) return false;
+        return b.status === 'Pending';
+    }).length;
+
+    const completedCount = (state.bookings || []).filter(b => {
+        if (isCust && (!b || !matchesCustomerName(b.customerName || b.customer, myCustNames))) return false;
+        return b.status === 'Completed';
+    }).length;
 
     const pendingSummaryEl = document.getElementById('bookingPendingCountSummary');
     if (pendingSummaryEl) pendingSummaryEl.innerHTML = `<i class="fa-solid fa-clock text-amber me-1"></i> កំពុងកក់: <strong>${pendingCount}</strong>`;
@@ -3824,6 +3918,7 @@ function renderBookingsTable() {
     if (completedSummaryEl) completedSummaryEl.innerHTML = `<i class="fa-solid fa-circle-check text-green me-1"></i> បង្ហើយ: <strong>${completedCount}</strong>`;
 
     let filtered = (state.bookings || []).filter(b => {
+        if (isCust && (!b || !matchesCustomerName(b.customerName || b.customer, myCustNames))) return false;
         const matchesQuery = (b.invoiceNo && b.invoiceNo.toLowerCase().includes(query)) ||
                              (b.productName && b.productName.toLowerCase().includes(query)) ||
                              (b.customerName && b.customerName.toLowerCase().includes(query)) ||
