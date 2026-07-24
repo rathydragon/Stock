@@ -967,13 +967,29 @@ function matchesCustomerName(targetCustomer, customerNames) {
 function getStoreFilteredProducts() {
     if (!state.products || !Array.isArray(state.products)) return [];
     
+    // Strict isolation for Customer role users: ONLY see their own products / bookings / transactions!
+    if (isCustomerRoleUser()) {
+        const myCustNames = getLoggedCustomerNames();
+        return state.products.filter(p => {
+            if (!p) return false;
+            // Matches if product supplier/customer/createdBy/owner matches logged customer name
+            if (matchesCustomerName(p.customer || p.customerName || p.supplier || p.createdBy || p.owner, myCustNames)) {
+                return true;
+            }
+            // Or if product is in the customer's own stock-out or booking logs
+            const inStockOut = (state.stockOutLogs || []).some(l => l && matchesCustomerName(l.customer, myCustNames) && l.code === p.code);
+            const inBooking = (state.bookings || []).some(b => b && matchesCustomerName(b.customerName || b.customer, myCustNames) && b.productCode === p.code);
+            return inStockOut || inBooking;
+        });
+    }
+
     // Strict isolation for Store / Seller role users: ONLY see their own store's products!
     if (isStoreRoleUser()) {
         const myStoreNames = getLoggedUserStoreNames();
         return state.products.filter(p => p && matchesStoreName(p.supplier, myStoreNames));
     }
 
-    // Admin / Manager / Cashier / Customer: filter by dropdown if selected
+    // Admin / Manager / Cashier: filter by dropdown if selected
     const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
 
     if (storeFilter) {
@@ -1495,6 +1511,11 @@ function populateSuppliersDatalist() {
             supplierFilter.innerHTML = `<option value="${userStore}">${userStore}</option>`;
             supplierFilter.value = userStore;
             supplierFilter.disabled = true;
+        } else if (isCustomerRoleUser()) {
+            const myCustName = (state.currentUser.fullName || state.currentUser.username || '').trim();
+            supplierFilter.innerHTML = `<option value="${myCustName}">${myCustName}</option>`;
+            supplierFilter.value = myCustName;
+            supplierFilter.disabled = true;
         } else {
             supplierFilter.disabled = false;
             const curVal = supplierFilter.value;
@@ -1647,6 +1668,11 @@ function editProduct(idx) {
 }
 
 function deleteProduct(idx) {
+    const userRole = state.currentUser ? (state.currentUser.role || 'Cashier') : 'Cashier';
+    if (userRole === 'Cashier' || userRole === 'Customer') {
+        showToast(`គណនី ${userRole} គ្មានសិទ្ធិលុបទិន្នន័យទេ!`, 'warning');
+        return;
+    }
     const p = state.products[idx];
     if (confirm(`តើអ្នកពិតជាចង់លុបទំនិញ "${p.name}" (${p.code}) ឬ?`)) {
         state.products.splice(idx, 1);
