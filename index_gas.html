@@ -1056,10 +1056,18 @@
                                         <i class="fa-solid fa-hashtag text-purple fs-2" style="color: #8b5cf6;"></i>
                                         <div>
                                             <h4 class="mb-1 fw-bold">កំណត់ក្បាលលេខ កូដទំនិញ & វិក្កយបត្រ (Prefix Numbering Settings)</h4>
-                                            <p class="text-muted text-sm mb-0">កំណត់ក្បាលលេខ Prefix សម្រាប់បង្កើតកូដទំនិញ វិក្កយបត្រទិញចូល វិក្កយបត្រលក់ និងបញ្ជីកក់ទំនិញអូតូ</p>
+                                            <p class="text-muted text-sm mb-0">កំណត់ក្បាលលេខ Prefix សម្រាប់បង្កើតកូដទំនិញ វិក្កយបត្រទិញចូល វិក្កយបត្រលក់ និងបញ្ជីកក់ទំនិញអូតូ តាមឈ្មោះគណនីប្រើប្រាស់</p>
                                         </div>
                                     </div>
                                     <div class="settings-card-body mt-3">
+                                        <div class="form-group mb-3 pb-2 border-bottom">
+                                            <label class="form-label fw-bold text-dark mb-1">
+                                                <i class="fa-solid fa-user-gear me-1 text-primary"></i> ជ្រើសរើសគណនីប្រើប្រាស់ដើម្បីកំណត់ក្បាលលេខ (Select User Account):
+                                            </label>
+                                            <select id="settingPrefixUserSelect" class="form-select fw-bold" onchange="onPrefixUserSelectChange()">
+                                                <!-- Dynamic User Options -->
+                                            </select>
+                                        </div>
                                         <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
                                             <div class="form-group">
                                                 <label class="form-label fw-semibold text-sm"><i class="fa-solid fa-barcode text-primary me-1"></i> កូដទំនិញ (Product SKU Prefix)</label>
@@ -1143,6 +1151,7 @@
                                                         <th>ឈ្មោះពេញ</th>
                                                         <th class="text-center">តួនាទី (Role)</th>
                                                         <th class="text-center">សិទ្ធិចូលទំព័រ (Pages)</th>
+                                                        <th class="text-center">ក្បាលលេខ (Prefixes)</th>
                                                         <th class="text-center">ស្ថានភាព</th>
                                                         <th class="text-center">សកម្មភាព</th>
                                                     </tr>
@@ -1637,6 +1646,31 @@
                                 <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
                                     <input type="checkbox" class="user-page-checkbox form-check-input" value="settings"> ការកំណត់ប្រព័ន្ធ (Settings)
                                 </label>
+                            </div>
+                        </div>
+
+                        <!-- User Prefix Configuration Grid -->
+                        <div class="form-group mt-3">
+                            <label class="fw-bold mb-2 text-dark"><i class="fa-solid fa-hashtag text-purple me-1"></i> កំណត់ក្បាលលេខ Prefix តាមគណនី (Prefix Numbering Settings)</label>
+                            <div class="p-3 rounded" style="background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #cbd5e1);">
+                                <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 0.6rem 1rem;">
+                                    <div class="form-group">
+                                        <label class="form-label text-xs fw-semibold mb-1">កូដទំនិញ (Product)</label>
+                                        <input type="text" id="userFormPrefixProduct" class="form-control form-control-sm fw-bold" placeholder="PRD-" value="PRD-">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label text-xs fw-semibold mb-1">ទិញចូល (Stock-In)</label>
+                                        <input type="text" id="userFormPrefixStockIn" class="form-control form-control-sm fw-bold" placeholder="PUR-" value="PUR-">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label text-xs fw-semibold mb-1">លក់ចេញ (Stock-Out)</label>
+                                        <input type="text" id="userFormPrefixStockOut" class="form-control form-control-sm fw-bold" placeholder="SAL-" value="SAL-">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label text-xs fw-semibold mb-1">កក់ទំនិញ (Booking)</label>
+                                        <input type="text" id="userFormPrefixBooking" class="form-control form-control-sm fw-bold" placeholder="BKG-" value="BKG-">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

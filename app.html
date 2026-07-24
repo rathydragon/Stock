@@ -102,11 +102,11 @@ const defaultSeedData = {
         { id: 2, name: 'អតិថិជនទូទៅ', phone: 'N/A', address: 'ភ្នំពេញ' }
     ],
     users: [
-        { username: 'admin', password: '123456', fullName: 'អ្នកគ្រប់គ្រងប្រព័ន្ធ (Admin)', role: 'Admin', status: 'Active', allowedPages: ['dashboard', 'products', 'stock-in', 'stock-out', 'contacts', 'bookings', 'reports', 'settings'] },
-        { username: 'store', password: '123456', fullName: 'ម្ចាស់ហាង (Store Owner)', role: 'Store', status: 'Active', allowedPages: ['dashboard', 'products', 'stock-in', 'stock-out', 'reports'] },
-        { username: 'manager', password: '123456', fullName: 'អ្នកគ្រប់គ្រងស្តុក (Manager)', role: 'Manager', status: 'Active', allowedPages: ['dashboard', 'products', 'stock-in', 'stock-out', 'contacts', 'bookings', 'reports'] },
-        { username: 'cashier', password: '123456', fullName: 'បុគ្គលិករៀបចំការលក់ (Cashier)', role: 'Cashier', status: 'Active', allowedPages: ['stock-out'] },
-        { username: 'customer', password: '123456', fullName: 'អតិថិជន (Customer)', role: 'Customer', status: 'Active', allowedPages: ['stock-out'] }
+        { username: 'admin', password: '123456', fullName: 'អ្នកគ្រប់គ្រងប្រព័ន្ធ (Admin)', role: 'Admin', status: 'Active', allowedPages: ['dashboard', 'products', 'stock-in', 'stock-out', 'contacts', 'bookings', 'reports', 'settings'], prefixProduct: 'PRD-', prefixStockIn: 'PUR-', prefixStockOut: 'SAL-', prefixBooking: 'BKG-' },
+        { username: 'store', password: '123456', fullName: 'ម្ចាស់ហាង (Store Owner)', role: 'Store', status: 'Active', allowedPages: ['dashboard', 'products', 'stock-in', 'stock-out', 'reports'], prefixProduct: 'PRD-', prefixStockIn: 'PUR-', prefixStockOut: 'SAL-', prefixBooking: 'BKG-' },
+        { username: 'manager', password: '123456', fullName: 'អ្នកគ្រប់គ្រងស្តុក (Manager)', role: 'Manager', status: 'Active', allowedPages: ['dashboard', 'products', 'stock-in', 'stock-out', 'contacts', 'bookings', 'reports'], prefixProduct: 'PRD-', prefixStockIn: 'PUR-', prefixStockOut: 'SAL-', prefixBooking: 'BKG-' },
+        { username: 'cashier', password: '123456', fullName: 'បុគ្គលិករៀបចំការលក់ (Cashier)', role: 'Cashier', status: 'Active', allowedPages: ['stock-out'], prefixProduct: 'PRD-', prefixStockIn: 'PUR-', prefixStockOut: 'SAL-', prefixBooking: 'BKG-' },
+        { username: 'customer', password: '123456', fullName: 'អតិថិជន (Customer)', role: 'Customer', status: 'Active', allowedPages: ['stock-out'], prefixProduct: 'PRD-', prefixStockIn: 'PUR-', prefixStockOut: 'SAL-', prefixBooking: 'BKG-' }
     ],
     bookings: [
         { id: 'BKG-1001', timestamp: '2026-07-23 11:30:15', invoiceNo: 'SAL-600995', productCode: 'PRD-001', productName: 'កាហ្វេអាល់ប៊ីកា (Arabica Coffee Beans 1kg)', customerName: 'អតិថិជនទូទៅ', depositAmount: 10.00, totalAmount: 18.00, notes: 'កក់ 50% តាម ABA', imageUrl: '', staffName: 'Admin', status: 'Pending' }
@@ -176,18 +176,19 @@ function sanitizeProductsState() {
 }
 
 function loadData() {
+    const gasUrl = safeStorage.getItem('km_gas_url');
     if (state.isGoogleAppsScript) {
         showToast('កំពុងទាញយកទិន្នន័យពី Google Sheets...', 'info');
         google.script.run
             .withSuccessHandler((response) => {
-                if (response && response.success) {
+                if (response && response.success && response.data) {
                     state.products = response.data.products || [];
                     state.stockInLogs = response.data.stockInLogs || [];
                     state.stockOutLogs = response.data.stockOutLogs || [];
                     state.suppliers = response.data.suppliers || [];
                     state.customers = response.data.customers || [];
-                    state.users = response.data.users || defaultSeedData.users;
-                    state.bookings = response.data.bookings || defaultSeedData.bookings;
+                    if (response.data.users && response.data.users.length > 0) state.users = response.data.users;
+                    if (response.data.bookings && response.data.bookings.length > 0) state.bookings = response.data.bookings;
                     sanitizeProductsState();
                     saveToLocalStorage();
                     checkLoginSession();
@@ -205,6 +206,31 @@ function loadData() {
                 fallbackLocalStorage();
             })
             .getInitialData();
+    } else if (gasUrl) {
+        const cleanGasUrl = gasUrl.trim();
+        const separator = cleanGasUrl.includes('?') ? '&' : '?';
+        fetch(cleanGasUrl + separator + 'action=getData')
+            .then(res => res.json())
+            .then(res => {
+                if (res && res.success && res.data) {
+                    state.products = res.data.products || [];
+                    state.stockInLogs = res.data.stockInLogs || [];
+                    state.stockOutLogs = res.data.stockOutLogs || [];
+                    state.suppliers = res.data.suppliers || [];
+                    state.customers = res.data.customers || [];
+                    if (res.data.users && res.data.users.length > 0) state.users = res.data.users;
+                    if (res.data.bookings && res.data.bookings.length > 0) state.bookings = res.data.bookings;
+                    sanitizeProductsState();
+                    saveToLocalStorage();
+                    checkLoginSession();
+                    refreshCurrentUI();
+                } else {
+                    fallbackLocalStorage();
+                }
+            })
+            .catch(() => {
+                fallbackLocalStorage();
+            });
     } else {
         fallbackLocalStorage();
     }
@@ -257,6 +283,8 @@ function saveToLocalStorage() {
     safeStorage.setItem('km_stock_out', JSON.stringify(state.stockOutLogs));
     safeStorage.setItem('km_suppliers', JSON.stringify(state.suppliers));
     safeStorage.setItem('km_customers', JSON.stringify(state.customers));
+    safeStorage.setItem('km_users', JSON.stringify(state.users));
+    safeStorage.setItem('km_bookings', JSON.stringify(state.bookings));
 }
 
 function syncToGoogleSheets(action, payload, successCallback) {
@@ -1317,8 +1345,44 @@ function populateSuppliersDatalist() {
     }
 }
 
+function getUserPrefixes(username) {
+    const defaultProduct = safeStorage.getItem('km_prefix_product') || 'PRD-';
+    const defaultStockIn = safeStorage.getItem('km_prefix_stock_in') || 'PUR-';
+    const defaultStockOut = safeStorage.getItem('km_prefix_stock_out') || 'SAL-';
+    const defaultBooking = safeStorage.getItem('km_prefix_booking') || 'BKG-';
+
+    let targetName = username;
+    if (!targetName && state.currentUser) {
+        targetName = state.currentUser.username;
+    }
+
+    if (targetName) {
+        const u = state.users.find(item => item.username.toLowerCase() === String(targetName).toLowerCase());
+        if (u) {
+            return {
+                product: u.prefixProduct || defaultProduct,
+                stockIn: u.prefixStockIn || defaultStockIn,
+                stockOut: u.prefixStockOut || defaultStockOut,
+                booking: u.prefixBooking || defaultBooking
+            };
+        }
+    }
+
+    return {
+        product: defaultProduct,
+        stockIn: defaultStockIn,
+        stockOut: defaultStockOut,
+        booking: defaultBooking
+    };
+}
+
+function getCurrentUserPrefixes() {
+    return getUserPrefixes(state.currentUser ? state.currentUser.username : '');
+}
+
 function generateAutoProductCode() {
-    const prefix = safeStorage.getItem('km_prefix_product') || 'PRD-';
+    const prefixes = getCurrentUserPrefixes();
+    const prefix = prefixes.product;
     let nextNum = (state.products || []).length + 1;
     (state.products || []).forEach(p => {
         if (p.code && p.code.startsWith(prefix)) {
@@ -1436,7 +1500,7 @@ function deleteProduct(idx) {
 // ==========================================================================
 function initStockInPanel() {
     const invNoEl = document.getElementById('stockInInvoiceNo');
-    const prefixIn = safeStorage.getItem('km_prefix_stock_in') || 'PUR-';
+    const prefixIn = getCurrentUserPrefixes().stockIn;
     if (invNoEl && !invNoEl.value) {
         invNoEl.value = `${prefixIn}${Math.floor(100000 + Math.random() * 900000)}`;
     }
@@ -1586,7 +1650,7 @@ function removeFromStockInCart(idx) {
 function completeStockInTx() {
     if (state.stockInCart.length === 0) return;
 
-    const prefixIn = safeStorage.getItem('km_prefix_stock_in') || 'PUR-';
+    const prefixIn = getCurrentUserPrefixes().stockIn;
     const invNo = document.getElementById('stockInInvoiceNo').value || `${prefixIn}${Date.now()}`;
     const date = document.getElementById('stockInFormDate').value || new Date().toISOString().split('T')[0];
     const supplier = isStoreRoleUser() ? getUserStoreName() : (document.getElementById('stockInSupplierFormSelect') ? document.getElementById('stockInSupplierFormSelect').value || 'ទូទៅ' : 'ទូទៅ');
@@ -1674,7 +1738,7 @@ function renderStockInTable() {
 // ==========================================================================
 function initStockOutPanel() {
     const invNoEl = document.getElementById('stockOutInvoiceNo');
-    const prefixOut = safeStorage.getItem('km_prefix_stock_out') || 'SAL-';
+    const prefixOut = getCurrentUserPrefixes().stockOut;
     if (invNoEl && !invNoEl.value) {
         invNoEl.value = `${prefixOut}${Math.floor(100000 + Math.random() * 900000)}`;
     }
@@ -1843,7 +1907,7 @@ function removeFromStockOutCart(idx) {
 function completeStockOutTx() {
     if (state.stockOutCart.length === 0) return;
 
-    const prefixOut = safeStorage.getItem('km_prefix_stock_out') || 'SAL-';
+    const prefixOut = getCurrentUserPrefixes().stockOut;
     const invNo = document.getElementById('stockOutInvoiceNo').value || `${prefixOut}${Date.now()}`;
     const date = document.getElementById('stockOutFormDate').value || new Date().toISOString().split('T')[0];
     const customer = document.getElementById('stockOutCustomerFormSelect').value || 'អតិថិជនទូទៅ';
@@ -2595,14 +2659,50 @@ function loadSettingsUI() {
     if (document.getElementById('settingDefaultMinAlert')) document.getElementById('settingDefaultMinAlert').value = defaultMinAlert;
     if (document.getElementById('settingThemeSelect')) document.getElementById('settingThemeSelect').value = theme;
 
-    if (document.getElementById('settingPrefixProduct')) document.getElementById('settingPrefixProduct').value = prefixProduct;
-    if (document.getElementById('settingPrefixStockIn')) document.getElementById('settingPrefixStockIn').value = prefixStockIn;
-    if (document.getElementById('settingPrefixStockOut')) document.getElementById('settingPrefixStockOut').value = prefixStockOut;
-    if (document.getElementById('settingPrefixBooking')) document.getElementById('settingPrefixBooking').value = prefixBooking;
-
+    populateUserPrefixSelect();
+    renderUsersTable();
     updateConnectionStatusDisplay();
     renderSettingsCategories();
     renderSettingsProductsTable();
+}
+
+function populateUserPrefixSelect() {
+    const select = document.getElementById('settingPrefixUserSelect');
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = '';
+
+    const curUser = state.currentUser ? state.currentUser.username : '';
+    state.users.forEach(u => {
+        const option = document.createElement('option');
+        option.value = u.username;
+        const isCurrent = u.username.toLowerCase() === curUser.toLowerCase();
+        option.textContent = `${u.fullName || u.username} (@${u.username}) ${isCurrent ? ' [កំពុងប្រើប្រាស់ - Active]' : ''}`;
+        select.appendChild(option);
+    });
+
+    if (currentVal && state.users.some(u => u.username === currentVal)) {
+        select.value = currentVal;
+    } else if (curUser && state.users.some(u => u.username.toLowerCase() === curUser.toLowerCase())) {
+        const match = state.users.find(u => u.username.toLowerCase() === curUser.toLowerCase());
+        select.value = match.username;
+    } else if (state.users.length > 0) {
+        select.value = state.users[0].username;
+    }
+
+    onPrefixUserSelectChange();
+}
+
+function onPrefixUserSelectChange() {
+    const select = document.getElementById('settingPrefixUserSelect');
+    if (!select) return;
+    const username = select.value;
+    const prefixes = getUserPrefixes(username);
+
+    if (document.getElementById('settingPrefixProduct')) document.getElementById('settingPrefixProduct').value = prefixes.product;
+    if (document.getElementById('settingPrefixStockIn')) document.getElementById('settingPrefixStockIn').value = prefixes.stockIn;
+    if (document.getElementById('settingPrefixStockOut')) document.getElementById('settingPrefixStockOut').value = prefixes.stockOut;
+    if (document.getElementById('settingPrefixBooking')) document.getElementById('settingPrefixBooking').value = prefixes.booking;
 }
 
 function getStoredCategories() {
@@ -2766,6 +2866,24 @@ function saveSystemSettings() {
     const prefixStockOut = document.getElementById('settingPrefixStockOut') ? document.getElementById('settingPrefixStockOut').value.trim() : 'SAL-';
     const prefixBooking = document.getElementById('settingPrefixBooking') ? document.getElementById('settingPrefixBooking').value.trim() : 'BKG-';
 
+    const selectedUsername = document.getElementById('settingPrefixUserSelect') ? document.getElementById('settingPrefixUserSelect').value : '';
+    if (selectedUsername) {
+        const targetUser = state.users.find(u => u.username.toLowerCase() === selectedUsername.toLowerCase());
+        if (targetUser) {
+            targetUser.prefixProduct = prefixProduct || 'PRD-';
+            targetUser.prefixStockIn = prefixStockIn || 'PUR-';
+            targetUser.prefixStockOut = prefixStockOut || 'SAL-';
+            targetUser.prefixBooking = prefixBooking || 'BKG-';
+            if (state.currentUser && state.currentUser.username.toLowerCase() === selectedUsername.toLowerCase()) {
+                state.currentUser.prefixProduct = targetUser.prefixProduct;
+                state.currentUser.prefixStockIn = targetUser.prefixStockIn;
+                state.currentUser.prefixStockOut = targetUser.prefixStockOut;
+                state.currentUser.prefixBooking = targetUser.prefixBooking;
+            }
+            syncToGoogleSheets('saveUser', targetUser);
+        }
+    }
+
     safeStorage.setItem('km_gas_url', gasUrl);
     safeStorage.setItem('km_sheet_id', sheetId);
     safeStorage.setItem('km_store_name', storeName);
@@ -2785,7 +2903,8 @@ function saveSystemSettings() {
     }
 
     updateConnectionStatusDisplay();
-    showToast('បានរក្សាទុកការកំណត់ប្រព័ន្ធជោគជ័យ!', 'success');
+    renderUsersTable();
+    showToast('បានរក្សាទុកការកំណត់ប្រព័ន្ធ និងក្បាលលេខគណនីជោគជ័យ!', 'success');
 }
 
 function pushDataToGoogleSheets() {
@@ -2851,21 +2970,23 @@ function pushDataToGoogleSheets() {
 }
 
 function pullDataFromGoogleSheets() {
-    const gasUrl = document.getElementById('settingGasUrl').value.trim();
+    const gasUrl = document.getElementById('settingGasUrl') ? document.getElementById('settingGasUrl').value.trim() : safeStorage.getItem('km_gas_url');
     showToast('កំពុងទាញយកទិន្នន័យពី Google Sheets...', 'info');
 
     if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
             .withSuccessHandler(res => {
-                if (res && res.success) {
+                if (res && res.success && res.data) {
                     state.products = res.data.products || [];
                     state.stockInLogs = res.data.stockInLogs || [];
                     state.stockOutLogs = res.data.stockOutLogs || [];
                     state.suppliers = res.data.suppliers || [];
                     state.customers = res.data.customers || [];
+                    if (res.data.users && res.data.users.length > 0) state.users = res.data.users;
+                    if (res.data.bookings && res.data.bookings.length > 0) state.bookings = res.data.bookings;
                     saveToLocalStorage();
                     refreshCurrentUI();
-                    showToast(`បានទាញយកទិន្នន័យពី Google Sheets ជោគជ័យ! (${state.products.length} ទំនិញ)`, 'success');
+                    showToast(`បានទាញយកទិន្នន័យពី Google Sheets ជោគជ័យ! (${state.products.length} ទំនិញ, ${state.users.length} គណនី)`, 'success');
                     updateConnectionStatusDisplay();
                 } else {
                     showToast('ទាញយកមិនបានសម្រេច: ' + (res ? res.message : ''), 'danger');
@@ -2876,7 +2997,9 @@ function pullDataFromGoogleSheets() {
             })
             .getInitialData();
     } else if (gasUrl) {
-        fetch(gasUrl + '?action=getData')
+        const cleanGasUrl = gasUrl.trim();
+        const separator = cleanGasUrl.includes('?') ? '&' : '?';
+        fetch(cleanGasUrl + separator + 'action=getData')
             .then(res => res.json())
             .then(res => {
                 if (res && res.success && res.data) {
@@ -2885,9 +3008,11 @@ function pullDataFromGoogleSheets() {
                     state.stockOutLogs = res.data.stockOutLogs || [];
                     state.suppliers = res.data.suppliers || [];
                     state.customers = res.data.customers || [];
+                    if (res.data.users && res.data.users.length > 0) state.users = res.data.users;
+                    if (res.data.bookings && res.data.bookings.length > 0) state.bookings = res.data.bookings;
                     saveToLocalStorage();
                     refreshCurrentUI();
-                    showToast(`បានទាញយកទិន្នន័យពី Google Sheets ជោគជ័យ! (${state.products.length} ទំនិញ)`, 'success');
+                    showToast(`បានទាញយកទិន្នន័យពី Google Sheets ជោគជ័យ! (${state.products.length} ទំនិញ, ${state.users.length} គណនី)`, 'success');
                     updateConnectionStatusDisplay();
                 } else {
                     showToast('បានរក្សាទុក URL (អាចប្រើជាមួយ Google Apps Script)', 'info');
@@ -3167,7 +3292,7 @@ function renderUsersTable() {
     tbody.innerHTML = '';
 
     if (state.users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted p-3">ពុំទាន់មានគណនីប្រើប្រាស់នៅឡើយទេ</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-3">ពុំទាន់មានគណនីប្រើប្រាស់នៅឡើយទេ</td></tr>';
         return;
     }
 
@@ -3186,12 +3311,16 @@ function renderUsersTable() {
         const userPages = getUserAllowedPages(u);
         const pagesBadge = `<span class="badge badge-info" title="ទំព័រដែលអនុញ្ញាត៖ ${userPages.join(', ')}">${userPages.length} ទំព័រ</span>`;
 
+        const prefs = getUserPrefixes(u.username);
+        const prefixBadge = `<div class="d-flex flex-wrap justify-content-center gap-1" style="font-size: 0.75rem;"><span class="badge bg-light text-primary border" title="កូដទំនិញ">${prefs.product}</span><span class="badge bg-light text-success border" title="ទិញចូល">${prefs.stockIn}</span><span class="badge bg-light text-secondary border" title="លក់ចេញ">${prefs.stockOut}</span><span class="badge bg-light text-warning border" title="កក់">${prefs.booking}</span></div>`;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td data-label="ឈ្មោះគណនី"><code>${u.username}</code> ${isSelf ? '<span class="badge badge-info ms-1">អ្នក</span>' : ''}</td>
             <td data-label="ឈ្មោះពេញ"><strong>${u.fullName || u.username}</strong></td>
             <td data-label="តួនាទី" class="text-center">${roleBadge}</td>
             <td data-label="សិទ្ធិចូលទំព័រ" class="text-center">${pagesBadge}</td>
+            <td data-label="ក្បាលលេខ (Prefixes)" class="text-center">${prefixBadge}</td>
             <td data-label="ស្ថានភាព" class="text-center">${statusBadge}</td>
             <td data-label="សកម្មភាព" class="text-center">
                 <div class="flex-center gap-2">
@@ -3231,6 +3360,12 @@ function openUserModal(username = '') {
             document.querySelectorAll('.user-page-checkbox').forEach(cb => {
                 cb.checked = userPages.includes(cb.value);
             });
+
+            const prefs = getUserPrefixes(u.username);
+            if (document.getElementById('userFormPrefixProduct')) document.getElementById('userFormPrefixProduct').value = prefs.product;
+            if (document.getElementById('userFormPrefixStockIn')) document.getElementById('userFormPrefixStockIn').value = prefs.stockIn;
+            if (document.getElementById('userFormPrefixStockOut')) document.getElementById('userFormPrefixStockOut').value = prefs.stockOut;
+            if (document.getElementById('userFormPrefixBooking')) document.getElementById('userFormPrefixBooking').value = prefs.booking;
         }
     } else {
         document.getElementById('userModalTitle').innerHTML = `<i class="fa-solid fa-user-plus"></i> បន្ថែមគណនីថ្មី`;
@@ -3243,6 +3378,11 @@ function openUserModal(username = '') {
         document.querySelectorAll('.user-page-checkbox').forEach(cb => {
             cb.checked = defaultPages.includes(cb.value);
         });
+
+        if (document.getElementById('userFormPrefixProduct')) document.getElementById('userFormPrefixProduct').value = 'PRD-';
+        if (document.getElementById('userFormPrefixStockIn')) document.getElementById('userFormPrefixStockIn').value = 'PUR-';
+        if (document.getElementById('userFormPrefixStockOut')) document.getElementById('userFormPrefixStockOut').value = 'SAL-';
+        if (document.getElementById('userFormPrefixBooking')) document.getElementById('userFormPrefixBooking').value = 'BKG-';
     }
 
     modal.classList.add('show');
@@ -3264,11 +3404,30 @@ function handleUserFormSubmit(e) {
 
     const allowedPages = Array.from(document.querySelectorAll('.user-page-checkbox:checked')).map(cb => cb.value);
 
-    const userObj = { username, password, fullName, role, status, allowedPages };
+    const prefixProduct = document.getElementById('userFormPrefixProduct') ? document.getElementById('userFormPrefixProduct').value.trim() : 'PRD-';
+    const prefixStockIn = document.getElementById('userFormPrefixStockIn') ? document.getElementById('userFormPrefixStockIn').value.trim() : 'PUR-';
+    const prefixStockOut = document.getElementById('userFormPrefixStockOut') ? document.getElementById('userFormPrefixStockOut').value.trim() : 'SAL-';
+    const prefixBooking = document.getElementById('userFormPrefixBooking') ? document.getElementById('userFormPrefixBooking').value.trim() : 'BKG-';
+
+    const userObj = {
+        username,
+        password,
+        fullName,
+        role,
+        status,
+        allowedPages,
+        prefixProduct: prefixProduct || 'PRD-',
+        prefixStockIn: prefixStockIn || 'PUR-',
+        prefixStockOut: prefixStockOut || 'SAL-',
+        prefixBooking: prefixBooking || 'BKG-'
+    };
 
     if (editUsername) {
         const idx = state.users.findIndex(u => u.username.toLowerCase() === editUsername.toLowerCase());
         if (idx >= 0) state.users[idx] = userObj;
+        if (state.currentUser && state.currentUser.username.toLowerCase() === editUsername.toLowerCase()) {
+            state.currentUser = userObj;
+        }
     } else {
         if (state.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
             showToast('ឈ្មោះគណនីនេះមានរួចហើយ! សូមប្រើឈ្មោះផ្សេង', 'danger');
@@ -3280,6 +3439,7 @@ function handleUserFormSubmit(e) {
     syncToGoogleSheets('saveUser', userObj, () => {
         closeUserModal();
         renderUsersTable();
+        populateUserPrefixSelect();
         showToast('បានរក្សាទុកគណនីប្រើប្រាស់ជោគជ័យ!', 'success');
     });
 }
@@ -3296,6 +3456,7 @@ function deleteUserByUsername(username) {
             state.users.splice(idx, 1);
             syncToGoogleSheets('deleteUser', { username }, () => {
                 renderUsersTable();
+                populateUserPrefixSelect();
                 showToast('បានលុបគណនីជោគជ័យ!', 'success');
             });
         }
@@ -3463,7 +3624,7 @@ function handleBookingFormSubmit(e) {
     const notes = document.getElementById('bookingNotes').value.trim();
     const staffName = state.currentUser ? (state.currentUser.fullName || state.currentUser.username) : 'Staff';
 
-    const prefixBkg = safeStorage.getItem('km_prefix_booking') || 'BKG-';
+    const prefixBkg = getCurrentUserPrefixes().booking;
     const bookingObj = {
         id: `${prefixBkg}${Math.floor(100000 + Math.random() * 900000)}`,
         timestamp,

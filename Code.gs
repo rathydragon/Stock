@@ -97,8 +97,10 @@ function handleApiRequest(action, payload) {
       result = updateStockOut(payload);
     } else if (action === 'deleteStockOut') {
       result = deleteStockOut(payload);
-    } else if (action === 'saveUser') {
+    } else if (action === 'saveUser' || action === 'updateUserTable') {
       result = saveUser(payload);
+    } else if (action === 'updateAllUsers' || action === 'syncUsers') {
+      result = updateAllUsers(payload);
     } else if (action === 'deleteUser') {
       result = deleteUser(payload);
     } else if (action === 'addBooking') {
@@ -214,11 +216,11 @@ function setupDatabase() {
     },
     {
       name: SHEETS.USERS,
-      headers: ['Username', 'Password', 'FullName', 'Role', 'Status'],
+      headers: ['Username', 'Password', 'FullName', 'Role', 'Status', 'PrefixProduct', 'PrefixStockIn', 'PrefixStockOut', 'PrefixBooking', 'AllowedPages'],
       defaultRows: [
-        ['admin', '123456', 'អ្នកគ្រប់គ្រងប្រព័ន្ធ (Admin)', 'Admin', 'Active'],
-        ['manager', '123456', 'អ្នកគ្រប់គ្រងស្តុក (Manager)', 'Manager', 'Active'],
-        ['cashier', '123456', 'បុគ្គលិករៀបចំការលក់ (Cashier)', 'Cashier', 'Active']
+        ['admin', '123456', 'អ្នកគ្រប់គ្រងប្រព័ន្ធ (Admin)', 'Admin', 'Active', 'PRD-', 'PUR-', 'SAL-', 'BKG-', '["dashboard","products","stock-in","stock-out","contacts","bookings","reports","settings"]'],
+        ['manager', '123456', 'អ្នកគ្រប់គ្រងស្តុក (Manager)', 'Manager', 'Active', 'PRD-', 'PUR-', 'SAL-', 'BKG-', '["dashboard","products","stock-in","stock-out","contacts","bookings","reports"]'],
+        ['cashier', '123456', 'បុគ្គលិករៀបចំការលក់ (Cashier)', 'Cashier', 'Active', 'PRD-', 'PUR-', 'SAL-', 'BKG-', '["stock-out"]']
       ]
     },
     {
@@ -256,10 +258,29 @@ function setupDatabase() {
           sheet.appendRow(row);
         });
       }
+    } else {
+      if (def.name === SHEETS.USERS) {
+        var headerRange = sheet.getRange(1, 1, 1, def.headers.length);
+        headerRange.setValues([def.headers])
+                   .setFontWeight('bold')
+                   .setBackground('#0f172a')
+                   .setFontColor('#ffffff');
+        
+        var lastRow = sheet.getLastRow();
+        if (lastRow > 1) {
+          for (var r = 2; r <= lastRow; r++) {
+            var rowVals = sheet.getRange(r, 1, 1, 10).getValues()[0];
+            if (!rowVals[5]) sheet.getRange(r, 6).setValue('PRD-');
+            if (!rowVals[6]) sheet.getRange(r, 7).setValue('PUR-');
+            if (!rowVals[7]) sheet.getRange(r, 8).setValue('SAL-');
+            if (!rowVals[8]) sheet.getRange(r, 9).setValue('BKG-');
+          }
+        }
+      }
     }
   });
 
-  return { success: true, message: 'កំណត់ទិន្នន័យ Google Sheets រួចរាល់!' };
+  return { success: true, message: 'កំណត់ទិន្នន័យ Google Sheets និងធ្វើបច្ចុប្បន្នភាពតារាង Users រួចរាល់!' };
 }
 
 /**
@@ -337,12 +358,26 @@ function getInitialData() {
     });
 
     var users = getSheetDataAsJson(ss.getSheetByName(SHEETS.USERS), function(row) {
+      var allowed = [];
+      if (row[9]) {
+        try {
+          var raw = String(row[9]).trim();
+          allowed = raw.startsWith('[') ? JSON.parse(raw) : raw.split(',').map(function(s){return s.trim();}).filter(Boolean);
+        } catch (e) {
+          allowed = [];
+        }
+      }
       return {
         username: String(row[0] || ''),
         password: String(row[1] || ''),
         fullName: String(row[2] || ''),
         role: String(row[3] || 'Cashier'),
-        status: String(row[4] || 'Active')
+        status: String(row[4] || 'Active'),
+        prefixProduct: String(row[5] || 'PRD-'),
+        prefixStockIn: String(row[6] || 'PUR-'),
+        prefixStockOut: String(row[7] || 'SAL-'),
+        prefixBooking: String(row[8] || 'BKG-'),
+        allowedPages: allowed
       };
     });
 
@@ -708,12 +743,22 @@ function saveUser(user) {
       }
     }
 
+    var allowedStr = '';
+    if (user.allowedPages && Array.isArray(user.allowedPages)) {
+      allowedStr = JSON.stringify(user.allowedPages);
+    }
+
     var rowValues = [
       user.username,
       user.password,
       user.fullName,
       user.role || 'Cashier',
-      user.status || 'Active'
+      user.status || 'Active',
+      user.prefixProduct || 'PRD-',
+      user.prefixStockIn || 'PUR-',
+      user.prefixStockOut || 'SAL-',
+      user.prefixBooking || 'BKG-',
+      allowedStr
     ];
 
     if (foundIndex > 0) {
@@ -722,7 +767,26 @@ function saveUser(user) {
       sheet.appendRow(rowValues);
     }
 
-    return { success: true };
+    return { success: true, message: 'បានធ្វើបច្ចុប្បន្នភាពគណនី ' + user.username + ' ក្នុង Google Sheets ជោគជ័យ' };
+  } catch (err) {
+    return { success: false, message: err.toString() };
+  }
+}
+
+function updateAllUsers(usersList) {
+  try {
+    var ss = getSpreadsheet();
+    setupDatabase();
+    var sheet = ss.getSheetByName(SHEETS.USERS);
+    if (!sheet) return { success: false, message: 'ពុំមាន Sheet Users' };
+
+    var list = (usersList && Array.isArray(usersList)) ? usersList : (usersList && usersList.users ? usersList.users : []);
+    if (list.length > 0) {
+      list.forEach(function(u) {
+        saveUser(u);
+      });
+    }
+    return { success: true, message: 'បានធ្វើបច្ចុប្បន្នភាពតារាង Users ទាំងអស់ក្នុង Google Sheets ជោគជ័យ!' };
   } catch (err) {
     return { success: false, message: err.toString() };
   }
