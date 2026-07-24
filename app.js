@@ -221,6 +221,12 @@ function setSafeSuppliersState(incomingSuppliers) {
                 uName = matchedSeed.username.trim();
             }
         }
+        if (!uName && s.name && Array.isArray(state.users)) {
+            const matchedUser = state.users.find(u => u && (u.fullName.trim().toLowerCase() === String(s.name).trim().toLowerCase() || u.username.trim().toLowerCase() === String(s.name).trim().toLowerCase()));
+            if (matchedUser && matchedUser.username) {
+                uName = matchedUser.username.trim();
+            }
+        }
         return { ...s, username: uName };
     });
 }
@@ -891,33 +897,81 @@ function fmtAcc(val, valClass = '') {
 
 function getUserStoreName() {
     if (!state.currentUser) return '';
+    const curUser = state.currentUser;
+    const curUsername = (curUser.username || '').trim().toLowerCase();
+    const curFullName = (curUser.fullName || '').trim().toLowerCase();
+
     if (state.suppliers && Array.isArray(state.suppliers)) {
-        const matched = state.suppliers.find(s => s && s.username && s.username.trim().toLowerCase() === state.currentUser.username.trim().toLowerCase());
+        // 1. Direct username match in suppliers
+        let matched = state.suppliers.find(s => s && s.username && s.username.trim().toLowerCase() === curUsername);
+        if (matched && matched.name) return matched.name.trim();
+
+        // 2. Name match in suppliers matching user's fullName or username
+        matched = state.suppliers.find(s => s && s.name && (s.name.trim().toLowerCase() === curUsername || s.name.trim().toLowerCase() === curFullName));
         if (matched && matched.name) return matched.name.trim();
     }
-    return (state.currentUser.fullName || state.currentUser.username || '').trim();
+
+    // 3. Fallback to defaultSeedData suppliers for default demo users (like 'store')
+    if (typeof defaultSeedData !== 'undefined' && Array.isArray(defaultSeedData.suppliers)) {
+        const seedMatched = defaultSeedData.suppliers.find(seed => seed && seed.username && seed.username.trim().toLowerCase() === curUsername);
+        if (seedMatched && seedMatched.name) return seedMatched.name.trim();
+    }
+
+    return (curUser.fullName || curUser.username || '').trim();
 }
 
 function getLoggedUserStoreNames() {
     if (!state.currentUser) return [];
     const names = new Set();
     const curUser = state.currentUser;
+    const curUsername = (curUser.username || '').trim().toLowerCase();
+    const curFullName = (curUser.fullName || '').trim().toLowerCase();
 
     if (curUser.fullName) names.add(curUser.fullName.trim().toLowerCase());
     if (curUser.username) names.add(curUser.username.trim().toLowerCase());
 
+    const userStoreName = getUserStoreName();
+    if (userStoreName) names.add(userStoreName.trim().toLowerCase());
+
+    // Check seed data suppliers fallback
+    if (typeof defaultSeedData !== 'undefined' && Array.isArray(defaultSeedData.suppliers)) {
+        defaultSeedData.suppliers.forEach(seed => {
+            if (seed && seed.username && seed.username.trim().toLowerCase() === curUsername) {
+                if (seed.name) names.add(seed.name.trim().toLowerCase());
+            }
+        });
+    }
+
+    // Match suppliers where username OR name matches user
     if (state.suppliers && Array.isArray(state.suppliers)) {
         state.suppliers.forEach(s => {
-            if (s && s.username && s.username.trim().toLowerCase() === curUser.username.trim().toLowerCase()) {
+            if (!s) return;
+            const sUser = (s.username || '').trim().toLowerCase();
+            const sName = (s.name || '').trim().toLowerCase();
+            if ((sUser && sUser === curUsername) || (sName && (sName === curUsername || sName === curFullName || (userStoreName && sName === userStoreName.toLowerCase())))) {
                 if (s.name) names.add(s.name.trim().toLowerCase());
+                if (s.username) names.add(s.username.trim().toLowerCase());
             }
         });
     }
 
     if (state.customers && Array.isArray(state.customers)) {
         state.customers.forEach(c => {
-            if (c && c.username && c.username.trim().toLowerCase() === curUser.username.trim().toLowerCase()) {
+            if (!c) return;
+            const cUser = (c.username || '').trim().toLowerCase();
+            const cName = (c.name || '').trim().toLowerCase();
+            if ((cUser && cUser === curUsername) || (cName && (cName === curUsername || cName === curFullName))) {
                 if (c.name) names.add(c.name.trim().toLowerCase());
+                if (c.username) names.add(c.username.trim().toLowerCase());
+            }
+        });
+    }
+
+    // Include store name from products created by this user's username
+    if (state.products && Array.isArray(state.products)) {
+        state.products.forEach(p => {
+            if (p && p.username && p.username.trim().toLowerCase() === curUsername && p.supplier) {
+                names.add(p.supplier.trim().toLowerCase());
             }
         });
     }
@@ -937,7 +991,10 @@ function matchesStoreName(targetSupplier, storeNames) {
     if (!targetSupplier) return false;
     const supLower = String(targetSupplier).trim().toLowerCase();
     if (!supLower) return false;
-    return storeNames.some(name => supLower === name || supLower.includes(name) || name.includes(supLower));
+    return storeNames.some(name => {
+        if (!name) return false;
+        return supLower === name || supLower.includes(name) || name.includes(supLower);
+    });
 }
 
 function isStoreRoleUser() {
@@ -1897,6 +1954,92 @@ function addToStockInCart() {
 
     renderStockInCartTable();
     showToast(`បានបញ្ចូល ${prod.name} ទៅកន្ត្រកទិញ!`, 'success');
+}
+
+function switchPage(pageId) {
+    renderPage(pageId);
+}
+
+function quickStockInForCode(code) {
+    if (!code) return;
+    const prods = getStoreFilteredProducts();
+    let prod = prods.find(p => p && p.code === code);
+    if (!prod && state.products) {
+        prod = state.products.find(p => p && p.code === code);
+    }
+    if (!prod) {
+        showToast('មិនអាចរកឃើញទំនិញនេះក្នុងប្រព័ន្ធទេ!', 'warning');
+        return;
+    }
+
+    const existing = state.stockInCart.find(i => i.code === prod.code);
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        state.stockInCart.push({
+            code: prod.code,
+            name: prod.name,
+            qty: 1,
+            unit: prod.unit || 'កញ្ចប់',
+            cost: prod.cost || 0
+        });
+    }
+
+    renderPage('stock-in');
+
+    const selectEl = document.getElementById('stockInProductFormSelect');
+    if (selectEl) {
+        selectEl.value = prod.code;
+        selectEl.dispatchEvent(new Event('change'));
+    }
+    const unitPriceEl = document.getElementById('stockInFormUnitPrice');
+    if (unitPriceEl) {
+        unitPriceEl.value = prod.cost || 0;
+    }
+    const qtyEl = document.getElementById('stockInFormQty');
+    if (qtyEl) {
+        qtyEl.value = 1;
+    }
+
+    renderStockInCartTable();
+    showToast(`បានបន្ថែម "${prod.name}" ទៅក្នុងកន្ត្រកស្តុកចូល!`, 'success');
+}
+
+function quickStockOutForCode(code) {
+    if (!code) return;
+    const prods = getStoreFilteredProducts();
+    let prod = prods.find(p => p && p.code === code);
+    if (!prod && state.products) {
+        prod = state.products.find(p => p && p.code === code);
+    }
+    if (!prod) {
+        showToast('មិនអាចរកឃើញទំនិញនេះក្នុងប្រព័ន្ធទេ!', 'warning');
+        return;
+    }
+
+    const existing = state.stockOutCart.find(i => i.code === prod.code);
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        state.stockOutCart.push({
+            code: prod.code,
+            name: prod.name,
+            qty: 1,
+            unit: prod.unit || 'កញ្ចប់',
+            price: prod.price || 0,
+            discount: 0
+        });
+    }
+
+    renderPage('stock-out');
+
+    const selectEl = document.getElementById('stockOutProductFormSelect');
+    if (selectEl) {
+        selectEl.value = prod.code;
+        selectEl.dispatchEvent(new Event('change'));
+    }
+    renderStockOutCartTable();
+    showToast(`បានបន្ថែម "${prod.name}" ទៅក្នុងកន្ត្រកលក់ចេញ!`, 'success');
 }
 
 function removeFromStockInCart(idx) {

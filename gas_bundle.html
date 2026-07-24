@@ -2277,15 +2277,15 @@ body.dark-mode code, body.dark-mode .code-badge, body.dark-mode .product-sku-cod
         pointer-events: none !important;
     }
 
-    /* Transform tbody tr into Ultra-Sleek Floating Card Items with Perfect Spacing */
+    /* Transform tbody tr into Ultra-Sleek Floating Card Items with Compact Spacing */
     .table tbody tr {
         background: var(--bg-card) !important;
         border: 1px solid var(--border-color) !important;
-        border-top: 4px solid #1862f6 !important;
-        border-radius: 16px !important;
+        border-top: 3px solid #1862f6 !important;
+        border-radius: 14px !important;
         padding: 0 !important;
-        margin: 0 0 1.15rem 0 !important;
-        box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02) !important;
+        margin: 0 0 0.75rem 0 !important;
+        box-shadow: 0 4px 16px -3px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02) !important;
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
         position: relative !important;
         overflow: hidden !important;
@@ -2295,20 +2295,20 @@ body.dark-mode code, body.dark-mode .code-badge, body.dark-mode .product-sku-cod
         border-color: #1862f6 !important;
         border-top-color: #1052d4 !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 14px 32px -6px rgba(24, 98, 246, 0.15) !important;
+        box-shadow: 0 10px 24px -6px rgba(24, 98, 246, 0.12) !important;
     }
 
-    /* Transform td cells into flex rows with balanced padding & gap */
+    /* Transform td cells into flex rows with compact padding & gap */
     .table tbody td {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        padding: 0.65rem 1.15rem !important;
+        padding: 0.38rem 0.85rem !important;
         border-bottom: 1px solid rgba(226, 232, 240, 0.7) !important;
-        font-size: 0.9rem !important;
+        font-size: 0.84rem !important;
         text-align: right !important;
-        min-height: 40px !important;
-        gap: 0.85rem !important;
+        min-height: 32px !important;
+        gap: 0.6rem !important;
         transition: background-color 0.2s ease !important;
     }
 
@@ -2327,10 +2327,10 @@ body.dark-mode code, body.dark-mode .code-badge, body.dark-mode .product-sku-cod
     /* First cell inside Card (Header Row Highlight) */
     .table tbody td:first-child {
         background: linear-gradient(135deg, rgba(24, 98, 246, 0.07) 0%, rgba(99, 102, 241, 0.03) 100%) !important;
-        padding: 0.78rem 1.15rem !important;
+        padding: 0.48rem 0.85rem !important;
         border-bottom: 1px solid var(--border-color) !important;
         font-weight: 700 !important;
-        font-size: 0.92rem !important;
+        font-size: 0.88rem !important;
     }
 
     /* Action Toolbar Row (Last cell) */
@@ -2339,7 +2339,7 @@ body.dark-mode code, body.dark-mode .code-badge, body.dark-mode .product-sku-cod
         border-bottom: none !important;
         background: rgba(24, 98, 246, 0.03) !important;
         border-top: 1px solid var(--border-color) !important;
-        padding: 0.75rem 1.15rem !important;
+        padding: 0.45rem 0.85rem !important;
         margin-top: auto !important;
         justify-content: flex-end !important;
     }
@@ -2369,7 +2369,7 @@ body.dark-mode code, body.dark-mode .code-badge, body.dark-mode .product-sku-cod
     .table tbody td[data-label]::before {
         content: attr(data-label);
         font-weight: 600;
-        font-size: 0.84rem;
+        font-size: 0.8rem;
         color: var(--text-secondary);
         text-align: left;
         padding-right: 0.5rem;
@@ -5342,7 +5342,7 @@ body.dark-mode .login-input {
     <!-- Google Apps Script Web App API URL Configuration (សម្រាប់ Web Hosting ខាងក្រៅ) -->
     <script>
         // សូមបិទភ្ជាប់ (Paste) Web App URL របស់អ្នកជំនួស URL ខាងក្រោមនេះ៖
-        window.DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzraW1pkoXj2n8-vfkN-IG22Ot6mQyyukMhTU8d4yK3q9LGfkgZzcDl10qVG_0O9is-LA/exec';
+        window.DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbx8mfLIe4iwsps9F-7ab4sW3NwJL3G6MpkUWFTHAPdf9J9jHwgC1xYqO7xR02FG8AMY4A/exec';
     </script>
     <script>
 /**
@@ -5566,6 +5566,12 @@ function setSafeSuppliersState(incomingSuppliers) {
             const matchedSeed = defaultSeedData.suppliers.find(seed => seed && seed.name && seed.name.trim().toLowerCase() === String(s.name).trim().toLowerCase());
             if (matchedSeed && matchedSeed.username) {
                 uName = matchedSeed.username.trim();
+            }
+        }
+        if (!uName && s.name && Array.isArray(state.users)) {
+            const matchedUser = state.users.find(u => u && (u.fullName.trim().toLowerCase() === String(s.name).trim().toLowerCase() || u.username.trim().toLowerCase() === String(s.name).trim().toLowerCase()));
+            if (matchedUser && matchedUser.username) {
+                uName = matchedUser.username.trim();
             }
         }
         return { ...s, username: uName };
@@ -6238,33 +6244,81 @@ function fmtAcc(val, valClass = '') {
 
 function getUserStoreName() {
     if (!state.currentUser) return '';
+    const curUser = state.currentUser;
+    const curUsername = (curUser.username || '').trim().toLowerCase();
+    const curFullName = (curUser.fullName || '').trim().toLowerCase();
+
     if (state.suppliers && Array.isArray(state.suppliers)) {
-        const matched = state.suppliers.find(s => s && s.username && s.username.trim().toLowerCase() === state.currentUser.username.trim().toLowerCase());
+        // 1. Direct username match in suppliers
+        let matched = state.suppliers.find(s => s && s.username && s.username.trim().toLowerCase() === curUsername);
+        if (matched && matched.name) return matched.name.trim();
+
+        // 2. Name match in suppliers matching user's fullName or username
+        matched = state.suppliers.find(s => s && s.name && (s.name.trim().toLowerCase() === curUsername || s.name.trim().toLowerCase() === curFullName));
         if (matched && matched.name) return matched.name.trim();
     }
-    return (state.currentUser.fullName || state.currentUser.username || '').trim();
+
+    // 3. Fallback to defaultSeedData suppliers for default demo users (like 'store')
+    if (typeof defaultSeedData !== 'undefined' && Array.isArray(defaultSeedData.suppliers)) {
+        const seedMatched = defaultSeedData.suppliers.find(seed => seed && seed.username && seed.username.trim().toLowerCase() === curUsername);
+        if (seedMatched && seedMatched.name) return seedMatched.name.trim();
+    }
+
+    return (curUser.fullName || curUser.username || '').trim();
 }
 
 function getLoggedUserStoreNames() {
     if (!state.currentUser) return [];
     const names = new Set();
     const curUser = state.currentUser;
+    const curUsername = (curUser.username || '').trim().toLowerCase();
+    const curFullName = (curUser.fullName || '').trim().toLowerCase();
 
     if (curUser.fullName) names.add(curUser.fullName.trim().toLowerCase());
     if (curUser.username) names.add(curUser.username.trim().toLowerCase());
 
+    const userStoreName = getUserStoreName();
+    if (userStoreName) names.add(userStoreName.trim().toLowerCase());
+
+    // Check seed data suppliers fallback
+    if (typeof defaultSeedData !== 'undefined' && Array.isArray(defaultSeedData.suppliers)) {
+        defaultSeedData.suppliers.forEach(seed => {
+            if (seed && seed.username && seed.username.trim().toLowerCase() === curUsername) {
+                if (seed.name) names.add(seed.name.trim().toLowerCase());
+            }
+        });
+    }
+
+    // Match suppliers where username OR name matches user
     if (state.suppliers && Array.isArray(state.suppliers)) {
         state.suppliers.forEach(s => {
-            if (s && s.username && s.username.trim().toLowerCase() === curUser.username.trim().toLowerCase()) {
+            if (!s) return;
+            const sUser = (s.username || '').trim().toLowerCase();
+            const sName = (s.name || '').trim().toLowerCase();
+            if ((sUser && sUser === curUsername) || (sName && (sName === curUsername || sName === curFullName || (userStoreName && sName === userStoreName.toLowerCase())))) {
                 if (s.name) names.add(s.name.trim().toLowerCase());
+                if (s.username) names.add(s.username.trim().toLowerCase());
             }
         });
     }
 
     if (state.customers && Array.isArray(state.customers)) {
         state.customers.forEach(c => {
-            if (c && c.username && c.username.trim().toLowerCase() === curUser.username.trim().toLowerCase()) {
+            if (!c) return;
+            const cUser = (c.username || '').trim().toLowerCase();
+            const cName = (c.name || '').trim().toLowerCase();
+            if ((cUser && cUser === curUsername) || (cName && (cName === curUsername || cName === curFullName))) {
                 if (c.name) names.add(c.name.trim().toLowerCase());
+                if (c.username) names.add(c.username.trim().toLowerCase());
+            }
+        });
+    }
+
+    // Include store name from products created by this user's username
+    if (state.products && Array.isArray(state.products)) {
+        state.products.forEach(p => {
+            if (p && p.username && p.username.trim().toLowerCase() === curUsername && p.supplier) {
+                names.add(p.supplier.trim().toLowerCase());
             }
         });
     }
@@ -6284,7 +6338,10 @@ function matchesStoreName(targetSupplier, storeNames) {
     if (!targetSupplier) return false;
     const supLower = String(targetSupplier).trim().toLowerCase();
     if (!supLower) return false;
-    return storeNames.some(name => supLower === name || supLower.includes(name) || name.includes(supLower));
+    return storeNames.some(name => {
+        if (!name) return false;
+        return supLower === name || supLower.includes(name) || name.includes(supLower);
+    });
 }
 
 function isStoreRoleUser() {
@@ -7244,6 +7301,92 @@ function addToStockInCart() {
 
     renderStockInCartTable();
     showToast(`បានបញ្ចូល ${prod.name} ទៅកន្ត្រកទិញ!`, 'success');
+}
+
+function switchPage(pageId) {
+    renderPage(pageId);
+}
+
+function quickStockInForCode(code) {
+    if (!code) return;
+    const prods = getStoreFilteredProducts();
+    let prod = prods.find(p => p && p.code === code);
+    if (!prod && state.products) {
+        prod = state.products.find(p => p && p.code === code);
+    }
+    if (!prod) {
+        showToast('មិនអាចរកឃើញទំនិញនេះក្នុងប្រព័ន្ធទេ!', 'warning');
+        return;
+    }
+
+    const existing = state.stockInCart.find(i => i.code === prod.code);
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        state.stockInCart.push({
+            code: prod.code,
+            name: prod.name,
+            qty: 1,
+            unit: prod.unit || 'កញ្ចប់',
+            cost: prod.cost || 0
+        });
+    }
+
+    renderPage('stock-in');
+
+    const selectEl = document.getElementById('stockInProductFormSelect');
+    if (selectEl) {
+        selectEl.value = prod.code;
+        selectEl.dispatchEvent(new Event('change'));
+    }
+    const unitPriceEl = document.getElementById('stockInFormUnitPrice');
+    if (unitPriceEl) {
+        unitPriceEl.value = prod.cost || 0;
+    }
+    const qtyEl = document.getElementById('stockInFormQty');
+    if (qtyEl) {
+        qtyEl.value = 1;
+    }
+
+    renderStockInCartTable();
+    showToast(`បានបន្ថែម "${prod.name}" ទៅក្នុងកន្ត្រកស្តុកចូល!`, 'success');
+}
+
+function quickStockOutForCode(code) {
+    if (!code) return;
+    const prods = getStoreFilteredProducts();
+    let prod = prods.find(p => p && p.code === code);
+    if (!prod && state.products) {
+        prod = state.products.find(p => p && p.code === code);
+    }
+    if (!prod) {
+        showToast('មិនអាចរកឃើញទំនិញនេះក្នុងប្រព័ន្ធទេ!', 'warning');
+        return;
+    }
+
+    const existing = state.stockOutCart.find(i => i.code === prod.code);
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        state.stockOutCart.push({
+            code: prod.code,
+            name: prod.name,
+            qty: 1,
+            unit: prod.unit || 'កញ្ចប់',
+            price: prod.price || 0,
+            discount: 0
+        });
+    }
+
+    renderPage('stock-out');
+
+    const selectEl = document.getElementById('stockOutProductFormSelect');
+    if (selectEl) {
+        selectEl.value = prod.code;
+        selectEl.dispatchEvent(new Event('change'));
+    }
+    renderStockOutCartTable();
+    showToast(`បានបន្ថែម "${prod.name}" ទៅក្នុងកន្ត្រកលក់ចេញ!`, 'success');
 }
 
 function removeFromStockInCart(idx) {
