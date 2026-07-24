@@ -718,47 +718,86 @@ body.dark-mode .table tfoot tr.table-summary-row td {
         display: block !important;
         width: 100% !important;
         margin-top: 0.75rem !important;
-        padding: 0 0.25rem !important;
+        padding: 0 !important;
     }
 
     .table tfoot tr.table-summary-row {
         display: flex !important;
-        flex-wrap: wrap !important;
-        align-items: center !important;
-        justify-content: space-between !important;
+        flex-direction: column !important;
         gap: 0.5rem !important;
-        padding: 0.75rem 1rem !important;
-        border-radius: 14px !important;
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
-        border: 1px solid #cbd5e1 !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+        padding: 0.9rem 1.15rem !important;
+        border-radius: 18px !important;
+        background: linear-gradient(135deg, rgba(24, 98, 246, 0.05) 0%, rgba(99, 102, 241, 0.08) 100%) !important;
+        border: 1.5px solid rgba(24, 98, 246, 0.25) !important;
+        box-shadow: 0 10px 25px -5px rgba(24, 98, 246, 0.1), 0 4px 10px rgba(0, 0, 0, 0.03) !important;
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
     }
 
     body.dark-mode .table tfoot tr.table-summary-row {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
-        border-color: #334155 !important;
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%) !important;
+        border-color: rgba(99, 102, 241, 0.35) !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
     }
 
     .table tfoot tr.table-summary-row td {
-        display: inline-flex !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
         align-items: center !important;
-        padding: 0.2rem 0.35rem !important;
-        width: auto !important;
+        padding: 0.25rem 0.2rem !important;
+        width: 100% !important;
         border: none !important;
         background: transparent !important;
+        gap: 0.4rem !important;
     }
 
     .table tfoot tr.table-summary-row td:first-child {
         width: 100% !important;
-        font-size: 0.9rem !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        color: #1862f6 !important;
+        border-bottom: 1px dashed rgba(24, 98, 246, 0.2) !important;
+        padding-bottom: 0.5rem !important;
         margin-bottom: 0.25rem !important;
-        border-bottom: 1px dashed #cbd5e1 !important;
-        padding-bottom: 0.4rem !important;
         justify-content: flex-start !important;
+        text-align: left !important;
     }
 
     body.dark-mode .table tfoot tr.table-summary-row td:first-child {
-        border-bottom-color: #334155 !important;
+        color: #818cf8 !important;
+        border-bottom-color: rgba(99, 102, 241, 0.3) !important;
+    }
+
+    .table tfoot tr.table-summary-row td:not(:first-child):not(:last-child) {
+        display: inline-flex !important;
+        width: auto !important;
+        margin-right: 0.5rem !important;
+    }
+
+    .table tfoot tr.table-summary-row td:last-child {
+        width: 100% !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.45rem !important;
+        justify-content: flex-start !important;
+        margin-top: 0.35rem !important;
+        padding-top: 0.5rem !important;
+        border-top: 1px dashed rgba(24, 98, 246, 0.2) !important;
+    }
+
+    body.dark-mode .table tfoot tr.table-summary-row td:last-child {
+        border-top-color: rgba(99, 102, 241, 0.3) !important;
+    }
+
+    .table tfoot tr.table-summary-row .badge {
+        white-space: normal !important;
+        word-break: break-word !important;
+        max-width: 100% !important;
+        padding: 5px 12px !important;
+        font-size: 0.8rem !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04) !important;
     }
 
     .table tfoot tr.table-summary-row td.text-muted,
@@ -883,6 +922,17 @@ body.dark-mode .table-striped tbody tr:nth-of-type(odd) {
     border-radius: 6px !important;
     font-weight: 600 !important;
     line-height: 1.2 !important;
+}
+
+.badge-amber {
+    background-color: rgba(245, 158, 11, 0.14) !important;
+    color: #b45309 !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+body.dark-mode .badge-amber {
+    background-color: rgba(245, 158, 11, 0.22) !important;
+    color: #fbbf24 !important;
+    border-color: rgba(245, 158, 11, 0.45) !important;
 }
 
 code, .code-badge, .product-sku-code {
@@ -2275,6 +2325,27 @@ body.dark-mode code, body.dark-mode .code-badge, body.dark-mode .product-sku-cod
         justify-content: flex-end !important;
     }
 
+    /* Fix Currency formatting in mobile card cells so $ stays attached to number */
+    .table tbody td .accounting-cell,
+    .table tbody td .account-fmt {
+        display: inline-flex !important;
+        width: auto !important;
+        min-width: unset !important;
+        gap: 0.35rem !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+    }
+
+    /* Wrap long values cleanly on right side */
+    .table tbody td > strong,
+    .table tbody td > span,
+    .table tbody td > code,
+    .table tbody td > div {
+        max-width: 65% !important;
+        text-align: right !important;
+        word-break: break-word !important;
+    }
+
     /* Inject data-label on left */
     .table tbody td[data-label]::before {
         content: attr(data-label);
@@ -2284,6 +2355,7 @@ body.dark-mode code, body.dark-mode .code-badge, body.dark-mode .product-sku-cod
         text-align: left;
         padding-right: 0.5rem;
         flex-shrink: 0;
+        max-width: 40% !important;
         letter-spacing: 0.01em;
     }
 

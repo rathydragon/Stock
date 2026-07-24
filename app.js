@@ -206,7 +206,7 @@ function loadData(isUserClick = false) {
     if (syncIcon) syncIcon.classList.add('fa-spin');
     if (syncStatusText) syncStatusText.textContent = 'កំពុង Sync...';
 
-    const gasUrl = safeStorage.getItem('km_gas_url');
+    const gasUrl = safeStorage.getItem('km_gas_url') || (typeof window !== 'undefined' && window.DEFAULT_GAS_URL ? window.DEFAULT_GAS_URL : '');
 
     function onSyncComplete(success, message) {
         if (syncIcon) syncIcon.classList.remove('fa-spin');
@@ -251,7 +251,17 @@ function loadData(isUserClick = false) {
         const cleanGasUrl = gasUrl.trim();
         const separator = cleanGasUrl.includes('?') ? '&' : '?';
         fetch(cleanGasUrl + separator + 'action=getData')
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+                return res.text();
+            })
+            .then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Server ឆ្លើយតបមិនមែនជា JSON (សូមពិនិត្យមើល Web App URL ឬសិទ្ធិ Anyone)');
+                }
+            })
             .then(res => {
                 if (res && res.success && res.data) {
                     if (Array.isArray(res.data.products)) state.products = res.data.products;
@@ -270,8 +280,12 @@ function loadData(isUserClick = false) {
                     onSyncComplete(false, 'បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យ Local Mode រួចរាល់');
                 }
             })
-            .catch(() => {
-                onSyncComplete(false, 'បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យ Local Mode រួចរាល់');
+            .catch((err) => {
+                console.warn('Fetch GAS API error:', err);
+                if (isUserClick) {
+                    showToast('⚠️ មិនអាចទាញទិន្នន័យពី Google Sheets Web App៖ ' + (err.message || err), 'warning');
+                }
+                onSyncComplete(false, 'ភ្ជាប់ Google Sheets មិនបាន (ប្រើប្រាស់ Local Mode)');
             });
     } else {
         onSyncComplete(false, 'បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យ (Local Mode) ជោគជ័យ!');
@@ -334,7 +348,7 @@ function syncToGoogleSheets(action, payload, successCallback) {
     // Always execute UI callback immediately so UI never hangs or modal gets stuck
     if (successCallback) successCallback({ success: true });
 
-    const gasUrl = safeStorage.getItem('km_gas_url');
+    const gasUrl = safeStorage.getItem('km_gas_url') || (typeof window !== 'undefined' && window.DEFAULT_GAS_URL ? window.DEFAULT_GAS_URL : '');
 
     if (state.isGoogleAppsScript) {
         showToast('កំពុងបញ្ជូនទៅ Google Sheets...', 'info');
