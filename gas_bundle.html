@@ -5342,7 +5342,7 @@ body.dark-mode .login-input {
     <!-- Google Apps Script Web App API URL Configuration (សម្រាប់ Web Hosting ខាងក្រៅ) -->
     <script>
         // សូមបិទភ្ជាប់ (Paste) Web App URL របស់អ្នកជំនួស URL ខាងក្រោមនេះ៖
-        window.DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbx8mfLIe4iwsps9F-7ab4sW3NwJL3G6MpkUWFTHAPdf9J9jHwgC1xYqO7xR02FG8AMY4A/exec';
+        window.DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyW91UUekAnxLQMHKv0nFY_sgMdXHGkadY4jaQNCHOnw4qGBQ10SvuxOLzUqH5ytwx4KA/exec';
     </script>
     <script>
 /**
@@ -6345,11 +6345,20 @@ function matchesStoreName(targetSupplier, storeNames) {
 }
 
 function isStoreRoleUser() {
-    return state.currentUser && (state.currentUser.role === 'Store' || state.currentUser.role === 'Seller');
+    if (!state.currentUser) return false;
+    const r = (state.currentUser.role || '').trim().toLowerCase();
+    const u = (state.currentUser.username || '').trim().toLowerCase();
+    return r === 'store' || r === 'seller' || r.includes('store') || r.includes('ម្ចាស់ហាង') || u === 'store';
 }
 
 function isCustomerRoleUser() {
-    return state.currentUser && state.currentUser.role === 'Customer';
+    if (!state.currentUser) return false;
+    const r = (state.currentUser.role || '').trim().toLowerCase();
+    const u = (state.currentUser.username || '').trim().toLowerCase();
+    if (r === 'store' || r === 'seller' || r.includes('store') || r.includes('ម្ចាស់ហាង') || u === 'store' || u === 'admin' || r === 'admin') {
+        return false;
+    }
+    return r === 'customer' || r.includes('អតិថិជន');
 }
 
 function getLoggedCustomerNames() {

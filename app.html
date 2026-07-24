@@ -999,11 +999,20 @@ function matchesStoreName(targetSupplier, storeNames) {
 }
 
 function isStoreRoleUser() {
-    return state.currentUser && (state.currentUser.role === 'Store' || state.currentUser.role === 'Seller');
+    if (!state.currentUser) return false;
+    const r = (state.currentUser.role || '').trim().toLowerCase();
+    const u = (state.currentUser.username || '').trim().toLowerCase();
+    return r === 'store' || r === 'seller' || r.includes('store') || r.includes('ម្ចាស់ហាង') || u === 'store';
 }
 
 function isCustomerRoleUser() {
-    return state.currentUser && state.currentUser.role === 'Customer';
+    if (!state.currentUser) return false;
+    const r = (state.currentUser.role || '').trim().toLowerCase();
+    const u = (state.currentUser.username || '').trim().toLowerCase();
+    if (r === 'store' || r === 'seller' || r.includes('store') || r.includes('ម្ចាស់ហាង') || u === 'store' || u === 'admin' || r === 'admin') {
+        return false;
+    }
+    return r === 'customer' || r.includes('អតិថិជន');
 }
 
 function getLoggedCustomerNames() {
