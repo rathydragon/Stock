@@ -209,10 +209,10 @@ function setupDatabase() {
     },
     {
       name: SHEETS.SUPPLIERS,
-      headers: ['ID', 'Name', 'Phone', 'Address'],
+      headers: ['ID', 'Name', 'Phone', 'Address', 'Username'],
       defaultRows: [
-        ['SUP-001', 'ក្រុមហ៊ុន ភ្នំពេញ កាហ្វេ', '012 345 678', 'ភ្នំពេញ'],
-        ['SUP-002', 'ផ្សារអូរឫស្សី ស្តង់A12', '098 765 432', 'ភ្នំពេញ']
+        ['SUP-001', 'ក្រុមហ៊ុន ភ្នំពេញ កាហ្វេ', '012 345 678', 'ភ្នំពេញ', 'store'],
+        ['SUP-002', 'ផ្សារអូរឫស្សី ស្តង់A12', '098 765 432', 'ភ្នំពេញ', '']
       ]
     },
     {
@@ -345,7 +345,8 @@ function getInitialData() {
         id: row[0],
         name: String(row[1] || ''),
         phone: String(row[2] || ''),
-        address: String(row[3] || '')
+        address: String(row[3] || ''),
+        username: String(row[4] || '')
       };
     });
 

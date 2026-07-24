@@ -2407,38 +2407,38 @@ function handleContactSubmit(e) {
             const oldObj = state.suppliers[editIdx];
             const updatedObj = { ...oldObj, name, phone, address, username };
             state.suppliers[editIdx] = updatedObj;
-            syncToGoogleSheets('saveSupplier', updatedObj, () => {
-                document.getElementById('contactModal').classList.remove('show');
-                renderContactsTables();
-                showToast('បានកែប្រែម្ចាស់ហាងជោគជ័យ!', 'success');
-            });
+            saveToLocalStorage();
+            renderContactsTables();
+            document.getElementById('contactModal').classList.remove('show');
+            showToast('បានកែប្រែម្ចាស់ហាងជោគជ័យ!', 'success');
+            syncToGoogleSheets('saveSupplier', updatedObj);
         } else {
             const obj = { id: Date.now(), name, phone, address, username };
             state.suppliers.push(obj);
-            syncToGoogleSheets('saveSupplier', obj, () => {
-                document.getElementById('contactModal').classList.remove('show');
-                renderContactsTables();
-                showToast('បានបន្ថែមម្ចាស់ហាងជោគជ័យ!', 'success');
-            });
+            saveToLocalStorage();
+            renderContactsTables();
+            document.getElementById('contactModal').classList.remove('show');
+            showToast('បានបន្ថែមម្ចាស់ហាងជោគជ័យ!', 'success');
+            syncToGoogleSheets('saveSupplier', obj);
         }
     } else {
         if (editIdx >= 0 && state.customers[editIdx]) {
             const oldObj = state.customers[editIdx];
             const updatedObj = { ...oldObj, name, phone, address };
             state.customers[editIdx] = updatedObj;
-            syncToGoogleSheets('saveCustomer', updatedObj, () => {
-                document.getElementById('contactModal').classList.remove('show');
-                renderContactsTables();
-                showToast('បានកែប្រែអតិថិជនជោគជ័យ!', 'success');
-            });
+            saveToLocalStorage();
+            renderContactsTables();
+            document.getElementById('contactModal').classList.remove('show');
+            showToast('បានកែប្រែអតិថិជនជោគជ័យ!', 'success');
+            syncToGoogleSheets('saveCustomer', updatedObj);
         } else {
             const obj = { id: Date.now(), name, phone, address };
             state.customers.push(obj);
-            syncToGoogleSheets('saveCustomer', obj, () => {
-                document.getElementById('contactModal').classList.remove('show');
-                renderContactsTables();
-                showToast('បានបន្ថែមអតិថិជនជោគជ័យ!', 'success');
-            });
+            saveToLocalStorage();
+            renderContactsTables();
+            document.getElementById('contactModal').classList.remove('show');
+            showToast('បានបន្ថែមអតិថិជនជោគជ័យ!', 'success');
+            syncToGoogleSheets('saveCustomer', obj);
         }
     }
 }
@@ -2727,7 +2727,7 @@ function showToast(message, type = 'info') {
 
 // System Settings Functions
 function loadSettingsUI() {
-    const gasUrl = safeStorage.getItem('km_gas_url') || '';
+    const gasUrl = safeStorage.getItem('km_gas_url') || (typeof window !== 'undefined' && window.DEFAULT_GAS_URL ? window.DEFAULT_GAS_URL : '');
     const sheetId = safeStorage.getItem('km_sheet_id') || '';
     const storeName = safeStorage.getItem('km_store_name') || 'ហាងទំនិញ ខ្មែរ Pro';
     const currency = safeStorage.getItem('km_currency') || '$';
@@ -2927,7 +2927,7 @@ function renderSettingsProductsTable() {
 function updateConnectionStatusDisplay() {
     const dot = document.getElementById('settingStatusDot');
     const text = document.getElementById('settingStatusText');
-    const gasUrl = safeStorage.getItem('km_gas_url');
+    const gasUrl = safeStorage.getItem('km_gas_url') || (typeof window !== 'undefined' && window.DEFAULT_GAS_URL ? window.DEFAULT_GAS_URL : '');
 
     if (typeof google !== 'undefined' && google.script && google.script.run) {
         if (dot) dot.className = 'status-indicator online';
@@ -2996,7 +2996,7 @@ function saveSystemSettings() {
 }
 
 function pushDataToGoogleSheets() {
-    const gasUrl = safeStorage.getItem('km_gas_url') || (document.getElementById('settingGasUrl') ? document.getElementById('settingGasUrl').value.trim() : '');
+    const gasUrl = safeStorage.getItem('km_gas_url') || (document.getElementById('settingGasUrl') ? document.getElementById('settingGasUrl').value.trim() : '') || (typeof window !== 'undefined' && window.DEFAULT_GAS_URL ? window.DEFAULT_GAS_URL : '');
     
     if (typeof google === 'undefined' && !gasUrl) {
         showToast('សូមបញ្ចូល Google Apps Script Web App URL ជាមុនសិន!', 'warning');
@@ -3108,7 +3108,7 @@ function fallbackIndividualPush(gasUrl, payload) {
 }
 
 function pullDataFromGoogleSheets() {
-    const gasUrl = document.getElementById('settingGasUrl') ? document.getElementById('settingGasUrl').value.trim() : safeStorage.getItem('km_gas_url');
+    const gasUrl = safeStorage.getItem('km_gas_url') || (document.getElementById('settingGasUrl') ? document.getElementById('settingGasUrl').value.trim() : '') || (typeof window !== 'undefined' && window.DEFAULT_GAS_URL ? window.DEFAULT_GAS_URL : '');
     showToast('កំពុងទាញយកទិន្នន័យពី Google Sheets...', 'info');
 
     if (typeof google !== 'undefined' && google.script && google.script.run) {

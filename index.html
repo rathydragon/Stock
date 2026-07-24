@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="km">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,15 +8,18 @@
     <!-- Google Fonts: Kantumruy Pro, Battambang, Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Kantumruy+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Kantumruy+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
     <!-- FontAwesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- QRCode.js CDN for Invoice QR Code Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="styles.css?v=111.0">
+    <link rel="stylesheet" href="styles.css?v=113.0">
 </head>
+
 <body class="light-mode">
     <!-- Login Glassmorphic Overlay -->
     <div class="login-overlay hidden" id="loginOverlay">
@@ -30,23 +34,28 @@
             <div class="login-card-body">
                 <form id="loginForm">
                     <div class="form-group mb-3">
-                        <label for="loginUsername" class="fw-semibold">ឈ្មោះគណនី (Username) <span class="text-danger">*</span></label>
+                        <label for="loginUsername" class="fw-semibold">ឈ្មោះគណនី (Username) <span
+                                class="text-danger">*</span></label>
                         <div class="input-icon-wrapper">
                             <i class="fa-solid fa-user input-icon"></i>
-                            <input type="text" id="loginUsername" class="form-control login-input" placeholder="បញ្ចូលឈ្មោះគណនី..." required autocomplete="username">
+                            <input type="text" id="loginUsername" class="form-control login-input"
+                                placeholder="បញ្ចូលឈ្មោះគណនី..." required autocomplete="username">
                         </div>
                     </div>
                     <div class="form-group mb-3">
-                        <label for="loginPassword" class="fw-semibold">ពាក្យសម្ងាត់ (Password) <span class="text-danger">*</span></label>
+                        <label for="loginPassword" class="fw-semibold">ពាក្យសម្ងាត់ (Password) <span
+                                class="text-danger">*</span></label>
                         <div class="input-icon-wrapper">
                             <i class="fa-solid fa-lock input-icon"></i>
-                            <input type="password" id="loginPassword" class="form-control login-input login-input-pwd" placeholder="បញ្ចូលពាក្យសម្ងាត់..." required autocomplete="current-password">
-                            <button type="button" class="btn-toggle-pwd" id="btnTogglePassword" title="បង្ហាញ/លាក់ លេខសម្ងាត់">
+                            <input type="password" id="loginPassword" class="form-control login-input login-input-pwd"
+                                placeholder="បញ្ចូលពាក្យសម្ងាត់..." required autocomplete="current-password">
+                            <button type="button" class="btn-toggle-pwd" id="btnTogglePassword"
+                                title="បង្ហាញ/លាក់ លេខសម្ងាត់">
                                 <i class="fa-solid fa-eye" id="pwdEyeIcon"></i>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="login-alert hidden" id="loginAlertBox">
                         <i class="fa-solid fa-circle-exclamation me-1"></i>
                         <span id="loginAlertText"></span>
@@ -62,7 +71,7 @@
 
     <!-- Main App Layout -->
     <div class="app-container">
-        
+
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -183,7 +192,8 @@
                             <span class="badge badge-primary user-role-badge" id="headerUserRoleBadge">Admin</span>
                             <span class="user-name-text fw-bold" id="headerUserNameText">អ្នកគ្រប់គ្រង</span>
                         </div>
-                        <button class="btn btn-sm btn-outline-danger" id="btnLogoutBtn" title="ចាកចេញពីប្រព័ន្ធ" onclick="handleLogout(event)">
+                        <button class="btn btn-sm btn-outline-danger" id="btnLogoutBtn" title="ចាកចេញពីប្រព័ន្ធ"
+                            onclick="handleLogout(event)">
                             <i class="fa-solid fa-right-from-bracket"></i> <span>ចាកចេញ</span>
                         </button>
                     </div>
@@ -192,7 +202,7 @@
 
             <!-- Page Dynamic Content Container -->
             <div class="content-body">
-                
+
                 <!-- PAGE 1: DASHBOARD -->
                 <section class="page-section active" id="page-dashboard">
                     <!-- Stat KPI Cards -->
@@ -204,7 +214,8 @@
                             <div class="kpi-details">
                                 <span class="kpi-label">ផលិតផលសរុប</span>
                                 <h3 class="kpi-value" id="kpiTotalItems">0</h3>
-                                <span class="kpi-subtext"><i class="fa-solid fa-tags"></i> <span id="kpiCategoriesCount">0</span> ប្រភេទ</span>
+                                <span class="kpi-subtext"><i class="fa-solid fa-tags"></i> <span
+                                        id="kpiCategoriesCount">0</span> ប្រភេទ</span>
                             </div>
                         </div>
 
@@ -215,7 +226,8 @@
                             <div class="kpi-details">
                                 <span class="kpi-label">តម្លៃស្តុកសរុប</span>
                                 <h3 class="kpi-value" id="kpiTotalValue">$0.00</h3>
-                                <span class="kpi-subtext positive"><i class="fa-solid fa-chart-line"></i> តម្លៃដើមក្នុងស្តុក</span>
+                                <span class="kpi-subtext positive"><i class="fa-solid fa-chart-line"></i>
+                                    តម្លៃដើមក្នុងស្តុក</span>
                             </div>
                         </div>
 
@@ -248,7 +260,8 @@
                             <div class="card-header">
                                 <h3><i class="fa-solid fa-chart-area"></i> ស្ថិតិការលក់ និងទិញចូល (៧ ថ្ងៃចុងក្រោយ)</h3>
                                 <div class="card-actions">
-                                    <button class="btn btn-xs btn-outline" id="btnRefreshCharts"><i class="fa-solid fa-rotate-right"></i></button>
+                                    <button class="btn btn-xs btn-outline" id="btnRefreshCharts"><i
+                                            class="fa-solid fa-rotate-right"></i></button>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -312,12 +325,15 @@
                     <!-- Page Header Title and Main Actions -->
                     <div class="flex-between flex-wrap gap-3 mb-4">
                         <div>
-                            <h2 class="fw-bold mb-1" style="font-size: 1.5rem; color: var(--text-primary);">ទំនិញ/ផលិតផល</h2>
-                            <p class="text-muted mb-0 text-sm">គ្រប់គ្រង និងស្វែងរកទំនិញក្នុងស្តុករបស់អ្នក (<span id="productsTotalHeaderBadge">0</span> ទំនិញ)</p>
+                            <h2 class="fw-bold mb-1" style="font-size: 1.5rem; color: var(--text-primary);">ទំនិញ/ផលិតផល
+                            </h2>
+                            <p class="text-muted mb-0 text-sm">គ្រប់គ្រង និងស្វែងរកទំនិញក្នុងស្តុករបស់អ្នក (<span
+                                    id="productsTotalHeaderBadge">0</span> ទំនិញ)</p>
                         </div>
                         <div class="action-buttons">
                             <div class="btn-group view-mode-toggle me-2">
-                                <button class="btn btn-sm btn-outline active" id="btnViewCards" title="កាត (Cards View)">
+                                <button class="btn btn-sm btn-outline active" id="btnViewCards"
+                                    title="កាត (Cards View)">
                                     <i class="fa-solid fa-border-all"></i> <span>កាត</span>
                                 </button>
                                 <button class="btn btn-sm btn-outline" id="btnViewTable" title="តារាង (Table View)">
@@ -341,7 +357,8 @@
                         <div class="flex-between flex-wrap gap-3">
                             <div class="search-input-group flex-1" style="max-width: 650px;">
                                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                                <input type="text" id="productSearchInput" class="search-input" placeholder="ស្វែងរកតាម កូដទំនិញ, ឈ្មោះ ឬ ប្រភេទ...">
+                                <input type="text" id="productSearchInput" class="search-input"
+                                    placeholder="ស្វែងរកតាម កូដទំនិញ, ឈ្មោះ ឬ ប្រភេទ...">
                             </div>
                             <div class="flex-center gap-2 flex-wrap">
                                 <div class="select-group">
@@ -414,14 +431,17 @@
                         <div class="card-body p-3">
                             <div class="flex-between mb-2">
                                 <div>
-                                    <h4 class="fw-bold mb-1 text-success" style="font-size: 1.05rem;"><i class="fa-solid fa-barcode me-2"></i> ស្កេនបាកូដ / ស្វែងរករហ័ស</h4>
-                                    <span class="text-muted text-sm">ស្កេនតាមម៉ាស៊ីនស្កេន ឬ រាយបញ្ចូលកូដទំនិញរួចចុច Enter</span>
+                                    <h4 class="fw-bold mb-1 text-success" style="font-size: 1.05rem;"><i
+                                            class="fa-solid fa-barcode me-2"></i> ស្កេនបាកូដ / ស្វែងរករហ័ស</h4>
+                                    <span class="text-muted text-sm">ស្កេនតាមម៉ាស៊ីនស្កេន ឬ រាយបញ្ចូលកូដទំនិញរួចចុច
+                                        Enter</span>
                                 </div>
                             </div>
                             <div class="quick-search-row">
                                 <div class="search-input-group">
                                     <i class="fa-solid fa-barcode search-icon"></i>
-                                    <input type="text" id="stockInQuickSearchInput" class="search-input" placeholder="ស្កេនបាកូដ ឬ រាយបញ្ចូលកូដទំនិញរួចចុច Enter...">
+                                    <input type="text" id="stockInQuickSearchInput" class="search-input"
+                                        placeholder="ស្កេនបាកូដ ឬ រាយបញ្ចូលកូដទំនិញរួចចុច Enter...">
                                 </div>
                                 <button class="btn btn-success" id="btnStockInQuickAdd">
                                     <i class="fa-solid fa-plus me-1"></i> បញ្ចូល
@@ -435,13 +455,15 @@
                         <!-- Left Column: Form Panel -->
                         <div class="card shadow-sm" style="border-radius: 16px;">
                             <div class="card-header border-bottom py-3 px-3">
-                                <h3 style="font-size: 1.05rem;" class="mb-0 fw-bold"><i class="fa-solid fa-circle-plus text-success me-2"></i> កត់ត្រាទិញចូលថ្មី</h3>
+                                <h3 style="font-size: 1.05rem;" class="mb-0 fw-bold"><i
+                                        class="fa-solid fa-circle-plus text-success me-2"></i> កត់ត្រាទិញចូលថ្មី</h3>
                             </div>
                             <div class="card-body p-3 pos-card-form">
                                 <form id="stockInInlineForm">
                                     <div class="form-group mb-2.5">
                                         <label>លេខវិក្កយបត្រ *</label>
-                                        <input type="text" id="stockInInvoiceNo" class="form-control" readonly style="background-color: var(--border-color-light); font-weight: 700;">
+                                        <input type="text" id="stockInInvoiceNo" class="form-control" readonly
+                                            style="background-color: var(--border-color-light); font-weight: 700;">
                                     </div>
                                     <div class="form-group mb-2.5">
                                         <label>កាលបរិច្ឆេទ *</label>
@@ -455,10 +477,12 @@
                                         <label>ជ្រើសរើសមុខទំនិញ</label>
                                         <select id="stockInProductFormSelect" class="form-select"></select>
                                     </div>
-                                    <div class="form-grid mb-2.5" style="grid-template-columns: 1fr 1.15fr 1.15fr; gap: 0.5rem;">
+                                    <div class="form-grid mb-2.5"
+                                        style="grid-template-columns: 1fr 1.15fr 1.15fr; gap: 0.5rem;">
                                         <div class="form-group mb-0">
                                             <label>ចំនួន</label>
-                                            <input type="number" id="stockInFormQty" class="form-control" value="1" min="1">
+                                            <input type="number" id="stockInFormQty" class="form-control" value="1"
+                                                min="1">
                                         </div>
                                         <div class="form-group mb-0">
                                             <label>ឯកតា</label>
@@ -474,14 +498,17 @@
                                         </div>
                                         <div class="form-group mb-0">
                                             <label>តម្លៃទិញ ($)</label>
-                                            <input type="number" id="stockInFormUnitPrice" class="form-control" step="0.01" placeholder="0.00">
+                                            <input type="number" id="stockInFormUnitPrice" class="form-control"
+                                                step="0.01" placeholder="0.00">
                                         </div>
                                     </div>
                                     <div class="form-group mb-3">
                                         <label>ចំណាំ</label>
-                                        <input type="text" id="stockInFormNotes" class="form-control" placeholder="ព័ត៌មានបន្ថែម...">
+                                        <input type="text" id="stockInFormNotes" class="form-control"
+                                            placeholder="ព័ត៌មានបន្ថែម...">
                                     </div>
-                                    <button type="button" class="btn btn-primary w-100" id="btnStockInAddToCart" style="background-color: #0f172a !important; height: 42px !important; border-radius: 12px !important; font-weight: 600;">
+                                    <button type="button" class="btn btn-primary w-100" id="btnStockInAddToCart"
+                                        style="background-color: #0f172a !important; height: 42px !important; border-radius: 12px !important; font-weight: 600;">
                                         <i class="fa-solid fa-cart-plus me-1.5"></i> បញ្ចូលទៅកន្ត្រកទិញ
                                     </button>
                                 </form>
@@ -491,8 +518,11 @@
                         <!-- Right Column: Live Cart / Basket Panel -->
                         <div class="card shadow-sm" style="border-radius: 16px;">
                             <div class="card-header flex-between border-bottom py-3 px-3">
-                                <h3 style="font-size: 1.05rem;" class="mb-0 fw-bold"><i class="fa-solid fa-basket-shopping text-success me-2"></i> កន្ត្រកទិញទំនិញ</h3>
-                                <span class="badge badge-success" id="stockInCartCountBadge" style="font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 8px;">0 មុខ</span>
+                                <h3 style="font-size: 1.05rem;" class="mb-0 fw-bold"><i
+                                        class="fa-solid fa-basket-shopping text-success me-2"></i> កន្ត្រកទិញទំនិញ</h3>
+                                <span class="badge badge-success" id="stockInCartCountBadge"
+                                    style="font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 8px;">0
+                                    មុខ</span>
                             </div>
                             <div class="card-body p-0 pos-cart-body">
                                 <div class="table-responsive pos-cart-wrapper">
@@ -509,7 +539,8 @@
                                         </thead>
                                         <tbody id="stockInCartTbody">
                                             <tr>
-                                                <td colspan="6" class="text-center text-muted p-5">មិនទាន់មានទំនិញក្នុងកន្ត្រកទិញឡើយ</td>
+                                                <td colspan="6" class="text-center text-muted p-5">
+                                                    មិនទាន់មានទំនិញក្នុងកន្ត្រកទិញឡើយ</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -518,9 +549,11 @@
                                     <div class="pos-cart-footer-content">
                                         <div class="pos-summary-box">
                                             <span class="pos-summary-label">សរុបការទិញចូល (Grand Total):</span>
-                                            <span class="pos-summary-value text-success" id="stockInCartGrandTotal">$0.00</span>
+                                            <span class="pos-summary-value text-success"
+                                                id="stockInCartGrandTotal">$0.00</span>
                                         </div>
-                                        <button class="btn btn-success btn-pos-checkout" id="btnCompleteStockInTx" disabled>
+                                        <button class="btn btn-success btn-pos-checkout" id="btnCompleteStockInTx"
+                                            disabled>
                                             <i class="fa-solid fa-circle-check me-2"></i> កាត់ស្តុកចូល និងរក្សាទុក
                                         </button>
                                     </div>
@@ -533,7 +566,9 @@
                     <div class="card shadow-sm" style="border-radius: 16px;">
                         <div class="card-header flex-between py-3 px-3 border-bottom">
                             <div>
-                                <h3 class="mb-1 fw-bold" style="font-size: 1.08rem;"><i class="fa-solid fa-clock-rotate-left text-success me-2"></i> ប្រវត្តិនៃការទិញចូលទំនិញ</h3>
+                                <h3 class="mb-1 fw-bold" style="font-size: 1.08rem;"><i
+                                        class="fa-solid fa-clock-rotate-left text-success me-2"></i>
+                                    ប្រវត្តិនៃការទិញចូលទំនិញ</h3>
                                 <span class="text-muted text-sm">បង្ហាញរបាយការណ៍ទិញចូលថ្មីៗ</span>
                             </div>
                         </div>
@@ -569,14 +604,17 @@
                         <div class="card-body p-3">
                             <div class="flex-between mb-2">
                                 <div>
-                                    <h4 class="fw-bold mb-1 text-primary" style="font-size: 1.05rem;"><i class="fa-solid fa-barcode me-2"></i> ស្កេនបាកូដ / ស្វែងរករហ័ស</h4>
-                                    <span class="text-muted text-sm">ស្កេនតាមម៉ាស៊ីនស្កេន ឬ រាយបញ្ចូលកូដទំនិញរួចចុច Enter</span>
+                                    <h4 class="fw-bold mb-1 text-primary" style="font-size: 1.05rem;"><i
+                                            class="fa-solid fa-barcode me-2"></i> ស្កេនបាកូដ / ស្វែងរករហ័ស</h4>
+                                    <span class="text-muted text-sm">ស្កេនតាមម៉ាស៊ីនស្កេន ឬ រាយបញ្ចូលកូដទំនិញរួចចុច
+                                        Enter</span>
                                 </div>
                             </div>
                             <div class="quick-search-row">
                                 <div class="search-input-group">
                                     <i class="fa-solid fa-barcode search-icon"></i>
-                                    <input type="text" id="stockOutQuickSearchInput" class="search-input" placeholder="ស្កេនបាកូដ ឬ រាយបញ្ចូលកូដទំនិញរួចចុច Enter...">
+                                    <input type="text" id="stockOutQuickSearchInput" class="search-input"
+                                        placeholder="ស្កេនបាកូដ ឬ រាយបញ្ចូលកូដទំនិញរួចចុច Enter...">
                                 </div>
                                 <button class="btn btn-primary" id="btnStockOutQuickAdd">
                                     <i class="fa-solid fa-plus me-1"></i> បញ្ចូល
@@ -590,13 +628,15 @@
                         <!-- Left Column: Form Panel -->
                         <div class="card shadow-sm" style="border-radius: 16px;">
                             <div class="card-header border-bottom py-3 px-3">
-                                <h3 style="font-size: 1.05rem;" class="mb-0 fw-bold"><i class="fa-solid fa-circle-plus text-primary me-2"></i> កត់ត្រាលក់ចេញថ្មី</h3>
+                                <h3 style="font-size: 1.05rem;" class="mb-0 fw-bold"><i
+                                        class="fa-solid fa-circle-plus text-primary me-2"></i> កត់ត្រាលក់ចេញថ្មី</h3>
                             </div>
                             <div class="card-body p-3 pos-card-form">
                                 <form id="stockOutInlineForm">
                                     <div class="form-group mb-2.5">
                                         <label>លេខវិក្កយបត្រ *</label>
-                                        <input type="text" id="stockOutInvoiceNo" class="form-control" readonly style="background-color: var(--border-color-light); font-weight: 700;">
+                                        <input type="text" id="stockOutInvoiceNo" class="form-control" readonly
+                                            style="background-color: var(--border-color-light); font-weight: 700;">
                                     </div>
                                     <div class="form-group mb-2.5">
                                         <label>កាលបរិច្ឆេទ *</label>
@@ -607,17 +647,20 @@
                                         <select id="stockOutCustomerFormSelect" class="form-select"></select>
                                     </div>
                                     <div class="form-group mb-2.5">
-                                        <label>ម្ចាស់ហាង (Store) <span class="text-muted text-xs">(ចម្រោះមុខទំនិញ)</span></label>
+                                        <label>ម្ចាស់ហាង (Store) <span
+                                                class="text-muted text-xs">(ចម្រោះមុខទំនិញ)</span></label>
                                         <select id="stockOutSupplierFormSelect" class="form-select"></select>
                                     </div>
                                     <div class="form-group mb-2.5">
                                         <label>ជ្រើសរើសមុខទំនិញ *</label>
                                         <select id="stockOutProductFormSelect" class="form-select"></select>
                                     </div>
-                                    <div class="form-grid mb-3" style="grid-template-columns: 1fr 1.15fr 1.15fr; gap: 0.5rem;">
+                                    <div class="form-grid mb-3"
+                                        style="grid-template-columns: 1fr 1.15fr 1.15fr; gap: 0.5rem;">
                                         <div class="form-group mb-0">
                                             <label>ចំនួន</label>
-                                            <input type="number" id="stockOutFormQty" class="form-control" value="1" min="1">
+                                            <input type="number" id="stockOutFormQty" class="form-control" value="1"
+                                                min="1">
                                         </div>
                                         <div class="form-group mb-0">
                                             <label>ឯកតា</label>
@@ -633,10 +676,12 @@
                                         </div>
                                         <div class="form-group mb-0">
                                             <label>តម្លៃលក់ ($)</label>
-                                            <input type="number" id="stockOutFormUnitPrice" class="form-control" step="0.01" placeholder="0.00">
+                                            <input type="number" id="stockOutFormUnitPrice" class="form-control"
+                                                step="0.01" placeholder="0.00">
                                         </div>
                                     </div>
-                                    <button type="button" class="btn btn-primary w-100" id="btnStockOutAddToCart" style="background-color: #0f172a !important; height: 42px !important; border-radius: 12px !important; font-weight: 600;">
+                                    <button type="button" class="btn btn-primary w-100" id="btnStockOutAddToCart"
+                                        style="background-color: #0f172a !important; height: 42px !important; border-radius: 12px !important; font-weight: 600;">
                                         <i class="fa-solid fa-cart-plus me-1.5"></i> បញ្ចូលទៅកន្ត្រកលក់
                                     </button>
                                 </form>
@@ -646,8 +691,11 @@
                         <!-- Right Column: Live Cart / Basket Panel -->
                         <div class="card shadow-sm" style="border-radius: 16px;">
                             <div class="card-header flex-between border-bottom py-3 px-3">
-                                <h3 style="font-size: 1.05rem;" class="mb-0 fw-bold"><i class="fa-solid fa-basket-shopping text-primary me-2"></i> កន្ត្រកលក់ទំនិញ</h3>
-                                <span class="badge badge-info" id="stockOutCartCountBadge" style="font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 8px;">0 មុខ</span>
+                                <h3 style="font-size: 1.05rem;" class="mb-0 fw-bold"><i
+                                        class="fa-solid fa-basket-shopping text-primary me-2"></i> កន្ត្រកលក់ទំនិញ</h3>
+                                <span class="badge badge-info" id="stockOutCartCountBadge"
+                                    style="font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 8px;">0
+                                    មុខ</span>
                             </div>
                             <div class="card-body p-0 pos-cart-body">
                                 <div class="table-responsive pos-cart-wrapper">
@@ -664,24 +712,29 @@
                                         </thead>
                                         <tbody id="stockOutCartTbody">
                                             <tr>
-                                                <td colspan="6" class="text-center text-muted p-5">មិនទាន់មានទំនិញក្នុងកន្ត្រកលក់ឡើយ</td>
+                                                <td colspan="6" class="text-center text-muted p-5">
+                                                    មិនទាន់មានទំនិញក្នុងកន្ត្រកលក់ឡើយ</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                                 <div class="pos-cart-footer p-3 bg-light border-top">
+                                <div class="pos-cart-footer p-3 bg-light border-top">
                                     <div class="row g-2 mb-3">
                                         <div class="col-md-4 col-12">
                                             <label class="form-label text-xs fw-semibold mb-1">ថ្លៃសេវា ($)</label>
-                                            <input type="number" min="0" step="0.01" id="stockOutServiceFee" class="form-control form-control-sm" placeholder="0.00" value="0.00">
+                                            <input type="number" min="0" step="0.01" id="stockOutServiceFee"
+                                                class="form-control form-control-sm" placeholder="0.00" value="0.00">
                                         </div>
                                         <div class="col-md-4 col-12">
-                                            <label class="form-label text-xs fw-semibold mb-1">ថ្លៃអីវ៉ាន់ COD ($)</label>
-                                            <input type="number" min="0" step="0.01" id="stockOutCodFee" class="form-control form-control-sm" placeholder="0.00" value="0.00">
+                                            <label class="form-label text-xs fw-semibold mb-1">ថ្លៃអីវ៉ាន់ COD
+                                                ($)</label>
+                                            <input type="number" min="0" step="0.01" id="stockOutCodFee"
+                                                class="form-control form-control-sm" placeholder="0.00" value="0.00">
                                         </div>
                                         <div class="col-md-4 col-12">
                                             <label class="form-label text-xs fw-semibold mb-1">ស្ថានភាពទូទាត់</label>
-                                            <select id="stockOutPaymentStatus" class="form-select form-select-sm fw-bold text-success">
+                                            <select id="stockOutPaymentStatus"
+                                                class="form-select form-select-sm fw-bold text-success">
                                                 <option value="Paid" selected>🟢 បង់រួច (Paid)</option>
                                                 <option value="Unpaid">🔴 មិនទាន់បង់ (Unpaid/COD)</option>
                                             </select>
@@ -690,9 +743,11 @@
                                     <div class="pos-cart-footer-content">
                                         <div class="pos-summary-box">
                                             <span class="pos-summary-label">សរុបការលក់ចេញ (Grand Total):</span>
-                                            <span class="pos-summary-value text-primary" id="stockOutCartGrandTotal">$0.00</span>
+                                            <span class="pos-summary-value text-primary"
+                                                id="stockOutCartGrandTotal">$0.00</span>
                                         </div>
-                                        <button class="btn btn-primary btn-pos-checkout" id="btnCompleteStockOutTx" disabled>
+                                        <button class="btn btn-primary btn-pos-checkout" id="btnCompleteStockOutTx"
+                                            disabled>
                                             <i class="fa-solid fa-circle-check me-2"></i> កាត់ស្តុក និងចេញវិក្កយបត្រ
                                         </button>
                                     </div>
@@ -705,7 +760,9 @@
                     <div class="card shadow-sm" style="border-radius: 16px;">
                         <div class="card-header flex-between py-3 px-3 border-bottom">
                             <div>
-                                <h3 class="mb-1 fw-bold" style="font-size: 1.08rem;"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> ប្រវត្តិនៃការលក់ចេញទំនិញ</h3>
+                                <h3 class="mb-1 fw-bold" style="font-size: 1.08rem;"><i
+                                        class="fa-solid fa-clock-rotate-left text-primary me-2"></i>
+                                    ប្រវត្តិនៃការលក់ចេញទំនិញ</h3>
                                 <span class="text-muted text-sm">បង្ហាញរបាយការណ៍លក់ចេញថ្មីៗ</span>
                             </div>
                         </div>
@@ -740,7 +797,8 @@
                 <!-- PAGE: BOOKINGS LIST (ADMIN & MANAGER) -->
                 <section class="page-section" id="page-bookings">
                     <!-- Filter & KPI Card -->
-                    <div class="card mb-4 shadow-sm" style="border-radius: 18px; border: 1px solid #e2e8f0; background: #ffffff;">
+                    <div class="card mb-4 shadow-sm"
+                        style="border-radius: 18px; border: 1px solid #e2e8f0; background: #ffffff;">
                         <div class="card-body p-3">
                             <div class="flex-between flex-wrap gap-3">
                                 <div class="flex-center gap-3">
@@ -748,22 +806,31 @@
                                         <i class="fa-solid fa-bookmark"></i>
                                     </div>
                                     <div>
-                                        <h3 class="fw-bold mb-1" style="font-size: 1.22rem; color: #0f172a; font-family: var(--font-khmer);">បញ្ជីកក់ទំនិញ (Customer Bookings)</h3>
+                                        <h3 class="fw-bold mb-1"
+                                            style="font-size: 1.22rem; color: #0f172a; font-family: var(--font-khmer);">
+                                            បញ្ជីកក់ទំនិញ (Customer Bookings)</h3>
                                         <div class="flex-center gap-2 flex-wrap text-sm text-muted">
                                             <span>គ្រប់គ្រង និង ពិនិត្យរូបភាពបង្កាន់ដៃកក់ប្រាក់ពីអតិថិជន</span>
-                                            <span class="booking-badge-summary" id="bookingPendingCountSummary"><i class="fa-solid fa-clock text-amber me-1"></i> កំពុងកក់: 0</span>
-                                            <span class="booking-badge-summary-success" id="bookingCompletedCountSummary"><i class="fa-solid fa-circle-check text-green me-1"></i> បង្ហើយ: 0</span>
+                                            <span class="booking-badge-summary" id="bookingPendingCountSummary"><i
+                                                    class="fa-solid fa-clock text-amber me-1"></i> កំពុងកក់: 0</span>
+                                            <span class="booking-badge-summary-success"
+                                                id="bookingCompletedCountSummary"><i
+                                                    class="fa-solid fa-circle-check text-green me-1"></i> បង្ហើយ:
+                                                0</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="flex-center gap-2 flex-wrap">
                                     <div class="search-input-group" style="width: 260px;">
                                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                                        <input type="text" id="bookingSearchInput" class="search-input" placeholder="ស្វែងរកតាមលេខវិក្កយបត្រ, ឈ្មោះ..." style="height: 38px !important; border-radius: 12px !important;">
+                                        <input type="text" id="bookingSearchInput" class="search-input"
+                                            placeholder="ស្វែងរកតាមលេខវិក្កយបត្រ, ឈ្មោះ..."
+                                            style="height: 38px !important; border-radius: 12px !important;">
                                     </div>
                                     <div class="select-group" style="width: 170px;">
                                         <i class="fa-solid fa-filter filter-icon"></i>
-                                        <select id="bookingStatusFilter" class="form-select filter-select" style="height: 38px !important; border-radius: 12px !important;">
+                                        <select id="bookingStatusFilter" class="form-select filter-select"
+                                            style="height: 38px !important; border-radius: 12px !important;">
                                             <option value="">គ្រប់ស្ថានភាព</option>
                                             <option value="Pending">🟡 កំពុងកក់ (Pending)</option>
                                             <option value="Completed">🟢 បង្ហើយ (Completed)</option>
@@ -775,10 +842,12 @@
                     </div>
 
                     <!-- Bookings Table Card -->
-                    <div class="card shadow-sm" style="border-radius: 18px; border: 1px solid #e2e8f0; background: #ffffff; overflow: hidden;">
+                    <div class="card shadow-sm"
+                        style="border-radius: 18px; border: 1px solid #e2e8f0; background: #ffffff; overflow: hidden;">
                         <div class="card-body p-0">
                             <div class="table mobile-cards-table-responsive">
-                                <table class="table mobile-cards-table table-hover align-middle mb-0 booking-data-table">
+                                <table
+                                    class="table mobile-cards-table table-hover align-middle mb-0 booking-data-table">
                                     <thead>
                                         <tr>
                                             <th style="width: 135px;">ថ្ងៃខែម៉ោង</th>
@@ -806,10 +875,12 @@
                     <!-- Reports Filter Card -->
                     <div class="card mb-4 shadow-sm" style="border-radius: 16px;">
                         <div class="card-header border-bottom">
-                            <h3 class="mb-0 fs-5 fw-bold" style="font-size: 1.1rem;"><i class="fa-solid fa-filter text-primary me-2"></i> តម្រងទិន្នន័យរបាយការណ៍</h3>
+                            <h3 class="mb-0 fs-5 fw-bold" style="font-size: 1.1rem;"><i
+                                    class="fa-solid fa-filter text-primary me-2"></i> តម្រងទិន្នន័យរបាយការណ៍</h3>
                         </div>
                         <div class="card-body p-3">
-                            <div class="reports-filter-row" style="display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; width: 100%;">
+                            <div class="reports-filter-row"
+                                style="display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; width: 100%;">
                                 <div class="filter-col" style="flex: 1; min-width: 160px;">
                                     <label class="fw-semibold mb-1 text-sm">ចាប់ពីថ្ងៃ:</label>
                                     <input type="date" id="reportStartDate" class="form-control">
@@ -826,7 +897,8 @@
                                         <option value="OUT">តែការលក់ចេញ (Stock Out)</option>
                                     </select>
                                 </div>
-                                <div class="filter-actions-col" style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+                                <div class="filter-actions-col"
+                                    style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
                                     <button class="btn btn-primary" id="btnApplyReportFilter">
                                         <i class="fa-solid fa-magnifying-glass"></i> <span>បង្ហាញរបាយការណ៍</span>
                                     </button>
@@ -846,13 +918,16 @@
                                 <p class="text-muted text-sm mb-0" id="reportSubtitle">កាលបរិច្ឆេទបង្ហាញ: ទាំងអស់</p>
                             </div>
                             <div class="report-summary-pills flex-center gap-2">
-                                <span class="pill bg-green-light text-green fw-bold px-3 py-1 rounded-pill" id="reportTotalInPill">ស្តុកចូល: $0.00</span>
-                                <span class="pill bg-amber-light text-amber fw-bold px-3 py-1 rounded-pill" id="reportTotalOutPill">លក់ចេញ: $0.00</span>
+                                <span class="pill bg-green-light text-green fw-bold px-3 py-1 rounded-pill"
+                                    id="reportTotalInPill">ស្តុកចូល: $0.00</span>
+                                <span class="pill bg-amber-light text-amber fw-bold px-3 py-1 rounded-pill"
+                                    id="reportTotalOutPill">លក់ចេញ: $0.00</span>
                             </div>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table mobile-cards-table table-striped align-middle mb-0" id="reportResultTable">
+                                <table class="table mobile-cards-table table-striped align-middle mb-0"
+                                    id="reportResultTable">
                                     <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
                                         <tr>
                                             <th style="width: 120px;">កាលបរិច្ឆេទ</th>
@@ -882,10 +957,12 @@
                                 <i class="fa-solid fa-gear fs-4 text-primary"></i>
                                 <div>
                                     <h3 class="page-title mb-0">ការកំណត់ប្រព័ន្ធ (System Settings)</h3>
-                                    <small class="text-muted">គ្រប់គ្រងការភ្ជាប់ Google Sheets, ព័ត៌មានហាង និងទិន្នន័យ Backup</small>
+                                    <small class="text-muted">គ្រប់គ្រងការភ្ជាប់ Google Sheets, ព័ត៌មានហាង និងទិន្នន័យ
+                                        Backup</small>
                                 </div>
                             </div>
-                            <button class="btn btn-primary btn-shadow" id="btnSaveSettings" onclick="saveSystemSettings()">
+                            <button class="btn btn-primary btn-shadow" id="btnSaveSettings"
+                                onclick="saveSystemSettings()">
                                 <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកការកំណត់
                             </button>
                         </div>
@@ -898,32 +975,44 @@
                                         <i class="fa-file-excel fa-solid text-success fs-2"></i>
                                         <div>
                                             <h4 class="mb-1 fw-bold">ការភ្ជាប់ Google Sheets (Google Sheets API)</h4>
-                                            <p class="text-muted text-sm mb-0">កំណត់ Web App URL ដើម្បីរក្សាទុក និង Sync ទិន្នន័យផ្ទាល់ជាមួយ Google Sheets</p>
+                                            <p class="text-muted text-sm mb-0">កំណត់ Web App URL ដើម្បីរក្សាទុក និង Sync
+                                                ទិន្នន័យផ្ទាល់ជាមួយ Google Sheets</p>
                                         </div>
                                     </div>
                                     <div class="settings-card-body mt-3">
                                         <div class="form-group mb-3">
                                             <label class="form-label fw-semibold">Google Apps Script Web App URL</label>
-                                            <input type="url" class="form-control" id="settingGasUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
-                                            <small class="text-muted mt-1 d-block">អាសយដ្ឋាន Web App URL ដែលបាន Deploy លើ Google Apps Script</small>
+                                            <input type="url" class="form-control" id="settingGasUrl"
+                                                placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+                                            <small class="text-muted mt-1 d-block">អាសយដ្ឋាន Web App URL ដែលបាន Deploy
+                                                លើ Google Apps Script</small>
                                         </div>
                                         <div class="form-group mb-3">
                                             <label class="form-label fw-semibold">Spreadsheet ID ឬ Link</label>
-                                            <input type="text" class="form-control" id="settingSheetId" placeholder="1A2b3C4d5E6f7G8h9I0j...">
+                                            <input type="text" class="form-control" id="settingSheetId"
+                                                placeholder="1A2b3C4d5E6f7G8h9I0j...">
                                         </div>
-                                        <div class="flex-between align-center p-3 rounded bg-main border flex-wrap gap-2">
+                                        <div
+                                            class="flex-between align-center p-3 rounded bg-main border flex-wrap gap-2">
                                             <div class="flex-center gap-2">
                                                 <span class="status-indicator" id="settingStatusDot"></span>
-                                                <span id="settingStatusText" class="fw-bold text-sm">ស្ថានភាព៖ Local Mode</span>
+                                                <span id="settingStatusText" class="fw-bold text-sm">ស្ថានភាព៖ Local
+                                                    Mode</span>
                                             </div>
                                             <div class="flex-center gap-2 flex-wrap">
-                                                <button class="btn btn-sm btn-primary" onclick="pushDataToGoogleSheets()" title="បញ្ជូនទិន្នន័យ Local ទាំងអស់ទៅរក្សាទុកក្នុង Google Sheets">
-                                                    <i class="fa-solid fa-cloud-arrow-up"></i> បញ្ជូនទិន្នន័យ Local ទៅ Sheets
+                                                <button class="btn btn-sm btn-primary"
+                                                    onclick="pushDataToGoogleSheets()"
+                                                    title="បញ្ជូនទិន្នន័យ Local ទាំងអស់ទៅរក្សាទុកក្នុង Google Sheets">
+                                                    <i class="fa-solid fa-cloud-arrow-up"></i> បញ្ជូនទិន្នន័យ Local ទៅ
+                                                    Sheets
                                                 </button>
-                                                <button class="btn btn-sm btn-success" onclick="pullDataFromGoogleSheets()" title="ទាញយកទិន្នន័យពី Google Sheets មក Local">
+                                                <button class="btn btn-sm btn-success"
+                                                    onclick="pullDataFromGoogleSheets()"
+                                                    title="ទាញយកទិន្នន័យពី Google Sheets មក Local">
                                                     <i class="fa-solid fa-cloud-arrow-down"></i> ទាញយកទិន្នន័យពី Sheets
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-primary" onclick="testGoogleSheetsConnection()">
+                                                <button class="btn btn-sm btn-outline-primary"
+                                                    onclick="testGoogleSheetsConnection()">
                                                     <i class="fa-solid fa-plug"></i> តេស្តការភ្ជាប់
                                                 </button>
                                             </div>
@@ -937,13 +1026,15 @@
                                         <i class="fa-store fa-solid text-primary fs-2"></i>
                                         <div>
                                             <h4 class="mb-1 fw-bold">ព័ត៌មានហាង & ការកំណត់ទូទៅ</h4>
-                                            <p class="text-muted text-sm mb-0">កំណត់ឈ្មោះហាង រូបិយប័ណ្ណ និងកម្រិតព្រមានស្តុក</p>
+                                            <p class="text-muted text-sm mb-0">កំណត់ឈ្មោះហាង រូបិយប័ណ្ណ
+                                                និងកម្រិតព្រមានស្តុក</p>
                                         </div>
                                     </div>
                                     <div class="settings-card-body mt-3">
                                         <div class="form-group mb-3">
                                             <label class="form-label fw-semibold">ឈ្មោះហាង / កន្លែងលក់</label>
-                                            <input type="text" class="form-control" id="settingStoreName" value="ហាងទំនិញ ខ្មែរ Pro">
+                                            <input type="text" class="form-control" id="settingStoreName"
+                                                value="ហាងទំនិញ ខ្មែរ Pro">
                                         </div>
                                         <div class="form-grid mb-3">
                                             <div class="form-group">
@@ -955,7 +1046,8 @@
                                             </div>
                                             <div class="form-group">
                                                 <label class="form-label fw-semibold">កម្រិតព្រមានស្តុកទាប</label>
-                                                <input type="number" class="form-control" id="settingDefaultMinAlert" value="5">
+                                                <input type="number" class="form-control" id="settingDefaultMinAlert"
+                                                    value="5">
                                             </div>
                                         </div>
                                         <div class="form-group">
@@ -974,17 +1066,21 @@
                                         <i class="fa-tags fa-solid text-info fs-2"></i>
                                         <div>
                                             <h4 class="mb-1 fw-bold">គ្រប់គ្រងប្រភេទទំនិញ (Product Categories)</h4>
-                                            <p class="text-muted text-sm mb-0">បន្ថែម កែប្រែ ឬ លុបប្រភេទទំនិញ / ក្រុមផលិតផលក្នុងប្រព័ន្ធ</p>
+                                            <p class="text-muted text-sm mb-0">បន្ថែម កែប្រែ ឬ លុបប្រភេទទំនិញ /
+                                                ក្រុមផលិតផលក្នុងប្រព័ន្ធ</p>
                                         </div>
                                     </div>
                                     <div class="settings-card-body mt-3">
                                         <div class="category-add-inline mb-3">
-                                            <input type="text" class="form-control" id="newCategoryInput" placeholder="វាយបញ្ចូលឈ្មោះប្រភេទទំនិញថ្មី...">
-                                            <button class="btn btn-primary btn-shadow" onclick="addNewCategoryFromSettings()">
+                                            <input type="text" class="form-control" id="newCategoryInput"
+                                                placeholder="វាយបញ្ចូលឈ្មោះប្រភេទទំនិញថ្មី...">
+                                            <button class="btn btn-primary btn-shadow"
+                                                onclick="addNewCategoryFromSettings()">
                                                 <i class="fa-solid fa-plus"></i> បន្ថែម
                                             </button>
                                         </div>
-                                        <label class="form-label fw-semibold text-sm mb-2">បញ្ជីប្រភេទទំនិញបច្ចុប្បន្ន៖</label>
+                                        <label
+                                            class="form-label fw-semibold text-sm mb-2">បញ្ជីប្រភេទទំនិញបច្ចុប្បន្ន៖</label>
                                         <div class="category-pills-list" id="settingsCategoryList">
                                             <!-- Dynamic Category Badges -->
                                         </div>
@@ -996,47 +1092,69 @@
                                     <div class="settings-card-header">
                                         <i class="fa-solid fa-hashtag text-purple fs-2" style="color: #8b5cf6;"></i>
                                         <div>
-                                            <h4 class="mb-1 fw-bold">កំណត់ក្បាលលេខ កូដទំនិញ & វិក្កយបត្រ (Prefix Numbering Settings)</h4>
-                                            <p class="text-muted text-sm mb-0">កំណត់ក្បាលលេខ Prefix សម្រាប់បង្កើតកូដទំនិញ វិក្កយបត្រទិញចូល វិក្កយបត្រលក់ និងបញ្ជីកក់ទំនិញអូតូ តាមឈ្មោះគណនីប្រើប្រាស់</p>
+                                            <h4 class="mb-1 fw-bold">កំណត់ក្បាលលេខ កូដទំនិញ & វិក្កយបត្រ (Prefix
+                                                Numbering Settings)</h4>
+                                            <p class="text-muted text-sm mb-0">កំណត់ក្បាលលេខ Prefix
+                                                សម្រាប់បង្កើតកូដទំនិញ វិក្កយបត្រទិញចូល វិក្កយបត្រលក់
+                                                និងបញ្ជីកក់ទំនិញអូតូ តាមឈ្មោះគណនីប្រើប្រាស់</p>
                                         </div>
                                     </div>
                                     <div class="settings-card-body mt-3">
                                         <div class="form-group mb-3 pb-2 border-bottom">
                                             <label class="form-label fw-bold text-dark mb-1">
-                                                <i class="fa-solid fa-user-gear me-1 text-primary"></i> ជ្រើសរើសគណនីប្រើប្រាស់ដើម្បីកំណត់ក្បាលលេខ (Select User Account):
+                                                <i class="fa-solid fa-user-gear me-1 text-primary"></i>
+                                                ជ្រើសរើសគណនីប្រើប្រាស់ដើម្បីកំណត់ក្បាលលេខ (Select User Account):
                                             </label>
-                                            <select id="settingPrefixUserSelect" class="form-select fw-bold" onchange="onPrefixUserSelectChange()">
+                                            <select id="settingPrefixUserSelect" class="form-select fw-bold"
+                                                onchange="onPrefixUserSelectChange()">
                                                 <!-- Dynamic User Options -->
                                             </select>
                                         </div>
-                                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                                        <div class="form-grid"
+                                            style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
                                             <div class="form-group">
-                                                <label class="form-label fw-semibold text-sm"><i class="fa-solid fa-barcode text-primary me-1"></i> កូដទំនិញ (Product SKU Prefix)</label>
+                                                <label class="form-label fw-semibold text-sm"><i
+                                                        class="fa-solid fa-barcode text-primary me-1"></i> កូដទំនិញ
+                                                    (Product SKU Prefix)</label>
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control fw-bold" id="settingPrefixProduct" placeholder="PRD-" value="PRD-">
+                                                    <input type="text" class="form-control fw-bold"
+                                                        id="settingPrefixProduct" placeholder="PRD-" value="PRD-">
                                                 </div>
-                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖ <code>PRD-001</code>, <code>PRD-002</code></small>
+                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖
+                                                    <code>PRD-001</code>, <code>PRD-002</code></small>
                                             </div>
                                             <div class="form-group">
-                                                <label class="form-label fw-semibold text-sm"><i class="fa-solid fa-truck-ramp-box text-success me-1"></i> វិក្កយបត្រទិញចូល (Stock-In Prefix)</label>
+                                                <label class="form-label fw-semibold text-sm"><i
+                                                        class="fa-solid fa-truck-ramp-box text-success me-1"></i>
+                                                    វិក្កយបត្រទិញចូល (Stock-In Prefix)</label>
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control fw-bold" id="settingPrefixStockIn" placeholder="PUR-" value="PUR-">
+                                                    <input type="text" class="form-control fw-bold"
+                                                        id="settingPrefixStockIn" placeholder="PUR-" value="PUR-">
                                                 </div>
-                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖ <code>PUR-600123</code></small>
+                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖
+                                                    <code>PUR-600123</code></small>
                                             </div>
                                             <div class="form-group">
-                                                <label class="form-label fw-semibold text-sm"><i class="fa-solid fa-cart-arrow-down text-primary me-1"></i> វិក្កយបត្រលក់ចេញ (Stock-Out Prefix)</label>
+                                                <label class="form-label fw-semibold text-sm"><i
+                                                        class="fa-solid fa-cart-arrow-down text-primary me-1"></i>
+                                                    វិក្កយបត្រលក់ចេញ (Stock-Out Prefix)</label>
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control fw-bold" id="settingPrefixStockOut" placeholder="SAL-" value="SAL-">
+                                                    <input type="text" class="form-control fw-bold"
+                                                        id="settingPrefixStockOut" placeholder="SAL-" value="SAL-">
                                                 </div>
-                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖ <code>SAL-789012</code></small>
+                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖
+                                                    <code>SAL-789012</code></small>
                                             </div>
                                             <div class="form-group">
-                                                <label class="form-label fw-semibold text-sm"><i class="fa-solid fa-bookmark text-warning me-1"></i> វិក្កយបត្រកក់ទំនិញ (Booking Prefix)</label>
+                                                <label class="form-label fw-semibold text-sm"><i
+                                                        class="fa-solid fa-bookmark text-warning me-1"></i>
+                                                    វិក្កយបត្រកក់ទំនិញ (Booking Prefix)</label>
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control fw-bold" id="settingPrefixBooking" placeholder="BKG-" value="BKG-">
+                                                    <input type="text" class="form-control fw-bold"
+                                                        id="settingPrefixBooking" placeholder="BKG-" value="BKG-">
                                                 </div>
-                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖ <code>BKG-1001</code></small>
+                                                <small class="text-muted text-xs d-block mt-1">ឧទាហរណ៍៖
+                                                    <code>BKG-1001</code></small>
                                             </div>
                                         </div>
                                     </div>
@@ -1048,24 +1166,33 @@
                                         <div class="flex-center gap-3">
                                             <i class="fa-solid fa-address-book text-primary fs-2"></i>
                                             <div>
-                                                <h4 class="mb-1 fw-bold">គ្រប់គ្រង ម្ចាស់ហាង & អតិថិជន (Contacts & Store Management)</h4>
-                                                <p class="text-muted text-sm mb-0">បន្ថែម កែប្រែ ឬលុប ព័ត៌មានម្ចាស់ហាង (Store/Suppliers) និងអតិថិជន (Customers)</p>
+                                                <h4 class="mb-1 fw-bold">គ្រប់គ្រង ម្ចាស់ហាង & អតិថិជន (Contacts & Store
+                                                    Management)</h4>
+                                                <p class="text-muted text-sm mb-0">បន្ថែម កែប្រែ ឬលុប ព័ត៌មានម្ចាស់ហាង
+                                                    (Store/Suppliers) និងអតិថិជន (Customers)</p>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="settings-card-body mt-3 p-0">
-                                        <div class="grid-2 gap-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+                                        <div class="grid-2 gap-3"
+                                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
                                             <!-- Suppliers / Store Card -->
-                                            <div class="card mb-0 shadow-none border" style="border-radius: 14px; border: 1px solid var(--border-color, #cbd5e1);">
-                                                <div class="card-header flex-between align-center p-3 bg-light" style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
-                                                    <h5 class="mb-0 fw-bold fs-6 text-dark"><i class="fa-solid fa-store text-primary me-2"></i> ម្ចាស់ហាង (Store)</h5>
-                                                    <button class="btn btn-sm btn-outline-primary" id="btnAddSupplierBtn">
+                                            <div class="card mb-0 shadow-none border"
+                                                style="border-radius: 14px; border: 1px solid var(--border-color, #cbd5e1);">
+                                                <div class="card-header flex-between align-center p-3 bg-light"
+                                                    style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
+                                                    <h5 class="mb-0 fw-bold fs-6 text-dark"><i
+                                                            class="fa-solid fa-store text-primary me-2"></i> ម្ចាស់ហាង
+                                                        (Store)</h5>
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                        id="btnAddSupplierBtn">
                                                         <i class="fa-solid fa-plus"></i> បន្ថែមម្ចាស់ហាង
                                                     </button>
                                                 </div>
                                                 <div class="card-body p-0">
                                                     <div class="table-responsive">
-                                                        <table class="table mobile-cards-table table-striped align-middle mb-0">
+                                                        <table
+                                                            class="table mobile-cards-table table-striped align-middle mb-0">
                                                             <thead>
                                                                 <tr>
                                                                     <th>ឈ្មោះ</th>
@@ -1084,16 +1211,22 @@
                                             </div>
 
                                             <!-- Customers Card -->
-                                            <div class="card mb-0 shadow-none border" style="border-radius: 14px; border: 1px solid var(--border-color, #cbd5e1);">
-                                                <div class="card-header flex-between align-center p-3 bg-light" style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
-                                                    <h5 class="mb-0 fw-bold fs-6 text-dark"><i class="fa-solid fa-user-tag text-info me-2"></i> អតិថិជន (Customers)</h5>
-                                                    <button class="btn btn-sm btn-outline-primary" id="btnAddCustomerBtn">
+                                            <div class="card mb-0 shadow-none border"
+                                                style="border-radius: 14px; border: 1px solid var(--border-color, #cbd5e1);">
+                                                <div class="card-header flex-between align-center p-3 bg-light"
+                                                    style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
+                                                    <h5 class="mb-0 fw-bold fs-6 text-dark"><i
+                                                            class="fa-solid fa-user-tag text-info me-2"></i> អតិថិជន
+                                                        (Customers)</h5>
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                        id="btnAddCustomerBtn">
                                                         <i class="fa-solid fa-plus"></i> បន្ថែមអតិថិជន
                                                     </button>
                                                 </div>
                                                 <div class="card-body p-0">
                                                     <div class="table-responsive">
-                                                        <table class="table mobile-cards-table table-striped align-middle mb-0">
+                                                        <table
+                                                            class="table mobile-cards-table table-striped align-middle mb-0">
                                                             <thead>
                                                                 <tr>
                                                                     <th>ឈ្មោះ</th>
@@ -1118,8 +1251,10 @@
                                     <div class="settings-card-header">
                                         <i class="fa-database fa-solid text-warning fs-2"></i>
                                         <div>
-                                            <h4 class="mb-1 fw-bold">ការគ្រប់គ្រង និង រក្សាទុកទិន្នន័យ (Backup & Restore)</h4>
-                                            <p class="text-muted text-sm mb-0">ទាញយកឯកសារ Backup ទិន្នន័យទំនិញទាំងអស់ ឬបញ្ចូលទិន្នន័យចាស់ឡើងវិញ</p>
+                                            <h4 class="mb-1 fw-bold">ការគ្រប់គ្រង និង រក្សាទុកទិន្នន័យ (Backup &
+                                                Restore)</h4>
+                                            <p class="text-muted text-sm mb-0">ទាញយកឯកសារ Backup ទិន្នន័យទំនិញទាំងអស់
+                                                ឬបញ្ចូលទិន្នន័យចាស់ឡើងវិញ</p>
                                         </div>
                                     </div>
                                     <div class="settings-card-body mt-3">
@@ -1127,11 +1262,14 @@
                                             <button class="btn btn-outline-primary" onclick="backupSystemData()">
                                                 <i class="fa-solid fa-download"></i> ទាញយក Backup (JSON File)
                                             </button>
-                                            <button class="btn btn-outline-success" onclick="document.getElementById('restoreFileInput').click()">
+                                            <button class="btn btn-outline-success"
+                                                onclick="document.getElementById('restoreFileInput').click()">
                                                 <i class="fa-solid fa-upload"></i> បញ្ចូល Backup ឡើងវិញ (Restore)
                                             </button>
-                                            <input type="file" id="restoreFileInput" class="hidden" accept=".json" onchange="restoreSystemData(event)">
-                                            <button class="btn btn-outline-danger ms-auto" onclick="resetAllSystemData()">
+                                            <input type="file" id="restoreFileInput" class="hidden" accept=".json"
+                                                onchange="restoreSystemData(event)">
+                                            <button class="btn btn-outline-danger ms-auto"
+                                                onclick="resetAllSystemData()">
                                                 <i class="fa-solid fa-trash-can"></i> លុបទិន្នន័យសរុប (Reset All)
                                             </button>
                                         </div>
@@ -1144,8 +1282,10 @@
                                         <div class="flex-center gap-3">
                                             <i class="fa-solid fa-users-gear text-primary fs-2"></i>
                                             <div>
-                                                <h4 class="mb-1 fw-bold">គ្រប់គ្រងគណនីប្រើប្រាស់ (User Management & Roles)</h4>
-                                                <p class="text-muted text-sm mb-0">បន្ថែម កែប្រែ ឬលុប គណនីបុគ្គលិក និងកំណត់តួនាទី (Admin, ម្ចាស់ហាង (Store), Manager, Cashier)</p>
+                                                <h4 class="mb-1 fw-bold">គ្រប់គ្រងគណនីប្រើប្រាស់ (User Management &
+                                                    Roles)</h4>
+                                                <p class="text-muted text-sm mb-0">បន្ថែម កែប្រែ ឬលុប គណនីបុគ្គលិក
+                                                    និងកំណត់តួនាទី (Admin, ម្ចាស់ហាង (Store), Manager, Cashier)</p>
                                             </div>
                                         </div>
                                         <button class="btn btn-primary" onclick="openUserModal()">
@@ -1183,15 +1323,20 @@
                     <div class="card shadow-sm" style="border-radius: 16px;">
                         <div class="card-header border-bottom py-3 px-4 flex-between align-center flex-wrap gap-3">
                             <div>
-                                <h3 style="font-size: 1.15rem;" class="mb-1 fw-bold"><i class="fa-solid fa-bookmark text-warning me-2"></i> បញ្ជីកក់ទំនិញ (Customer Pre-Order Bookings)</h3>
-                                <p class="text-muted text-sm mb-0">គ្រប់គ្រង និង ពិនិត្យបញ្ជីប្រាក់កក់ និង រូបភាពបង្កាន់ដៃកក់ទំនិញទាំងអស់ (សម្រាប់ Admin & Manager)</p>
+                                <h3 style="font-size: 1.15rem;" class="mb-1 fw-bold"><i
+                                        class="fa-solid fa-bookmark text-warning me-2"></i> បញ្ជីកក់ទំនិញ (Customer
+                                    Pre-Order Bookings)</h3>
+                                <p class="text-muted text-sm mb-0">គ្រប់គ្រង និង ពិនិត្យបញ្ជីប្រាក់កក់ និង
+                                    រូបភាពបង្កាន់ដៃកក់ទំនិញទាំងអស់ (សម្រាប់ Admin & Manager)</p>
                             </div>
                         </div>
                         <div class="card-body p-3">
-                            <div class="catalog-toolbar mb-3 p-3 bg-main border rounded-3 flex-between align-center flex-wrap gap-3">
+                            <div
+                                class="catalog-toolbar mb-3 p-3 bg-main border rounded-3 flex-between align-center flex-wrap gap-3">
                                 <div class="search-input-group flex-1" style="max-width: 440px;">
                                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                                    <input type="text" class="form-control search-input" id="bookingSearchInput" placeholder="ស្វែងរកតាម វិក្កយបត្រ, ឈ្មោះទំនិញ, ឬ អតិថិជន...">
+                                    <input type="text" class="form-control search-input" id="bookingSearchInput"
+                                        placeholder="ស្វែងរកតាម វិក្កយបត្រ, ឈ្មោះទំនិញ, ឬ អតិថិជន...">
                                 </div>
                                 <div class="flex-center gap-2">
                                     <select id="bookingStatusFilter" class="form-select filter-select">
@@ -1236,7 +1381,8 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title" id="productModalTitle"><i class="fa-solid fa-box-open"></i> បន្ថែមទំនិញថ្មី</h3>
+                    <h3 class="modal-title" id="productModalTitle"><i class="fa-solid fa-box-open"></i> បន្ថែមទំនិញថ្មី
+                    </h3>
                     <button class="btn-close closeModal">&times;</button>
                 </div>
                 <form id="productForm">
@@ -1246,15 +1392,20 @@
                             <div class="form-group">
                                 <label for="prodCode">កូដទំនិញ (SKU/Barcode) <span class="text-danger">*</span></label>
                                 <div class="input-group" style="display: flex;">
-                                    <input type="text" id="prodCode" class="form-control" placeholder="ឧទាហរណ៍: PRD-001" required style="border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;">
-                                    <button type="button" class="btn btn-outline" id="btnAutoGenerateProdCode" onclick="generateAutoProductCode()" title="បង្កើតកូដទំនិញអូតូ" style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; border-radius: 0 12px 12px 0 !important; height: 38px !important; white-space: nowrap; border: 1px solid #cbd5e1; border-left: none; background: #ffffff;">
+                                    <input type="text" id="prodCode" class="form-control" placeholder="ឧទាហរណ៍: PRD-001"
+                                        required
+                                        style="border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;">
+                                    <button type="button" class="btn btn-outline" id="btnAutoGenerateProdCode"
+                                        onclick="generateAutoProductCode()" title="បង្កើតកូដទំនិញអូតូ"
+                                        style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; border-radius: 0 12px 12px 0 !important; height: 38px !important; white-space: nowrap; border: 1px solid #cbd5e1; border-left: none; background: #ffffff;">
                                         <i class="fa-solid fa-wand-magic-sparkles text-primary me-1"></i> ⚡ កូដអូតូ
                                     </button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="prodCategory">ប្រភេទទំនិញ <span class="text-danger">*</span></label>
-                                <input type="text" id="prodCategory" class="form-control" list="categoryDatalist" placeholder="ជ្រើសរើស ឬ វាយបញ្ចូលថ្មី..." required>
+                                <input type="text" id="prodCategory" class="form-control" list="categoryDatalist"
+                                    placeholder="ជ្រើសរើស ឬ វាយបញ្ចូលថ្មី..." required>
                                 <datalist id="categoryDatalist"></datalist>
                             </div>
                         </div>
@@ -1262,7 +1413,8 @@
                         <div class="form-grid mt-3">
                             <div class="form-group">
                                 <label for="prodName">ឈ្មោះទំនិញ / ផលិតផល <span class="text-danger">*</span></label>
-                                <input type="text" id="prodName" class="form-control" placeholder="បញ្ចូលឈ្មោះទំនិញ..." required>
+                                <input type="text" id="prodName" class="form-control" placeholder="បញ្ចូលឈ្មោះទំនិញ..."
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="prodSupplier">ម្ចាស់ហាង (Store)</label>
@@ -1273,18 +1425,22 @@
                         <div class="form-grid mt-3">
                             <div class="form-group">
                                 <label for="prodCost">តម្លៃដើម / ឯកតា ($) <span class="text-danger">*</span></label>
-                                <input type="number" step="0.01" min="0" id="prodCost" class="form-control" placeholder="0.00" required>
+                                <input type="number" step="0.01" min="0" id="prodCost" class="form-control"
+                                    placeholder="0.00" required>
                             </div>
                             <div class="form-group">
                                 <label for="prodPrice">តម្លៃលក់ / ឯកតា ($) <span class="text-danger">*</span></label>
-                                <input type="number" step="0.01" min="0" id="prodPrice" class="form-control" placeholder="0.00" required>
+                                <input type="number" step="0.01" min="0" id="prodPrice" class="form-control"
+                                    placeholder="0.00" required>
                             </div>
                         </div>
 
                         <div class="form-grid mt-3" style="grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
                             <div class="form-group">
-                                <label for="prodQuantity">ចំនួនស្តុកបច្ចុប្បន្ន <span class="text-danger">*</span></label>
-                                <input type="number" min="0" id="prodQuantity" class="form-control" placeholder="0" required>
+                                <label for="prodQuantity">ចំនួនស្តុកបច្ចុប្បន្ន <span
+                                        class="text-danger">*</span></label>
+                                <input type="number" min="0" id="prodQuantity" class="form-control" placeholder="0"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="prodUnit">ឯកតា <span class="text-danger">*</span></label>
@@ -1335,11 +1491,13 @@
                         <div class="form-grid mt-3">
                             <div class="form-group">
                                 <label for="stockInQty">ចំនួនបន្ថែម <span class="text-danger">*</span></label>
-                                <input type="number" min="1" id="stockInQty" class="form-control" placeholder="1" required>
+                                <input type="number" min="1" id="stockInQty" class="form-control" placeholder="1"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="stockInUnitPrice">តម្លៃទិញចូល / ឯកតា ($)</label>
-                                <input type="number" step="0.01" min="0" id="stockInUnitPrice" class="form-control" placeholder="តម្លៃដើម">
+                                <input type="number" step="0.01" min="0" id="stockInUnitPrice" class="form-control"
+                                    placeholder="តម្លៃដើម">
                             </div>
                         </div>
 
@@ -1358,7 +1516,8 @@
 
                         <div class="form-group mt-3">
                             <label for="stockInNotes">ចំណាំបន្ថែម</label>
-                            <input type="text" id="stockInNotes" class="form-control" placeholder="ឧទាហរណ៍: ទិញចូលពីផ្សារធំ...">
+                            <input type="text" id="stockInNotes" class="form-control"
+                                placeholder="ឧទាហរណ៍: ទិញចូលពីផ្សារធំ...">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -1377,7 +1536,8 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-warning">
-                    <h3 class="modal-title"><i class="fa-solid fa-cart-arrow-down"></i> កាត់ស្តុកចេញ (Stock Out / Sales)</h3>
+                    <h3 class="modal-title"><i class="fa-solid fa-cart-arrow-down"></i> កាត់ស្តុកចេញ (Stock Out / Sales)
+                    </h3>
                     <button class="btn-close closeModal">&times;</button>
                 </div>
                 <form id="stockOutForm">
@@ -1393,7 +1553,8 @@
                         <div class="form-grid mt-3">
                             <div class="form-group">
                                 <label for="stockOutQty">ចំនួនលក់ <span class="text-danger">*</span></label>
-                                <input type="number" min="1" id="stockOutQty" class="form-control" placeholder="1" required>
+                                <input type="number" min="1" id="stockOutQty" class="form-control" placeholder="1"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="stockOutUnitPrice">តម្លៃលក់ / ឯកតា ($)</label>
@@ -1404,7 +1565,8 @@
                         <div class="form-grid mt-3">
                             <div class="form-group">
                                 <label for="stockOutDiscount">បញ្ចុះតម្លៃ ($)</label>
-                                <input type="number" step="0.01" min="0" id="stockOutDiscount" class="form-control" value="0.00">
+                                <input type="number" step="0.01" min="0" id="stockOutDiscount" class="form-control"
+                                    value="0.00">
                             </div>
                             <div class="form-group">
                                 <label for="stockOutCustomerSelect">អតិថិជន (Customer)</label>
@@ -1449,14 +1611,17 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="contactName">ឈ្មោះ <span class="text-danger">*</span></label>
-                            <input type="text" id="contactName" class="form-control" placeholder="ឈ្មោះបុគ្គល ឬក្រុមហ៊ុន" required>
+                            <input type="text" id="contactName" class="form-control"
+                                placeholder="ឈ្មោះបុគ្គល ឬក្រុមហ៊ុន" required>
                         </div>
                         <div class="form-group mt-3" id="contactUsernameGroup">
-                            <label for="contactUsernameSelect"><i class="fa-solid fa-user-lock me-1 text-primary"></i> ភ្ជាប់ជាមួយ ឈ្មោះគណនី (Username)</label>
+                            <label for="contactUsernameSelect"><i class="fa-solid fa-user-lock me-1 text-primary"></i>
+                                ភ្ជាប់ជាមួយ ឈ្មោះគណនី (Username)</label>
                             <select id="contactUsernameSelect" class="form-select">
                                 <option value="">-- គ្មាន (None / ទូទៅ) --</option>
                             </select>
-                            <small class="text-muted d-block mt-1" style="font-size: 0.8rem;">ភ្ជាប់ម្ចាស់ហាងនេះទៅកាន់គណនី Username ក្នុងប្រព័ន្ធ</small>
+                            <small class="text-muted d-block mt-1"
+                                style="font-size: 0.8rem;">ភ្ជាប់ម្ចាស់ហាងនេះទៅកាន់គណនី Username ក្នុងប្រព័ន្ធ</small>
                         </div>
                         <div class="form-group mt-3">
                             <label for="contactPhone">លេខទូរស័ព្ទ</label>
@@ -1464,7 +1629,8 @@
                         </div>
                         <div class="form-group mt-3">
                             <label for="contactAddress">អាសយដ្ឋាន / ព័ត៌មានបន្ថែម</label>
-                            <textarea id="contactAddress" class="form-control" rows="3" placeholder="ទីតាំង ឬកំណត់ចំណាំ..."></textarea>
+                            <textarea id="contactAddress" class="form-control" rows="3"
+                                placeholder="ទីតាំង ឬកំណត់ចំណាំ..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -1481,19 +1647,29 @@
         <div class="modal-dialog" style="max-width: 420px; margin: 1.75rem auto;">
             <div class="modal-content shadow-lg" style="border-radius: 20px; overflow: hidden;">
                 <div class="modal-header border-bottom py-3 px-4" style="background-color: var(--bg-card);">
-                    <h3 class="modal-title fs-6 fw-bold mb-0"><i class="fa-solid fa-receipt text-primary me-2"></i> វិក្កយបត្រ / POS Receipt (80mm)</h3>
+                    <h3 class="modal-title fs-6 fw-bold mb-0"><i class="fa-solid fa-receipt text-primary me-2"></i>
+                        វិក្កយបត្រ / POS Receipt (80mm)</h3>
                     <button class="btn-close closeModal">&times;</button>
                 </div>
-                
+
                 <!-- Printable POS Thermal Receipt Paper Card (80mm Slip) -->
-                <div class="modal-body p-4" id="printableReceiptArea" style="background-color: #ffffff; color: #0f172a; font-family: 'Inter', 'Kantumruy Pro', sans-serif;">
-                    <div class="pos-receipt-paper" style="border: 1px dashed #cbd5e1; padding: 1.25rem; border-radius: 12px; background: #fafafa;">
+                <div class="modal-body p-4" id="printableReceiptArea"
+                    style="background-color: #ffffff; color: #0f172a; font-family: 'Inter', 'Kantumruy Pro', sans-serif;">
+                    <div class="pos-receipt-paper"
+                        style="border: 1px dashed #cbd5e1; padding: 1.25rem; border-radius: 12px; background: #fafafa;">
                         <!-- Store Header -->
                         <div class="text-center mb-3">
-                            <div class="receipt-store-logo mb-1" style="font-size: 1.6rem; color: #1862f6;"><i class="fa-solid fa-store"></i></div>
-                            <h3 class="fw-bold mb-0" style="font-size: 1.2rem; color: #0f172a; letter-spacing: -0.01em;">ប្រព័ន្ធគ្រប់គ្រងស្តុក</h3>
-                            <p class="text-muted mb-1" style="font-size: 0.76rem; letter-spacing: 0.05em; text-transform: uppercase;">INVENTORY MANAGEMENT SYSTEM</p>
-                            <span class="badge" id="receiptTypeBadge" style="font-size: 0.78rem; padding: 0.3rem 0.85rem; border-radius: 20px; background-color: #1862f6; color: #ffffff;">វិក្កយបត្រលក់ចេញ (SALES INVOICE)</span>
+                            <div class="receipt-store-logo mb-1" style="font-size: 1.6rem; color: #1862f6;"><i
+                                    class="fa-solid fa-store"></i></div>
+                            <h3 class="fw-bold mb-0"
+                                style="font-size: 1.2rem; color: #0f172a; letter-spacing: -0.01em;">
+                                ប្រព័ន្ធគ្រប់គ្រងស្តុក</h3>
+                            <p class="text-muted mb-1"
+                                style="font-size: 0.76rem; letter-spacing: 0.05em; text-transform: uppercase;">INVENTORY
+                                MANAGEMENT SYSTEM</p>
+                            <span class="badge" id="receiptTypeBadge"
+                                style="font-size: 0.78rem; padding: 0.3rem 0.85rem; border-radius: 20px; background-color: #1862f6; color: #ffffff;">វិក្កយបត្រលក់ចេញ
+                                (SALES INVOICE)</span>
                         </div>
 
                         <!-- Divider -->
@@ -1503,7 +1679,8 @@
                         <div style="font-size: 0.82rem; line-height: 1.5;" class="mb-2">
                             <div class="d-flex justify-content-between">
                                 <span style="color: #64748b;">លេខវិក្កយបត្រ / Inv #:</span>
-                                <strong id="receiptInvoiceNo" style="font-family: monospace; font-size: 0.9rem; color: #0f172a;">SAL-000000</strong>
+                                <strong id="receiptInvoiceNo"
+                                    style="font-family: monospace; font-size: 0.9rem; color: #0f172a;">SAL-000000</strong>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <span style="color: #64748b;">កាលបរិច្ឆេទ / Date:</span>
@@ -1554,30 +1731,38 @@
                                 <span style="color: #64748b;">ថ្លៃអីវ៉ាន់ COD (COD Fee):</span>
                                 <span id="receiptCodFee" style="font-weight: 600; color: #d97706;">$0.00</span>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mt-1 pt-1" style="border-top: 2px solid #0f172a; font-size: 1.05rem; font-weight: 800; color: #0f172a;">
+                            <div class="d-flex justify-content-between align-items-center mt-1 pt-1"
+                                style="border-top: 2px solid #0f172a; font-size: 1.05rem; font-weight: 800; color: #0f172a;">
                                 <span>សរុបរួម (GRAND TOTAL):</span>
                                 <span id="receiptGrandTotal" style="color: #1862f6;">$0.00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mt-1">
                                 <span style="color: #64748b;">ស្ថានភាពទូទាត់:</span>
-                                <span id="receiptPaymentStatusBadge" class="badge bg-success text-white" style="font-size: 0.78rem; padding: 0.25rem 0.65rem; border-radius: 6px;">🟢 បង់រួច (Paid)</span>
+                                <span id="receiptPaymentStatusBadge" class="badge bg-success text-white"
+                                    style="font-size: 0.78rem; padding: 0.25rem 0.65rem; border-radius: 6px;">🟢 បង់រួច
+                                    (Paid)</span>
                             </div>
                         </div>
 
                         <!-- QR Code Generation for Invoice Number -->
                         <div class="text-center mt-3 pt-2" style="border-top: 1px dashed #cbd5e1;">
                             <div class="d-flex justify-content-center align-items-center mb-1">
-                                <div id="receiptQrCode" style="padding: 6px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; display: inline-block;"></div>
+                                <div id="receiptQrCode"
+                                    style="padding: 6px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; display: inline-block;">
+                                </div>
                             </div>
-                            <div class="fw-bold text-dark mt-1" style="font-family: monospace; font-size: 0.85rem;" id="receiptInvoiceCodeDisplay">SAL-000000</div>
+                            <div class="fw-bold text-dark mt-1" style="font-family: monospace; font-size: 0.85rem;"
+                                id="receiptInvoiceCodeDisplay">SAL-000000</div>
                             <p class="mb-0 mt-1 text-muted" style="font-size: 0.72rem;">*** សូមអរគុណ! ***</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer flex-between py-3 px-4" style="background-color: var(--bg-card);">
-                    <button type="button" class="btn btn-outline-secondary closeModal" style="border-radius: 12px; height: 42px;"><i class="fa-solid fa-xmark me-1"></i> បិទ</button>
-                    <button type="button" class="btn btn-primary" id="btnPrintReceiptBtn" style="border-radius: 12px; height: 42px; padding: 0 1.25rem; font-weight: 600;">
+                    <button type="button" class="btn btn-outline-secondary closeModal"
+                        style="border-radius: 12px; height: 42px;"><i class="fa-solid fa-xmark me-1"></i> បិទ</button>
+                    <button type="button" class="btn btn-primary" id="btnPrintReceiptBtn"
+                        style="border-radius: 12px; height: 42px; padding: 0 1.25rem; font-weight: 600;">
                         <i class="fa-solid fa-print me-1.5"></i> បោះពុម្ពវិក្កយបត្រ (Print 80mm)
                     </button>
                 </div>
@@ -1590,30 +1775,39 @@
         <div class="modal-dialog" style="max-width: 580px;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title" id="userModalTitle"><i class="fa-solid fa-user-gear"></i> បន្ថែមគណនីថ្មី</h3>
+                    <h3 class="modal-title" id="userModalTitle"><i class="fa-solid fa-user-gear"></i> បន្ថែមគណនីថ្មី
+                    </h3>
                     <button class="btn-close closeModal" onclick="closeUserModal()">&times;</button>
                 </div>
                 <form id="userForm">
                     <input type="hidden" id="userEditUsername" value="">
                     <div class="modal-body">
                         <div class="form-group mb-3">
-                            <label for="userFormUsername">ឈ្មោះគណនី (Username) <span class="text-danger">*</span></label>
-                            <input type="text" id="userFormUsername" class="form-control" placeholder="ឧទាហរណ៍: cashier1" required>
+                            <label for="userFormUsername">ឈ្មោះគណនី (Username) <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" id="userFormUsername" class="form-control"
+                                placeholder="ឧទាហរណ៍: cashier1" required>
                         </div>
                         <div class="form-group mb-3">
-                            <label for="userFormPassword">ពាក្យសម្ងាត់ (Password) <span class="text-danger">*</span></label>
-                            <input type="password" id="userFormPassword" class="form-control" placeholder="បញ្ចូលពាក្យសម្ងាត់..." required>
+                            <label for="userFormPassword">ពាក្យសម្ងាត់ (Password) <span
+                                    class="text-danger">*</span></label>
+                            <input type="password" id="userFormPassword" class="form-control"
+                                placeholder="បញ្ចូលពាក្យសម្ងាត់..." required>
                         </div>
                         <div class="form-group mb-3">
-                            <label for="userFormFullName">ឈ្មោះពេញ (Full Name) <span class="text-danger">*</span></label>
-                            <input type="text" id="userFormFullName" class="form-control" placeholder="បញ្ចូលឈ្មោះពេញ..." required>
+                            <label for="userFormFullName">ឈ្មោះពេញ (Full Name) <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" id="userFormFullName" class="form-control"
+                                placeholder="បញ្ចូលឈ្មោះពេញ..." required>
                         </div>
                         <div class="form-grid mt-3">
                             <div class="form-group">
                                 <label for="userFormRole">តួនាទី (Role) <span class="text-danger">*</span></label>
-                                <select id="userFormRole" class="form-select" required onchange="onUserRoleSelectChange()">
+                                <select id="userFormRole" class="form-select" required
+                                    onchange="onUserRoleSelectChange()">
                                     <option value="Admin">Admin (គ្រប់គ្រងប្រព័ន្ធសរុប)</option>
-                                    <option value="Store">ម្ចាស់ហាង (Store - ផ្ទាំងគ្រប់គ្រង, ទំនិញ, ស្តុកចូល/ចេញ, របាយការណ៍)</option>
+                                    <option value="Store">ម្ចាស់ហាង (Store - ផ្ទាំងគ្រប់គ្រង, ទំនិញ, ស្តុកចូល/ចេញ,
+                                        របាយការណ៍)</option>
                                     <option value="Manager">Manager (គ្រប់គ្រងស្តុក & របាយការណ៍)</option>
                                     <option value="Cashier" selected>Cashier (បុគ្គលិករៀបចំការលក់ POS)</option>
                                     <option value="Customer">Customer (អតិថិជន - ចូលបានតែទំព័រ POS)</option>
@@ -1630,55 +1824,83 @@
 
                         <!-- Page Access Permissions Grid -->
                         <div class="form-group mt-3">
-                            <label class="fw-bold mb-2 text-dark"><i class="fa-solid fa-lock text-primary me-1"></i> កំណត់សិទ្ធិចូលប្រើប្រាស់ទំព័រ (Page Access Permissions)</label>
-                            <div class="page-permissions-grid p-3 rounded" style="background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #cbd5e1); display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 1rem;">
-                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
-                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="dashboard"> ផ្ទាំងគ្រប់គ្រង (Dashboard)
+                            <label class="fw-bold mb-2 text-dark"><i class="fa-solid fa-lock text-primary me-1"></i>
+                                កំណត់សិទ្ធិចូលប្រើប្រាស់ទំព័រ (Page Access Permissions)</label>
+                            <div class="page-permissions-grid p-3 rounded"
+                                style="background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #cbd5e1); display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 1rem;">
+                                <label class="form-check-label d-flex align-items-center gap-2"
+                                    style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input"
+                                        value="dashboard"> ផ្ទាំងគ្រប់គ្រង (Dashboard)
                                 </label>
-                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
-                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="products"> ទំនិញ / ផលិតផល (Products)
+                                <label class="form-check-label d-flex align-items-center gap-2"
+                                    style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="products">
+                                    ទំនិញ / ផលិតផល (Products)
                                 </label>
-                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
-                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="stock-in"> កាត់ស្តុកចូល (Stock In)
+                                <label class="form-check-label d-flex align-items-center gap-2"
+                                    style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="stock-in">
+                                    កាត់ស្តុកចូល (Stock In)
                                 </label>
-                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
-                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="stock-out" checked> កាត់ស្តុកចេញ (Stock Out)
+                                <label class="form-check-label d-flex align-items-center gap-2"
+                                    style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="stock-out"
+                                        checked> កាត់ស្តុកចេញ (Stock Out)
                                 </label>
-                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
-                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="contacts"> អតិថិជន & ម្ចាស់ហាង (Contacts)
+                                <label class="form-check-label d-flex align-items-center gap-2"
+                                    style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="contacts">
+                                    អតិថិជន & ម្ចាស់ហាង (Contacts)
                                 </label>
-                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
-                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="bookings"> បញ្ជីកក់ទំនិញ (Bookings)
+                                <label class="form-check-label d-flex align-items-center gap-2"
+                                    style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="bookings">
+                                    បញ្ជីកក់ទំនិញ (Bookings)
                                 </label>
-                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
-                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="reports"> របាយការណ៍ & ប្រវត្តិ (Reports)
+                                <label class="form-check-label d-flex align-items-center gap-2"
+                                    style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="reports">
+                                    របាយការណ៍ & ប្រវត្តិ (Reports)
                                 </label>
-                                <label class="form-check-label d-flex align-items-center gap-2" style="font-size: 0.88rem; cursor: pointer;">
-                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="settings"> ការកំណត់ប្រព័ន្ធ (Settings)
+                                <label class="form-check-label d-flex align-items-center gap-2"
+                                    style="font-size: 0.88rem; cursor: pointer;">
+                                    <input type="checkbox" class="user-page-checkbox form-check-input" value="settings">
+                                    ការកំណត់ប្រព័ន្ធ (Settings)
                                 </label>
                             </div>
                         </div>
 
                         <!-- User Prefix Configuration Grid -->
                         <div class="form-group mt-3">
-                            <label class="fw-bold mb-2 text-dark"><i class="fa-solid fa-hashtag text-purple me-1"></i> កំណត់ក្បាលលេខ Prefix តាមគណនី (Prefix Numbering Settings)</label>
-                            <div class="p-3 rounded" style="background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #cbd5e1);">
+                            <label class="fw-bold mb-2 text-dark"><i class="fa-solid fa-hashtag text-purple me-1"></i>
+                                កំណត់ក្បាលលេខ Prefix តាមគណនី (Prefix Numbering Settings)</label>
+                            <div class="p-3 rounded"
+                                style="background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #cbd5e1);">
                                 <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 0.6rem 1rem;">
                                     <div class="form-group">
                                         <label class="form-label text-xs fw-semibold mb-1">កូដទំនិញ (Product)</label>
-                                        <input type="text" id="userFormPrefixProduct" class="form-control form-control-sm fw-bold" placeholder="PRD-" value="PRD-">
+                                        <input type="text" id="userFormPrefixProduct"
+                                            class="form-control form-control-sm fw-bold" placeholder="PRD-"
+                                            value="PRD-">
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label text-xs fw-semibold mb-1">ទិញចូល (Stock-In)</label>
-                                        <input type="text" id="userFormPrefixStockIn" class="form-control form-control-sm fw-bold" placeholder="PUR-" value="PUR-">
+                                        <input type="text" id="userFormPrefixStockIn"
+                                            class="form-control form-control-sm fw-bold" placeholder="PUR-"
+                                            value="PUR-">
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label text-xs fw-semibold mb-1">លក់ចេញ (Stock-Out)</label>
-                                        <input type="text" id="userFormPrefixStockOut" class="form-control form-control-sm fw-bold" placeholder="SAL-" value="SAL-">
+                                        <input type="text" id="userFormPrefixStockOut"
+                                            class="form-control form-control-sm fw-bold" placeholder="SAL-"
+                                            value="SAL-">
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label text-xs fw-semibold mb-1">កក់ទំនិញ (Booking)</label>
-                                        <input type="text" id="userFormPrefixBooking" class="form-control form-control-sm fw-bold" placeholder="BKG-" value="BKG-">
+                                        <input type="text" id="userFormPrefixBooking"
+                                            class="form-control form-control-sm fw-bold" placeholder="BKG-"
+                                            value="BKG-">
                                     </div>
                                 </div>
                             </div>
@@ -1703,7 +1925,8 @@
         <div class="modal-dialog" style="max-width: 520px;">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
-                    <h3 class="modal-title" id="bookingModalTitle"><i class="fa-solid fa-hand-holding-dollar"></i> 📥 ទទួលការកក់ទំនិញ (Customer Booking)</h3>
+                    <h3 class="modal-title" id="bookingModalTitle"><i class="fa-solid fa-hand-holding-dollar"></i> 📥
+                        ទទួលការកក់ទំនិញ (Customer Booking)</h3>
                     <button class="btn-close closeModal" onclick="closeBookingModal()">&times;</button>
                 </div>
                 <form id="bookingForm">
@@ -1714,7 +1937,8 @@
                         <div class="p-3 mb-3 border rounded-3 bg-light" style="font-size: 0.85rem; line-height: 1.6;">
                             <div class="flex-between">
                                 <span class="text-muted">ថ្ងៃខែម៉ោងស្វ័យប្រវត្តិ:</span>
-                                <strong id="bookingAutoTimestampText" class="text-primary font-monospace">2026-07-23 12:20:46</strong>
+                                <strong id="bookingAutoTimestampText" class="text-primary font-monospace">2026-07-23
+                                    12:20:46</strong>
                             </div>
                             <div class="flex-between">
                                 <span class="text-muted">លេខវិក្កយបត្រ:</span>
@@ -1736,11 +1960,13 @@
 
                         <div class="form-group mb-3">
                             <label for="bookingNotes">កំណត់ចំណាំ / លេខទូរស័ព្ទ / ព័ត៌មានបន្ថែម</label>
-                            <input type="text" id="bookingNotes" class="form-control" placeholder="ឧទាហរណ៍: កក់ 50% តាម ABA, លេខទូរស័ព្ទ 012 345 678">
+                            <input type="text" id="bookingNotes" class="form-control"
+                                placeholder="ឧទាហរណ៍: កក់ 50% តាម ABA, លេខទូរស័ព្ទ 012 345 678">
                         </div>
 
                         <div class="form-group mb-2">
-                            <label for="bookingImageInput">ភ្ជាប់រូបភាពបង្កាន់ដៃកក់ (Receipt / Voucher Images) <small class="text-muted">(អាចជ្រើសបានរហូតដល់ ៥ សន្លឹក / Max 5 images)</small></label>
+                            <label for="bookingImageInput">ភ្ជាប់រូបភាពបង្កាន់ដៃកក់ (Receipt / Voucher Images) <small
+                                    class="text-muted">(អាចជ្រើសបានរហូតដល់ ៥ សន្លឹក / Max 5 images)</small></label>
                             <input type="file" id="bookingImageInput" class="form-control" accept="image/*" multiple>
                         </div>
 
@@ -1763,12 +1989,14 @@
         <div class="modal-dialog" style="max-width: 700px;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title" id="imageViewerTitle"><i class="fa-solid fa-image"></i> រូបភាពបង្កាន់ដៃកក់</h3>
+                    <h3 class="modal-title" id="imageViewerTitle"><i class="fa-solid fa-image"></i> រូបភាពបង្កាន់ដៃកក់
+                    </h3>
                     <button class="btn-close closeModal" onclick="closeImageViewerModal()">&times;</button>
                 </div>
                 <div class="modal-body text-center p-3">
                     <div class="mb-3">
-                        <img id="imageViewerSrc" src="" alt="Deposit Receipt" style="max-width: 100%; max-height: 55vh; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); object-fit: contain;">
+                        <img id="imageViewerSrc" src="" alt="Deposit Receipt"
+                            style="max-width: 100%; max-height: 55vh; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); object-fit: contain;">
                     </div>
                     <div id="imageViewerThumbnails" class="d-flex justify-content-center gap-2 flex-wrap mt-2"></div>
                 </div>
@@ -1784,7 +2012,8 @@
         <div class="modal-dialog" style="max-width: 480px;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title" id="editStockOutModalTitle"><i class="fa-solid fa-pen-to-square"></i> កែប្រែប្រតិបត្តិការលក់ចេញ</h3>
+                    <h3 class="modal-title" id="editStockOutModalTitle"><i class="fa-solid fa-pen-to-square"></i>
+                        កែប្រែប្រតិបត្តិការលក់ចេញ</h3>
                     <button class="btn-close closeModal" onclick="closeEditStockOutModal()">&times;</button>
                 </div>
                 <form id="editStockOutForm">
@@ -1801,16 +2030,19 @@
                         <div class="form-grid mb-3">
                             <div class="form-group">
                                 <label for="editStockOutQty">ចំនួនលក់ <span class="text-danger">*</span></label>
-                                <input type="number" min="1" step="1" id="editStockOutQty" class="form-control" required>
+                                <input type="number" min="1" step="1" id="editStockOutQty" class="form-control"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="editStockOutPrice">តម្លៃលក់ ($) <span class="text-danger">*</span></label>
-                                <input type="number" min="0" step="0.01" id="editStockOutPrice" class="form-control" required>
+                                <input type="number" min="0" step="0.01" id="editStockOutPrice" class="form-control"
+                                    required>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" onclick="closeEditStockOutModal()">បោះបង់</button>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeEditStockOutModal()">បោះបង់</button>
                         <button type="submit" class="btn btn-primary fw-bold">
                             <i class="fa-solid fa-floppy-disk me-1"></i> រក្សាទុកការកែប្រែ
                         </button>
@@ -1823,8 +2055,9 @@
     <!-- Google Apps Script Web App API URL Configuration (សម្រាប់ Web Hosting ខាងក្រៅ) -->
     <script>
         // សូមបិទភ្ជាប់ (Paste) Web App URL របស់អ្នកជំនួស URL ខាងក្រោមនេះ៖
-        window.DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbx.../exec';
+        window.DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzfJWrliFgVDKylUIU9ikeyjUI_uEguI_f9BVFbadIkTr5AtYqMxl-nlIbgfoowLU7Dxw/exec';
     </script>
-    <script src="app.js?v=111.0"></script>
+    <script src="app.js?v=113.0"></script>
 </body>
+
 </html>
