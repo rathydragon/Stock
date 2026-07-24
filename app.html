@@ -915,6 +915,14 @@ function getLoggedUserStoreNames() {
         });
     }
 
+    if (state.customers && Array.isArray(state.customers)) {
+        state.customers.forEach(c => {
+            if (c && c.username && c.username.trim().toLowerCase() === curUser.username.trim().toLowerCase()) {
+                if (c.name) names.add(c.name.trim().toLowerCase());
+            }
+        });
+    }
+
     return Array.from(names);
 }
 
@@ -966,93 +974,144 @@ function matchesCustomerName(targetCustomer, customerNames) {
 
 function getStoreFilteredProducts() {
     if (!state.products || !Array.isArray(state.products)) return [];
-    
-    // Strict isolation for Customer role users: ONLY see their own products / bookings / transactions!
+    if (!state.currentUser) return state.products;
+
     if (isCustomerRoleUser()) {
         const myCustNames = getLoggedCustomerNames();
         return state.products.filter(p => {
             if (!p) return false;
-            // Matches if product supplier/customer/createdBy/owner matches logged customer name
+            if (p.username && p.username.trim().toLowerCase() === state.currentUser.username.trim().toLowerCase()) return true;
             if (matchesCustomerName(p.customer || p.customerName || p.supplier || p.createdBy || p.owner, myCustNames)) {
                 return true;
             }
-            // Or if product is in the customer's own stock-out or booking logs
             const inStockOut = (state.stockOutLogs || []).some(l => l && matchesCustomerName(l.customer, myCustNames) && l.code === p.code);
             const inBooking = (state.bookings || []).some(b => b && matchesCustomerName(b.customerName || b.customer, myCustNames) && b.productCode === p.code);
             return inStockOut || inBooking;
         });
     }
 
-    // Strict isolation for Store / Seller role users: ONLY see their own store's products!
-    if (isStoreRoleUser()) {
-        const myStoreNames = getLoggedUserStoreNames();
-        return state.products.filter(p => p && matchesStoreName(p.supplier, myStoreNames));
+    const isAdmin = state.currentUser.role === 'Admin';
+    if (isAdmin) {
+        const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
+        if (storeFilter) {
+            const targetLower = storeFilter.toLowerCase();
+            return state.products.filter(p => {
+                if (!p) return false;
+                const sup = (p.supplier || p.username || '').toLowerCase().trim();
+                return sup && (sup === targetLower || sup.includes(targetLower) || targetLower.includes(sup));
+            });
+        }
+        return state.products;
     }
 
-    // Admin / Manager / Cashier: filter by dropdown if selected
-    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
+    const myStoreNames = getLoggedUserStoreNames();
+    const curUsername = state.currentUser.username.trim().toLowerCase();
 
-    if (storeFilter) {
-        const targetLower = storeFilter.toLowerCase();
-        return state.products.filter(p => {
-            if (!p) return false;
-            const sup = (p.supplier || '').toLowerCase().trim();
-            return sup && (sup === targetLower || sup.includes(targetLower) || targetLower.includes(sup));
-        });
-    }
-
-    return state.products;
+    return state.products.filter(p => {
+        if (!p) return false;
+        if (p.username && p.username.trim().toLowerCase() === curUsername) return true;
+        if (matchesStoreName(p.supplier || p.customer || p.owner || p.createdBy, myStoreNames)) return true;
+        
+        const inStockIn = (state.stockInLogs || []).some(l => l && ((l.username && l.username.trim().toLowerCase() === curUsername) || matchesStoreName(l.supplier, myStoreNames)) && l.code === p.code);
+        const inStockOut = (state.stockOutLogs || []).some(l => l && ((l.username && l.username.trim().toLowerCase() === curUsername) || matchesStoreName(l.supplier || l.customer, myStoreNames)) && l.code === p.code);
+        const inBooking = (state.bookings || []).some(b => b && ((b.username && b.username.trim().toLowerCase() === curUsername) || matchesStoreName(b.customerName || b.staffName, myStoreNames)) && b.productCode === p.code);
+        return inStockIn || inStockOut || inBooking;
+    });
 }
 
 function getStoreFilteredStockInLogs() {
     if (!state.stockInLogs || !Array.isArray(state.stockInLogs)) return [];
+    if (!state.currentUser) return state.stockInLogs;
 
-    if (isCustomerRoleUser()) {
-        return [];
+    if (isCustomerRoleUser()) return [];
+
+    const isAdmin = state.currentUser.role === 'Admin';
+    if (isAdmin) {
+        const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
+        if (storeFilter) {
+            const storeNameLower = storeFilter.toLowerCase();
+            return state.stockInLogs.filter(l => {
+                const sup = (l.supplier || l.username || '').toLowerCase();
+                return sup && (sup === storeNameLower || sup.includes(storeNameLower) || storeNameLower.includes(sup));
+            });
+        }
+        return state.stockInLogs;
     }
 
-    if (isStoreRoleUser()) {
-        const myStoreNames = getLoggedUserStoreNames();
-        return state.stockInLogs.filter(l => l && matchesStoreName(l.supplier, myStoreNames));
-    }
+    const myStoreNames = getLoggedUserStoreNames();
+    const curUsername = state.currentUser.username.trim().toLowerCase();
 
-    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
-
-    if (storeFilter) {
-        const storeNameLower = storeFilter.toLowerCase();
-        return state.stockInLogs.filter(l => {
-            const sup = (l.supplier || '').toLowerCase();
-            return sup && (sup === storeNameLower || sup.includes(storeNameLower) || storeNameLower.includes(sup));
-        });
-    }
-
-    return state.stockInLogs;
+    return state.stockInLogs.filter(l => {
+        if (!l) return false;
+        if (l.username && l.username.trim().toLowerCase() === curUsername) return true;
+        return matchesStoreName(l.supplier || l.staffName, myStoreNames);
+    });
 }
 
 function getStoreFilteredStockOutLogs() {
     if (!state.stockOutLogs || !Array.isArray(state.stockOutLogs)) return [];
+    if (!state.currentUser) return state.stockOutLogs;
 
     if (isCustomerRoleUser()) {
         const myCustNames = getLoggedCustomerNames();
-        return state.stockOutLogs.filter(l => l && matchesCustomerName(l.customer, myCustNames));
+        const curUsername = state.currentUser.username.trim().toLowerCase();
+        return state.stockOutLogs.filter(l => l && ((l.username && l.username.trim().toLowerCase() === curUsername) || matchesCustomerName(l.customer, myCustNames)));
     }
 
-    if (isStoreRoleUser()) {
-        const myStoreNames = getLoggedUserStoreNames();
-        return state.stockOutLogs.filter(l => l && matchesStoreName(l.supplier || l.seller || l.staffName, myStoreNames));
+    const isAdmin = state.currentUser.role === 'Admin';
+    if (isAdmin) {
+        const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
+        if (storeFilter) {
+            const storeNameLower = storeFilter.toLowerCase();
+            return state.stockOutLogs.filter(l => {
+                const sup = (l.supplier || l.seller || l.username || '').toLowerCase();
+                return sup && (sup === storeNameLower || sup.includes(storeNameLower) || storeNameLower.includes(sup));
+            });
+        }
+        return state.stockOutLogs;
     }
 
-    const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
+    const myStoreNames = getLoggedUserStoreNames();
+    const curUsername = state.currentUser.username.trim().toLowerCase();
 
-    if (storeFilter) {
-        const storeNameLower = storeFilter.toLowerCase();
-        return state.stockOutLogs.filter(l => {
-            const sup = (l.supplier || l.seller || '').toLowerCase();
-            return sup && (sup === storeNameLower || sup.includes(storeNameLower) || storeNameLower.includes(sup));
-        });
+    return state.stockOutLogs.filter(l => {
+        if (!l) return false;
+        if (l.username && l.username.trim().toLowerCase() === curUsername) return true;
+        return matchesStoreName(l.supplier || l.seller || l.staffName || l.customer, myStoreNames);
+    });
+}
+
+function getStoreFilteredBookings() {
+    if (!state.bookings || !Array.isArray(state.bookings)) return [];
+    if (!state.currentUser) return state.bookings;
+
+    if (isCustomerRoleUser()) {
+        const myCustNames = getLoggedCustomerNames();
+        const curUsername = state.currentUser.username.trim().toLowerCase();
+        return state.bookings.filter(b => b && ((b.username && b.username.trim().toLowerCase() === curUsername) || matchesCustomerName(b.customerName || b.customer, myCustNames)));
     }
 
-    return state.stockOutLogs;
+    const isAdmin = state.currentUser.role === 'Admin';
+    if (isAdmin) {
+        const storeFilter = document.getElementById('productSupplierFilter') ? document.getElementById('productSupplierFilter').value.trim() : '';
+        if (storeFilter) {
+            const storeNameLower = storeFilter.toLowerCase();
+            return state.bookings.filter(b => {
+                const sup = (b.supplier || b.staffName || b.customerName || b.username || '').toLowerCase();
+                return sup && (sup === storeNameLower || sup.includes(storeNameLower) || storeNameLower.includes(sup));
+            });
+        }
+        return state.bookings;
+    }
+
+    const myStoreNames = getLoggedUserStoreNames();
+    const curUsername = state.currentUser.username.trim().toLowerCase();
+
+    return state.bookings.filter(b => {
+        if (!b) return false;
+        if (b.username && b.username.trim().toLowerCase() === curUsername) return true;
+        return matchesStoreName(b.staffName || b.customerName || b.supplier, myStoreNames);
+    });
 }
 
 // KPI Dashboard
@@ -1406,11 +1465,10 @@ function renderProductsTable() {
             if (tbody) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td data-label="ល.រ" class="text-center text-muted">${idx + 1}</td>
+                    <td data-label="NO" class="text-center text-muted">${idx + 1}</td>
                     <td data-label="កូដទំនិញ/បាកូដ"><code>${p.code}</code></td>
                     <td data-label="ឈ្មោះទំនិញ"><strong>${p.name}</strong></td>
                     <td data-label="ប្រភេទទំនិញ"><span class="badge badge-info">${p.category}</span></td>
-                    <td data-label="អ្នកផ្គត់ផ្គង់"><span class="badge badge-outline-secondary">${p.supplier || 'ទូទៅ'}</span></td>
                     <td data-label="ឯកតា" class="text-center">${p.unit || 'កញ្ចប់'}</td>
                     <td data-label="តម្លៃដើម" class="text-end">${fmtAcc(p.cost, 'text-slate-700')}</td>
                     <td data-label="តម្លៃលក់" class="text-end">${fmtAcc(p.price, 'text-primary fw-bold')}</td>
@@ -1441,7 +1499,7 @@ function renderProductsTable() {
     if (prodTfoot) {
         prodTfoot.innerHTML = `
             <tr class="table-summary-row">
-                <td colspan="5" class="text-end fw-bold text-dark">សរុបទិន្នន័យចម្រោះ (${filtered.length} ទំនិញ)៖</td>
+                <td colspan="4" class="text-end fw-bold text-dark">សរុបទិន្នន័យចម្រោះ (${filtered.length} ទំនិញ)៖</td>
                 <td class="text-center"><span class="badge badge-info">${totalQty.toLocaleString()} ឯកតា</span></td>
                 <td class="text-end">${fmtAcc(totalCostVal, 'text-slate-700 fw-bold')}</td>
                 <td class="text-end">${fmtAcc(totalRetailVal, 'text-primary fw-bold')}</td>
@@ -1645,7 +1703,7 @@ function handleProductFormSubmit(e) {
     const unit = document.getElementById('prodUnit') ? document.getElementById('prodUnit').value : 'កញ្ចប់';
     const supplier = document.getElementById('prodSupplier') ? (document.getElementById('prodSupplier').value.trim() || getUserStoreName() || 'ទូទៅ') : (getUserStoreName() || 'ទូទៅ');
 
-    const productObj = { code, name, category, cost, price, qty, minAlert, unit, supplier };
+    const productObj = { code, name, category, cost, price, qty, minAlert, unit, supplier, username: state.currentUser ? state.currentUser.username : '' };
 
     if (editIndex >= 0) {
         state.products[editIndex] = productObj;
@@ -1864,7 +1922,9 @@ function completeStockInTx() {
             qty: item.qty,
             cost: item.cost,
             total: item.qty * item.cost,
-            notes
+            notes,
+            username: state.currentUser ? state.currentUser.username : '',
+            staffName: state.currentUser ? (state.currentUser.fullName || state.currentUser.username) : ''
         };
         state.stockInLogs.unshift(logObj);
         syncToGoogleSheets('addStockIn', logObj);
@@ -2141,7 +2201,8 @@ function completeStockOutTx() {
             serviceFee,
             codFee,
             paymentStatus,
-            grandTotal
+            grandTotal,
+            username: state.currentUser ? state.currentUser.username : ''
         };
         state.stockOutLogs.unshift(logObj);
         syncToGoogleSheets('addStockOut', logObj);
@@ -3902,6 +3963,7 @@ function handleBookingFormSubmit(e) {
         images: [...currentBookingImages],
         imageUrl: currentBookingImages[0] || '',
         staffName,
+        username: state.currentUser ? state.currentUser.username : '',
         status: 'Pending'
     };
 
@@ -3925,18 +3987,10 @@ function renderBookingsTable() {
     const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
     const selStatus = statusFilter ? statusFilter.value : '';
 
-    const isCust = isCustomerRoleUser();
-    const myCustNames = isCust ? getLoggedCustomerNames() : [];
+    const baseBookings = getStoreFilteredBookings();
 
-    const pendingCount = (state.bookings || []).filter(b => {
-        if (isCust && (!b || !matchesCustomerName(b.customerName || b.customer, myCustNames))) return false;
-        return b.status === 'Pending';
-    }).length;
-
-    const completedCount = (state.bookings || []).filter(b => {
-        if (isCust && (!b || !matchesCustomerName(b.customerName || b.customer, myCustNames))) return false;
-        return b.status === 'Completed';
-    }).length;
+    const pendingCount = baseBookings.filter(b => b && b.status === 'Pending').length;
+    const completedCount = baseBookings.filter(b => b && b.status === 'Completed').length;
 
     const pendingSummaryEl = document.getElementById('bookingPendingCountSummary');
     if (pendingSummaryEl) pendingSummaryEl.innerHTML = `<i class="fa-solid fa-clock text-amber me-1"></i> កំពុងកក់: <strong>${pendingCount}</strong>`;
@@ -3944,8 +3998,8 @@ function renderBookingsTable() {
     const completedSummaryEl = document.getElementById('bookingCompletedCountSummary');
     if (completedSummaryEl) completedSummaryEl.innerHTML = `<i class="fa-solid fa-circle-check text-green me-1"></i> បង្ហើយ: <strong>${completedCount}</strong>`;
 
-    let filtered = (state.bookings || []).filter(b => {
-        if (isCust && (!b || !matchesCustomerName(b.customerName || b.customer, myCustNames))) return false;
+    let filtered = baseBookings.filter(b => {
+        if (!b) return false;
         const matchesQuery = (b.invoiceNo && b.invoiceNo.toLowerCase().includes(query)) ||
                              (b.productName && b.productName.toLowerCase().includes(query)) ||
                              (b.customerName && b.customerName.toLowerCase().includes(query)) ||

@@ -302,7 +302,8 @@ function getInitialData() {
         qty: Number(row[5] || 0),
         minAlert: Number(row[6] || 5),
         unit: String(row[7] || 'កញ្ចប់'),
-        supplier: String(row[8] || 'ទូទៅ')
+        supplier: String(row[8] || 'ទូទៅ'),
+        username: String(row[9] || '')
       };
     });
 
@@ -317,7 +318,8 @@ function getInitialData() {
         cost: Number(row[6] || 0),
         total: Number(row[7] || 0),
         notes: String(row[8] || ''),
-        unit: String(row[9] || 'កញ្ចប់')
+        unit: String(row[9] || 'កញ្ចប់'),
+        username: String(row[10] || '')
       };
     });
 
@@ -336,7 +338,8 @@ function getInitialData() {
         serviceFee: Number(row[10] || 0),
         codFee: Number(row[11] || 0),
         paymentStatus: String(row[12] || 'Paid'),
-        grandTotal: Number(row[13] || (Number(row[8] || 0) + Number(row[10] || 0) + Number(row[11] || 0)))
+        grandTotal: Number(row[13] || (Number(row[8] || 0) + Number(row[10] || 0) + Number(row[11] || 0))),
+        username: String(row[14] || '')
       };
     });
 
@@ -396,7 +399,8 @@ function getInitialData() {
         notes: String(row[8] || ''),
         imageUrl: String(row[9] || ''),
         staffName: String(row[10] || ''),
-        status: String(row[11] || 'Pending')
+        status: String(row[11] || 'Pending'),
+        username: String(row[12] || '')
       };
     });
 
@@ -444,7 +448,8 @@ function saveProduct(product) {
       product.qty,
       product.minAlert,
       product.unit || 'កញ្ចប់',
-      product.supplier || 'ទូទៅ'
+      product.supplier || 'ទូទៅ',
+      product.username || ''
     ];
 
     if (foundIndex > 0) {
@@ -502,7 +507,8 @@ function addStockIn(log) {
       log.cost,
       log.total,
       log.notes,
-      log.unit || 'កញ្ចប់'
+      log.unit || 'កញ្ចប់',
+      log.username || ''
     ]);
 
     updateProductQty(prodSheet, log.code, log.qty, true, log.cost);
@@ -538,7 +544,8 @@ function addStockOut(log) {
       log.serviceFee || 0,
       log.codFee || 0,
       log.paymentStatus || 'Paid',
-      log.grandTotal || log.total
+      log.grandTotal || log.total,
+      log.username || ''
     ]);
 
     updateProductQty(prodSheet, log.code, log.qty, false);
@@ -837,7 +844,8 @@ function addBooking(booking) {
       booking.notes || '',
       imagesStr,
       booking.staffName || '',
-      booking.status || 'Pending'
+      booking.status || 'Pending',
+      booking.username || ''
     ];
 
     sheet.appendRow(rowValues);
