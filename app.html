@@ -923,6 +923,14 @@ function getLoggedUserStoreNames() {
         });
     }
 
+    // Common default keywords & general tags so stores can access general & store owner data
+    names.add('ទូទៅ');
+    names.add('general');
+    names.add('');
+    names.add('ម្ចាស់ហាង');
+    names.add('store');
+    names.add('store owner');
+
     return Array.from(names);
 }
 
@@ -1009,6 +1017,7 @@ function getStoreFilteredProducts() {
 
     return state.products.filter(p => {
         if (!p) return false;
+        if (!p.supplier || p.supplier.trim() === '' || p.supplier === 'ទូទៅ') return true;
         if (p.username && p.username.trim().toLowerCase() === curUsername) return true;
         if (matchesStoreName(p.supplier || p.customer || p.owner || p.createdBy, myStoreNames)) return true;
         
@@ -1043,6 +1052,7 @@ function getStoreFilteredStockInLogs() {
 
     return state.stockInLogs.filter(l => {
         if (!l) return false;
+        if (!l.supplier || l.supplier.trim() === '' || l.supplier === 'ទូទៅ') return true;
         if (l.username && l.username.trim().toLowerCase() === curUsername) return true;
         return matchesStoreName(l.supplier || l.staffName, myStoreNames);
     });
@@ -1076,6 +1086,7 @@ function getStoreFilteredStockOutLogs() {
 
     return state.stockOutLogs.filter(l => {
         if (!l) return false;
+        if (!l.supplier || l.supplier.trim() === '' || l.supplier === 'ទូទៅ') return true;
         if (l.username && l.username.trim().toLowerCase() === curUsername) return true;
         return matchesStoreName(l.supplier || l.seller || l.staffName || l.customer, myStoreNames);
     });
